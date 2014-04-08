@@ -1,0 +1,27 @@
+name: KingKits
+main: me.faris.kingkits.KingKits
+version: 2.0.7
+description: Have battles with enemies using custom made kits!
+author: KingFaris10
+softdepends: Vault
+commands:
+    kingkits:
+      description: KingKits plugin command.
+      usage: /<command>
+      aliases: kk
+    pvpkit:
+      description: Choose a kit to fight in PvP!
+      usage: /<command> [<name>|<name> <player>]
+    createkit:
+      description: Create a PvP Kit ingame with all the items in your inventory!
+      usage: /<command> [<name>] [<guiitem>]
+    deletekit:
+      description: Delete a PvP kit.
+      usage: /<command> [<name>]
+    refill:
+      description: Refill bowl(s).
+      usage: /<command> [<all>]
+      aliases: soup
+    renamekit:
+      description: Rename a PvP kit.
+      usage: /<command> [<name> <newname>]
