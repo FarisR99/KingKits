@@ -109,7 +109,7 @@ public class KingKits extends JavaPlugin {
 		// Register commands
 		this.getCommand("kingkits").setExecutor(this.cmdKingKits);
 		this.getCommand("kingkits").setAliases(Arrays.asList("kk"));
-		this.getCommand("pvpkit").setExecutor(this.cmdKitL);
+		this.getCommand("kit").setExecutor(this.cmdKitL);
 		this.getCommand("createkit").setExecutor(this.cmdKitC);
 		this.getCommand("deletekit").setExecutor(this.cmdKitD);
 		this.getCommand("refill").setExecutor(this.cmdRefill);
@@ -222,9 +222,9 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Enable refill command", true);
 			this.getConfig().addDefault("Kit sign", "[Kit]");
 			this.getConfig().addDefault("Kit list sign", "[KList]");
-			this.getConfig().addDefault("Kit sign valid", "&0[&1®Kit&0]");
+			this.getConfig().addDefault("Kit sign valid", "&0[&1ï¿½Kit&0]");
 			this.getConfig().addDefault("Kit sign invalid", "&0[&cKit&0]");
-			this.getConfig().addDefault("Kit list sign valid", "&0[&1®KList&0]");
+			this.getConfig().addDefault("Kit list sign valid", "&0[&1ï¿½KList&0]");
 			this.getConfig().addDefault("Kit cooldown.Enabled", false);
 			this.getConfig().addDefault("Kit cooldown.Time", 30);
 			this.getConfig().addDefault("List kits on join", true);
@@ -512,7 +512,7 @@ public class KingKits extends JavaPlugin {
 		try {
 			this.getLoresConfig().options().header("KingKits Lore Configuration | View http://bit.ly/PKLores for information.");
 			List<String> defaultSwordKit = new ArrayList<String>();
-			defaultSwordKit.add("§6Iron Slayer");
+			defaultSwordKit.add("ï¿½6Iron Slayer");
 			this.getLoresConfig().addDefault("Default " + Material.IRON_SWORD.getId(), defaultSwordKit);
 			this.getLoresConfig().options().copyDefaults(true);
 			this.getLoresConfig().options().copyHeader(true);
@@ -769,7 +769,7 @@ public class KingKits extends JavaPlugin {
 
 	public String replaceAllColours(String val) {
 		String message = ChatColor.translateAlternateColorCodes('&', val);
-		message = ChatColor.translateAlternateColorCodes('§', message);
+		message = ChatColor.translateAlternateColorCodes('ï¿½', message);
 		return message;
 	}
 
