@@ -41,7 +41,7 @@ public class GuiPreviewKit implements Listener {
 		this.thePlugin = Plugin.getPlugin();
 		this.thePlayer = player;
 		this.guiTitle = ChatColor.RED + kitName + ChatColor.DARK_GRAY + " kit preview";
-		this.guiItemStacks = this.getPlugin().kitsItems.containsKey(kitName) ? this.getPlugin().kitsItems.get(kitName) : new ArrayList<ItemStack>();
+		this.guiItemStacks = this.getPlugin().kitList.containsKey(kitName) ? this.getPlugin().kitList.get(kitName).getMergedItems() : new ArrayList<ItemStack>();
 
 		int menuSize = 45;
 		this.guiInventory = this.thePlayer.getServer().createInventory(null, menuSize, this.guiTitle);
@@ -117,8 +117,12 @@ public class GuiPreviewKit implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	protected void onPlayerCloseInventory(InventoryCloseEvent event) {
 		try {
-			if (playerMenus.containsKey(event.getPlayer().getName()) && event.getPlayer().getName().equals(this.thePlayer.getName())) {
-				this.closeMenu(true, false);
+			if (event.getPlayer().getName().equals(this.thePlayer.getName())) {
+				if (playerMenus.containsKey(event.getPlayer().getName())) {
+					this.closeMenu(true, false);
+				} else {
+					HandlerList.unregisterAll(this);
+				}
 			}
 		} catch (Exception ex) {
 		}

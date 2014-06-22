@@ -1,9 +1,9 @@
 name: KingKits
 main: me.faris.kingkits.KingKits
-version: 2.0.7
+version: 2.0.9
 description: Have battles with enemies using custom made kits!
 author: KingFaris10
-softdepends: Vault
+softdepend: [Vault]
 commands:
     kingkits:
       description: KingKits plugin command.

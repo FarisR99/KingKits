@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.faris.kingkits.KingKits;
-import me.faris.kingkits.Language;
 import me.faris.kingkits.helpers.ConfigCommand;
+import me.faris.kingkits.helpers.Lang;
 import me.faris.kingkits.hooks.PvPKits;
 import me.faris.kingkits.listeners.KingCommand;
 import me.faris.kingkits.listeners.event.custom.KingKitsPreReloadEvent;
@@ -48,7 +48,7 @@ public class KingKitsCommand extends KingCommand {
 									sender.sendMessage(ChatColor.RED + "A plugin has not allowed you to reload the configuration.");
 								}
 							} else {
-								sender.sendMessage(this.r(Language.CommandLanguage.usageMsg.replaceAll("<usage>", command.toLowerCase() + " " + strCommand.toLowerCase())));
+								Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase());
 							}
 						} else {
 							this.sendNoAccess(sender);
@@ -76,7 +76,7 @@ public class KingKitsCommand extends KingCommand {
 									sender.sendMessage(ChatColor.RED + "Usage: " + ChatColor.DARK_RED + "/" + command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>");
 								}
 							} else {
-								sender.sendMessage(this.r(Language.CommandLanguage.usageMsg.replaceAll("<usage>", command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>")));
+								Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>");
 							}
 						} else {
 							this.sendNoAccess(sender);
@@ -91,8 +91,9 @@ public class KingKitsCommand extends KingCommand {
 										onlinePlayer.setScoreboard(newScoreboard);
 									}
 								}
+								sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "scoreboard objectives remove KingKits");
 							} else {
-								sender.sendMessage(this.r(Language.CommandLanguage.usageMsg.replaceAll("<usage>", command.toLowerCase() + " " + strCommand.toLowerCase())));
+								Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase());
 							}
 						} else {
 							this.sendNoAccess(sender);
@@ -105,7 +106,7 @@ public class KingKitsCommand extends KingCommand {
 									long killstreak = PvPKits.getKillstreak(player);
 									sender.sendMessage(ChatColor.GOLD + "Killstreak: " + ChatColor.DARK_RED + killstreak);
 								} else {
-									sender.sendMessage(this.r(Language.CommandLanguage.usageMsg.replaceAll("<usage>", command.toLowerCase() + " " + strCommand.toLowerCase())));
+									Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase());
 								}
 							} else {
 								this.sendNoAccess(sender);

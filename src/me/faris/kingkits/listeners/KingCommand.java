@@ -5,6 +5,7 @@ import java.util.List;
 
 import me.faris.kingkits.KingKits;
 
+import me.faris.kingkits.helpers.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -75,7 +76,7 @@ public abstract class KingCommand implements CommandExecutor {
 
 	/** Returns a string with the real colours **/
 	protected String r(String message) {
-		return this.plugin.replaceAllColours(message);
+		return Utils.replaceChatColour(message);
 	}
 
 	/** Send the "no access" message to a player/console **/

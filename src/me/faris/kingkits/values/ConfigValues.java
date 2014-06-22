@@ -51,8 +51,6 @@ public class ConfigValues {
 
 	public boolean kitMenuOnJoin = false;
 
-	public boolean barAPI = false;
-
 	public boolean kitParticleEffects = false;
 
 	public boolean showKitPreview = false;
@@ -75,7 +73,6 @@ public class ConfigValues {
 
 		public boolean useCostPerKit = false;
 		public boolean useCostPerRefill = false;
-		public double costPerKit = 50D;
 		public double costPerRefill = 2.5D;
 
 		public boolean useMoneyPerKill = false;

@@ -151,7 +151,7 @@ public class GuiKitMenu implements Listener {
 																if (!GuiPreviewKit.playerMenus.containsKey(player.getName())) new GuiPreviewKit(player, kitName).openMenu();
 															}
 														}
-													}, 2L);
+													}, 5L);
 												}
 												return;
 											} else {

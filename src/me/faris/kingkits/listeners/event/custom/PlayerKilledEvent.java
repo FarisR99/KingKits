@@ -3,14 +3,15 @@ package me.faris.kingkits.listeners.event.custom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerKilledEvent extends Event {
+public class PlayerKilledEvent extends PlayerEvent {
 	private static final HandlerList handlers = new HandlerList();
 
-	private Player theKiller = null, theDead = null;
+	private Player theDead = null;
 	
 	public PlayerKilledEvent(Player killer, Player dead) {
-		this.theKiller = killer;
+		super(killer);
 		this.theDead = dead;
 	}
 
@@ -20,8 +21,8 @@ public class PlayerKilledEvent extends Event {
 	}
 
 	/** Returns the killer **/
-	public Player getPlayer() {
-		return this.theKiller;
+	public Player getKiller() {
+		return this.getPlayer();
 	}
 
 	public HandlerList getHandlers() {

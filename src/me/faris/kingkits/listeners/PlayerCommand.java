@@ -21,6 +21,6 @@ public abstract class PlayerCommand extends KingCommand {
 		return this.onCommand((Player) sender, command, args);
 	}
 
-	protected abstract boolean onCommand(Player p, String command, String[] args);
+	protected abstract boolean onCommand(Player player, String command, String[] args);
 
 }
