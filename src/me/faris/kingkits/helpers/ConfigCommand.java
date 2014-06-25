@@ -20,11 +20,6 @@ public class ConfigCommand {
 		return this.description;
 	}
 
-	/** Get the config command instance **/
-	public ConfigCommand getConfigCommand() {
-		return this;
-	}
-
 	/** Returns the command and config key as a String **/
 	public String toString() {
 		return this.command + ":" + this.description;

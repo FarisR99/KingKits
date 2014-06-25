@@ -1,7 +1,8 @@
 package me.faris.kingkits.listeners.commands;
 
 import me.faris.kingkits.KingKits;
-import me.faris.kingkits.guis.GuiKitMenu;
+import me.faris.kingkits.Kit;
+import me.faris.kingkits.guis.GuiKingKits;
 import me.faris.kingkits.guis.GuiPreviewKit;
 import me.faris.kingkits.helpers.Lang;
 import me.faris.kingkits.helpers.Utils;
@@ -54,32 +55,41 @@ public class KitCommand extends KingCommand {
                         } else if (args.length == 1) {
                             if (!this.isConsole(sender)) {
                                 Player player = (Player) sender;
-                                if (!this.getPlugin().configValues.kitCooldown || (this.getPlugin().configValues.kitCooldown && !this.getPlugin().kitCooldownPlayers.contains(player.getName()))) {
-                                    String kitName = args[0];
-                                    List<String> kitList = this.getPlugin().getKitList();
-                                    List<String> kitListLC = Utils.toLowerCaseList(kitList);
-                                    if (kitListLC.contains(kitName.toLowerCase()))
-                                        kitName = kitList.get(kitListLC.indexOf(kitName.toLowerCase()));
-                                    try {
-                                        if (this.getPlugin().configValues.showKitPreview && !player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-                                            if (!GuiKitMenu.playerMenus.containsKey(player.getName()) && !GuiPreviewKit.playerMenus.containsKey(player.getName())) {
-                                                if (this.getPlugin().getKitsConfig().contains(kitName)) {
-                                                    GuiPreviewKit guiPreviewKit = new GuiPreviewKit(player, kitName);
-                                                    guiPreviewKit.openMenu();
-                                                } else {
-                                                    SetKit.setKingKit(this.getPlugin(), player, kitName, true);
-                                                }
+                                String kitName = args[0];
+                                List<String> kitList = this.getPlugin().getKitList();
+                                List<String> kitListLC = Utils.toLowerCaseList(kitList);
+                                if (kitListLC.contains(kitName.toLowerCase()))
+                                    kitName = kitList.get(kitListLC.indexOf(kitName.toLowerCase()));
+                                try {
+                                    final Kit kit = this.getPlugin().kitList.get(kitName);
+                                    if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+                                        if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
+                                            long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
+                                            if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
+                                                this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+                                                this.getPlugin().saveCooldownConfig();
+                                            } else {
+                                                player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                    if (this.getPlugin().configValues.showKitPreview && !player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
+                                        if (!GuiKingKits.guiKitMenuMap.containsKey(player.getName()) && !GuiKingKits.guiPreviewKitMap.containsKey(player.getName())) {
+                                            if (this.getPlugin().getKitsConfig().contains(kitName)) {
+                                                GuiPreviewKit guiPreviewKit = new GuiPreviewKit(player, kitName);
+                                                guiPreviewKit.openMenu();
                                             } else {
                                                 SetKit.setKingKit(this.getPlugin(), player, kitName, true);
                                             }
                                         } else {
                                             SetKit.setKingKit(this.getPlugin(), player, kitName, true);
                                         }
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
+                                    } else {
+                                        SetKit.setKingKit(this.getPlugin(), player, kitName, true);
                                     }
-                                } else {
-                                    player.sendMessage(ChatColor.RED + "There is a " + this.getPlugin().configValues.kitCooldownTime + " second(s) cooldown when choosing kits!");
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
                                 }
                             } else {
                                 sender.sendMessage(ChatColor.RED + "You must be a player to use this command.");

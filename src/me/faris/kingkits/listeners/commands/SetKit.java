@@ -17,22 +17,25 @@ public class SetKit {
     private static KingKits pl;
 
     public static void setKingKit(KingKits plugin, Player player, String kitName, boolean sendMessages) throws Exception {
-        if (setKit(plugin, player, kitName, sendMessages)) {
-            if (plugin.configValues.kitCooldown && !player.hasPermission(plugin.permissions.kitBypassCooldown)) {
+        final Kit kit = setKit(plugin, player, sendMessages, kitName);
+        if (kit != null) {
+            if (kit.hasCooldown() && !player.hasPermission(plugin.permissions.kitBypassCooldown)) {
                 final String playerName = player.getName();
-                plugin.kitCooldownPlayers.add(playerName);
-                plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-                    public void run() {
-                        if (pl != null) pl.kitCooldownPlayers.remove(playerName);
-                    }
-                }, plugin.configValues.kitCooldownTime * 20L);
+                final String newKitName = kit.getRealName();
+                pl.getCooldownConfig().set(playerName + "." + newKitName, System.currentTimeMillis());
+                pl.saveCooldownConfig();
             }
         }
     }
 
-    @SuppressWarnings("deprecation")
+
     public static boolean setKit(KingKits plugin, Player player, String kitName, boolean sendMessages) throws Exception {
-        if (plugin == null | player == null || kitName == null) return false;
+        return setKit(plugin, player, sendMessages, kitName) != null;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Kit setKit(KingKits plugin, Player player, boolean sendMessages, String kitName) throws Exception {
+        if (plugin == null | player == null || kitName == null) return null;
         pl = plugin;
         if (plugin.configValues.pvpWorlds.contains("All") || plugin.configValues.pvpWorlds.contains(player.getWorld().getName())) {
             List<String> kitList = plugin.getConfigKitList();
@@ -52,19 +55,19 @@ public class SetKit {
                             if (!player.isOp()) {
                                 if (plugin.playerKits.containsKey(player.getName())) {
                                     if (sendMessages) player.sendMessage(r("&6You have already chosen a kit!"));
-                                    return false;
+                                    return null;
                                 }
                             }
                         } else {
                             if (plugin.usingKits.containsKey(player.getName())) {
                                 if (sendMessages) player.sendMessage(r("&6You have already chosen a kit!"));
-                                return false;
+                                return null;
                             }
                         }
                     }
                     String oldKit = plugin.playerKits.containsKey(player.getName()) ? plugin.playerKits.get(player.getName()) : "";
                     Kit newKit = plugin.kitList.get(kitName);
-                    if (newKit == null) return false;
+                    if (newKit == null) return null;
                     PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItems(), newKit.getArmour(), newKit.getPotionEffects());
                     player.getServer().getPluginManager().callEvent(playerKitEvent);
                     if (!playerKitEvent.isCancelled()) {
@@ -81,12 +84,12 @@ public class SetKit {
                                     } else {
                                         if (sendMessages)
                                             player.sendMessage(ChatColor.GREEN + "You do not have enough money to change kits.");
-                                        return false;
+                                        return null;
                                     }
                                 } else {
                                     if (sendMessages)
                                         player.sendMessage(ChatColor.GREEN + "You do not have enough money to change kits.");
-                                    return false;
+                                    return null;
                                 }
                             } catch (Exception ex) {
                             }
@@ -126,10 +129,10 @@ public class SetKit {
                         plugin.usingKits.remove(player.getName());
                         if (plugin.configValues.opBypass) {
                             if (!player.isOp()) {
-                                plugin.playerKits.put(player.getName(), kitName);
+                                plugin.playerKits.put(player.getName(), newKit.getRealName());
                             }
                         } else {
-                            plugin.playerKits.put(player.getName(), kitName);
+                            plugin.playerKits.put(player.getName(), newKit.getRealName());
                         }
                         plugin.usingKits.put(player.getName(), kitName);
                         if (plugin.configValues.customMessages != "" && plugin.configValues.customMessages != "''")
@@ -137,7 +140,7 @@ public class SetKit {
                         if (plugin.configValues.kitParticleEffects) {
                             player.playEffect(player.getLocation().add(0, 1, 0), Effect.ENDER_SIGNAL, (byte) 0);
                         }
-                        return true;
+                        return newKit;
                     } else {
                         for (PotionEffect potionEffect : player.getActivePotionEffects())
                             player.removePotionEffect(potionEffect.getType());
@@ -150,7 +153,7 @@ public class SetKit {
                 if (sendMessages) player.sendMessage(r("&4" + kitName + " &6does not exist."));
             }
         }
-        return false;
+        return null;
     }
 
     private static String r(String val) {

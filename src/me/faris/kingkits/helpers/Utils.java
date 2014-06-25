@@ -175,6 +175,15 @@ public class Utils {
         }
     }
 
+    public static boolean isLong(String aString) {
+        try {
+            Long.parseLong(aString);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     public static boolean isShort(String aString) {
         try {
             Short.parseShort(aString);

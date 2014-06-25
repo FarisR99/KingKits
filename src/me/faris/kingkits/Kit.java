@@ -1,6 +1,7 @@
 package me.faris.kingkits;
 
 import me.faris.kingkits.helpers.Utils;
+import me.faris.kingkits.hooks.Plugin;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
@@ -18,7 +19,9 @@ import java.util.*;
 
 public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private String kitName = "";
+    private String realName = "";
     private double kitCost = 0D;
+    private long kitCooldown = 0;
 
     private ItemStack guiItem = null;
 
@@ -89,6 +92,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return Collections.unmodifiableList(this.kitArmour);
     }
 
+    public long getCooldown() {
+        return this.kitCooldown;
+    }
+
     public double getCost() {
         return this.kitCost;
     }
@@ -115,6 +122,14 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return Collections.unmodifiableList(this.potionEffects);
     }
 
+    public String getRealName() {
+        return this.realName;
+    }
+
+    public boolean hasCooldown() {
+        return Plugin.getPlugin().configValues.kitCooldown && this.kitCooldown > 0;
+    }
+
     public Kit removeItem(ItemStack itemStack) {
         Validate.notNull(itemStack);
         this.kitItems.remove(itemStack);
@@ -124,6 +139,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public Kit setArmour(List<ItemStack> armour) {
         Validate.notNull(armour);
         this.kitArmour = armour;
+        return this;
+    }
+
+    public Kit setCooldown(long cooldown) {
+        if (this.kitCooldown >= 0L) this.kitCooldown = cooldown;
         return this;
     }
 
@@ -157,12 +177,19 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this;
     }
 
+    public Kit setRealName(String realName) {
+        Validate.notNull(realName);
+        this.realName = realName;
+        return this;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> serializedKit = new HashMap<String, Object>();
         serializedKit.put("Name", this.kitName != null ? this.kitName : "Kit" + new Random().nextInt());
         serializedKit.put("Cost", this.kitCost);
+        serializedKit.put("Cooldown", this.kitCooldown);
 
         /** GUI Item **/
         if (this.guiItem != null) {
@@ -267,6 +294,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 String kitName = getObject(kitSection, "Name", String.class);
                 kit = new Kit(kitName);
                 if (kitSection.containsKey("Cost")) kit.setCost(getObject(kitSection, "Cost", Double.class));
+                if (kitSection.containsKey("Cooldown"))
+                    kit.setCooldown(getObject(kitSection, "Cooldown", Long.class));
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;
@@ -441,7 +470,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private static <T> T getObject(Map<String, Object> map, String key, Class<T> unused) throws ClassCastException {
         try {
             T value = map.containsKey(key) ? (T) map.get(key) : null;
-            return value != null ? (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : value)) : null;
+            return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : value))) : null;
         } catch (ClassCastException ex) {
             throw ex;
         }

@@ -2,8 +2,10 @@ package me.faris.kingkits;
 
 import me.faris.kingkits.Updater.UpdateResult;
 import me.faris.kingkits.Updater.UpdateType;
+import me.faris.kingkits.guis.GuiKingKits;
 import me.faris.kingkits.guis.GuiKitMenu;
 import me.faris.kingkits.guis.GuiPreviewKit;
+import me.faris.kingkits.helpers.Lang;
 import me.faris.kingkits.helpers.UUIDFetcher;
 import me.faris.kingkits.helpers.Utils;
 import me.faris.kingkits.hooks.Plugin;
@@ -37,12 +39,11 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
     // Class Variables
-    private KingKits plugin;
+    private KingKits plugin = null;
     private Plugin pvpPlugin = null;
     private PvPKits pvpKits = null;
     private Updater updater = null;
@@ -52,7 +53,6 @@ public class KingKits extends JavaPlugin {
     public Vault vault = new Vault(this);
 
     // Plugin Variables
-    private Logger logger;
     public Map<String, String> usingKits = new HashMap<String, String>();
     public Map<String, String> playerKits = new HashMap<String, String>();
     public Map<UUID, Object> playerScores = new HashMap<UUID, Object>();
@@ -69,11 +69,11 @@ public class KingKits extends JavaPlugin {
     private RefillCommand cmdRefill = null;
 
     public Map<String, Kit> kitList = new HashMap<String, Kit>();
-    public List<String> kitCooldownPlayers = new ArrayList<String>();
+    private int cooldownTaskID = -1;
 
     public void onEnable() {
         this.pvpPlugin = new Plugin(this);
-        this.pvpKits = new PvPKits(this);
+        this.pvpKits = new PvPKits();
         // Clear all lists
         this.usingKits.clear();
         this.playerKits.clear();
@@ -83,11 +83,10 @@ public class KingKits extends JavaPlugin {
 
         // Initialise variables
         this.plugin = this;
-        this.logger = this.getLogger();
-        this.logger.info(this.getDescription().getFullName() + " by KingFaris10 is now enabled.");
+        this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now enabled.");
         this.loadConfiguration();
         try {
-            //Lang.init(this);
+            Lang.init(this);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -122,45 +121,47 @@ public class KingKits extends JavaPlugin {
             if (this.updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
                 String title = "============================================";
                 String titleSpace = "                                            ";
-                this.logger.info(title);
+                this.getLogger().info(title);
                 try {
-                    this.logger.info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
+                    this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
                 } catch (Exception ex) {
-                    this.logger.info("KingKits");
+                    this.getServer().getConsoleSender().sendMessage("KingKits");
                 }
-                this.logger.info(title);
-                this.logger.info("A new version is available: " + this.updater.getLatestName());
-                this.logger.info("Your current version: KingKits v" + this.getDescription().getVersion());
+                this.getLogger().info(title);
+                this.getLogger().info("A new version is available: " + this.updater.getLatestName());
+                this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
                 if (this.configValues.automaticUpdates) {
-                    this.logger.info("Downloading " + this.updater.getLatestName() + "...");
+                    this.getLogger().info("Downloading " + this.updater.getLatestName() + "...");
                     this.updater = new Updater(this, 56371, this.getFile(), UpdateType.NO_VERSION_CHECK, false);
                     UpdateResult updateResult = this.updater.getResult();
                     if (updateResult == UpdateResult.FAIL_APIKEY)
-                        this.logger.info("Download failed: Improperly configured the server's API key in the configuration");
+                        this.getLogger().warning("Download failed: Improperly configured the server's API key in the configuration");
                     else if (updateResult == UpdateResult.FAIL_DBO)
-                        this.logger.info("Download failed: Could not connect to BukkitDev.");
+                        this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
                     else if (updateResult == UpdateResult.FAIL_DOWNLOAD)
-                        this.logger.info("Download failed: Could not download the file.");
+                        this.getLogger().warning("Download failed: Could not download the file.");
                     else if (updateResult == UpdateResult.FAIL_NOVERSION)
-                        this.logger.info("Download failed: The latest version has an incorrect title.");
-                    else this.logger.info("The latest version of KingKits has been downloaded.");
+                        this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+                    else this.getLogger().info("The latest version of KingKits has been downloaded.");
                 } else {
-                    this.logger.info("Download it from: " + this.updater.getLatestFileLink());
+                    this.getLogger().info("Download it from: " + this.updater.getLatestFileLink());
                 }
             }
         }
 
         try {
-            org.mcstats.Metrics metrics = new org.mcstats.Metrics(this);
-            metrics.start();
-        } catch (IOException ex) {
+            new org.mcstats.Metrics(this).start();
+        } catch (Exception ex) {
+            this.getLogger().warning("Could not start metrics due to a(n) " + ex.getClass().getSimpleName() + " error.");
+            ex.printStackTrace();
         }
     }
 
     public void onDisable() {
-        // Initialise variables
+        // Re-initialise variables
         this.plugin = this;
-        this.logger = this.getLogger();
+
+        if (this.cooldownTaskID != -1) this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
 
         // Clear inventories on reload
         if (this.configValues.clearInvsOnReload) {
@@ -178,18 +179,18 @@ public class KingKits extends JavaPlugin {
         }
 
         try {
-            for (Entry<String, GuiKitMenu> playerEntry : GuiKitMenu.playerMenus.entrySet()) {
+            for (Entry<String, GuiKitMenu> playerEntry : GuiKingKits.guiKitMenuMap.entrySet()) {
                 playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
             }
-            GuiKitMenu.playerMenus.clear();
+            GuiKingKits.guiKitMenuMap.clear();
         } catch (Exception ex) {
         }
 
         try {
-            for (Entry<String, GuiPreviewKit> playerEntry : GuiPreviewKit.playerMenus.entrySet()) {
+            for (Entry<String, GuiPreviewKit> playerEntry : GuiKingKits.guiPreviewKitMap.entrySet()) {
                 playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
             }
-            GuiPreviewKit.playerMenus.clear();
+            GuiKingKits.guiPreviewKitMap.clear();
         } catch (Exception ex) {
         }
 
@@ -205,12 +206,13 @@ public class KingKits extends JavaPlugin {
         for (Permission registeredPerm : this.permissions.permissionsList)
             this.getServer().getPluginManager().removePermission(registeredPerm);
 
-        this.logger.info(this.getDescription().getFullName() + " by KingFaris10 is now disabled.");
+        this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now disabled.");
     }
 
     // Load Configurations
     public void loadConfiguration() {
         try {
+            if (this.cooldownTaskID != -1) this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
             this.getConfig().options().header("KingKits Configuration");
             this.getConfig().addDefault("Op bypass", true);
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
@@ -221,11 +223,12 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Enable refill command", true);
             this.getConfig().addDefault("Kit sign", "[Kit]");
             this.getConfig().addDefault("Kit list sign", "[KList]");
-            this.getConfig().addDefault("Kit sign valid", "&0[&1�Kit&0]");
+            this.getConfig().addDefault("Kit sign valid", "&0[&1Kit&0]");
             this.getConfig().addDefault("Kit sign invalid", "&0[&cKit&0]");
-            this.getConfig().addDefault("Kit list sign valid", "&0[&1�KList&0]");
-            this.getConfig().addDefault("Kit cooldown.Enabled", false);
-            this.getConfig().addDefault("Kit cooldown.Time", 30);
+            this.getConfig().addDefault("Kit list sign valid", "&0[&1KList&0]");
+            this.getConfig().addDefault("Kit cooldown enabled", false);
+            if (this.getConfig().contains("Kit cooldown.Enabled")) this.getConfig().set("Kit cooldown.Enabled", null);
+            if (this.getConfig().contains("Kit cooldown.Time")) this.getConfig().set("Kit cooldown.Time", null);
             this.getConfig().addDefault("List kits on join", true);
             this.getConfig().addDefault("Use permissions on join", true);
             this.getConfig().addDefault("Use permissions for kit list", true);
@@ -277,8 +280,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.strKitSignValid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign valid"));
             this.configValues.strKitSignInvalid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign invalid"));
             this.configValues.strKitListSignValid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit list sign valid"));
-            this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown.Enabled");
-            this.configValues.kitCooldownTime = this.getConfig().getInt("Kit cooldown.Time");
+            this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
             this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
             this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
             this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions on join");
@@ -336,6 +338,16 @@ public class KingKits extends JavaPlugin {
                         else onlinePlayer.setScoreboard(playerScoreboard);
                     }
                 }
+            }
+
+            if (this.configValues.kitCooldown) {
+                this.cooldownTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
+                    public void run() {
+                        for (String configKey : getCooldownConfig().getKeys(true)) {
+
+                        }
+                    }
+                }, 12000L, 12000L).getTaskId();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -542,7 +554,7 @@ public class KingKits extends JavaPlugin {
                         kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
                     else if (objKitConfigSection instanceof Map)
                         kit = Kit.deserialize((Map) objKitConfigSection);
-                    if (kit != null) this.kitList.put(kitName, kit);
+                    if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName));
                     else
                         this.getLogger().warning("Could not register the kit '" + kitName + "' it has been invalidly defined in the configuration.");
                 } catch (Exception ex) {
@@ -732,6 +744,41 @@ public class KingKits extends JavaPlugin {
         return configKeys;
     }
 
+    public long getCooldown(String playerName, String kitName) {
+        if (playerName != null && kitName != null && this.kitList.containsKey(kitName) && this.getCooldownConfig().contains(playerName)) {
+            Object objCooldownPlayer = this.getCooldownConfig().get(playerName);
+            Map<String, Object> playerKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
+            if (playerKitCooldowns.containsKey(kitName)) {
+                String strPlayerCooldown = playerKitCooldowns.get(kitName) != null ? playerKitCooldowns.get(kitName).toString() : null;
+                if (!Utils.isLong(strPlayerCooldown)) {
+                    this.getCooldownConfig().set(playerName + "." + kitName, null);
+                    this.saveCooldownConfig();
+                } else {
+                    return Long.parseLong(strPlayerCooldown);
+                }
+            }
+        }
+        return System.currentTimeMillis();
+    }
+
+    public Map<String, Long> getCooldowns(String playerName) {
+        Map<String, Long> kitCooldowns = new HashMap<String, Long>();
+        if (playerName != null && this.getCooldownConfig().contains(playerName)) {
+            Object objCooldownPlayer = this.getCooldownConfig().get(playerName);
+            Map<String, Object> configKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
+            for (Entry<String, Object> kitEntry : configKitCooldowns.entrySet()) {
+                String strPlayerCooldown = kitEntry.getValue().toString();
+                if (!Utils.isLong(strPlayerCooldown)) {
+                    this.getCooldownConfig().set(playerName + "." + strPlayerCooldown, null);
+                    this.saveCooldownConfig();
+                } else {
+                    kitCooldowns.put(kitEntry.getKey(), Long.parseLong(strPlayerCooldown));
+                }
+            }
+        }
+        return kitCooldowns;
+    }
+
     public List<String> getKitList() {
         return new ArrayList<String>(this.kitList.keySet());
     }
@@ -912,6 +959,40 @@ public class KingKits extends JavaPlugin {
         }
     }
 
+    private FileConfiguration cooldownConfig = null;
+    private File customCooldownConfig = null;
+
+    public void reloadCooldownConfig() {
+        if (this.customCooldownConfig == null) {
+            this.customCooldownConfig = new File(this.getDataFolder(), "cooldown.yml");
+        }
+        this.cooldownConfig = YamlConfiguration.loadConfiguration(this.customCooldownConfig);
+
+        InputStream defConfigStream = this.getResource("cooldown.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            this.cooldownConfig.setDefaults(defConfig);
+        }
+    }
+
+    public FileConfiguration getCooldownConfig() {
+        if (this.cooldownConfig == null) {
+            this.reloadCooldownConfig();
+        }
+        return this.cooldownConfig;
+    }
+
+    public void saveCooldownConfig() {
+        if (this.cooldownConfig == null || this.customCooldownConfig == null) {
+            return;
+        }
+        try {
+            this.cooldownConfig.save(this.customCooldownConfig);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save the cooldown config as " + this.customCooldownConfig.getName(), ex);
+        }
+    }
+
     /**
      * Reloads all the configurations *
      */
@@ -922,6 +1003,7 @@ public class KingKits extends JavaPlugin {
         this.reloadScoresConfig();
         this.reloadEconomyConfig();
         this.reloadKillstreaksConfig();
+        this.reloadCooldownConfig();
     }
 
 }

@@ -2,6 +2,7 @@ package me.faris.kingkits.listeners.event;
 
 import me.faris.kingkits.KingKits;
 import me.faris.kingkits.Kit;
+import me.faris.kingkits.guis.GuiKingKits;
 import me.faris.kingkits.guis.GuiKitMenu;
 import me.faris.kingkits.guis.GuiPreviewKit;
 import me.faris.kingkits.helpers.KitStack;
@@ -160,29 +161,35 @@ public class PlayerListener implements Listener {
                             String signLine0 = sign.getLine(0);
                             if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitSignValid)) {
                                 if (player.hasPermission(this.getPlugin().permissions.kitUseSign)) {
-                                    if (!this.getPlugin().configValues.kitCooldown || (this.getPlugin().configValues.kitCooldown && !this.getPlugin().kitCooldownPlayers.contains(player.getName()))) {
-                                        String line1 = sign.getLine(1);
-                                        if (line1 != null) {
-                                            if (!line1.equalsIgnoreCase("")) {
-                                                List<String> kitList = this.getPlugin().getKitList();
-                                                List<String> kitListLC = new ArrayList<String>();
-                                                for (int pos1 = 0; pos1 < kitList.size(); pos1++) {
-                                                    kitListLC.add(kitList.get(pos1).toLowerCase());
-                                                }
-                                                if (kitListLC.contains(line1.toLowerCase())) {
-                                                    String kitName = kitList.get(kitListLC.indexOf(line1.toLowerCase()));
-                                                    try {
-                                                        SetKit.setKingKit(this.getPlugin(), player, kitName, true);
-                                                    } catch (Exception e) {
-                                                        player.sendMessage(ChatColor.RED + "Error while trying to set your kit. Try using /pvpkit if it doesn't work.");
+                                    String line1 = sign.getLine(1);
+                                    if (line1 != null) {
+                                        if (!line1.equalsIgnoreCase("")) {
+                                            List<String> kitList = this.getPlugin().getKitList();
+                                            List<String> kitListLC = Utils.toLowerCaseList(kitList);
+                                            if (kitListLC.contains(line1.toLowerCase())) {
+                                                String kitName = kitList.get(kitListLC.indexOf(line1.toLowerCase()));
+                                                try {
+                                                    final Kit kit = this.getPlugin().kitList.get(kitName);
+                                                    boolean validCooldown = true;
+                                                    if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+                                                        if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
+                                                            long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
+                                                            if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
+                                                                this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+                                                                this.getPlugin().saveCooldownConfig();
+                                                            } else {
+                                                                player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
+                                                                validCooldown = false;
+                                                            }
+                                                        }
                                                     }
-                                                } else {
-                                                    player.sendMessage(ChatColor.RED + "Unknown kit " + ChatColor.DARK_RED + line1 + ChatColor.RED + ".");
-                                                    sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
-                                                    sign.update(true);
+                                                    if (validCooldown)
+                                                        SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                                } catch (Exception e) {
+                                                    player.sendMessage(ChatColor.RED + "Error while trying to set your kit. If it does not work after trying again, try using /pvpkit.");
                                                 }
                                             } else {
-                                                player.sendMessage(ChatColor.RED + "Sign incorrectly set up.");
+                                                player.sendMessage(ChatColor.RED + "Unknown kit " + ChatColor.DARK_RED + line1 + ChatColor.RED + ".");
                                                 sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
                                                 sign.update(true);
                                             }
@@ -192,7 +199,9 @@ public class PlayerListener implements Listener {
                                             sign.update(true);
                                         }
                                     } else {
-                                        player.sendMessage(ChatColor.RED + "There is a " + this.getPlugin().configValues.kitCooldownTime + " second(s) cooldown when choosing kits!");
+                                        player.sendMessage(ChatColor.RED + "Sign incorrectly set up.");
+                                        sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
+                                        sign.update(true);
                                     }
                                 } else {
                                     player.sendMessage(ChatColor.RED + "You do not have permission to use this sign.");
@@ -277,12 +286,12 @@ public class PlayerListener implements Listener {
                 this.getPlugin().playerKits.remove(player.getName());
             if (this.getPlugin().usingKits.containsKey(player.getName()))
                 this.getPlugin().usingKits.remove(player.getName());
-            if (GuiKitMenu.playerMenus.containsKey(event.getPlayer().getName())) {
-                GuiKitMenu guiKitMenu = GuiKitMenu.playerMenus.get(event.getPlayer().getName());
+            if (GuiKingKits.guiKitMenuMap.containsKey(event.getPlayer().getName())) {
+                GuiKitMenu guiKitMenu = GuiKingKits.guiKitMenuMap.get(event.getPlayer().getName());
                 guiKitMenu.closeMenu(true, true);
             }
-            if (GuiPreviewKit.playerMenus.containsKey(event.getPlayer().getName())) {
-                GuiPreviewKit guiPreviewKit = GuiPreviewKit.playerMenus.get(event.getPlayer().getName());
+            if (GuiKingKits.guiPreviewKitMap.containsKey(event.getPlayer().getName())) {
+                GuiPreviewKit guiPreviewKit = GuiKingKits.guiPreviewKitMap.get(event.getPlayer().getName());
                 guiPreviewKit.closeMenu(true, true);
             }
         } catch (Exception ex) {
@@ -981,7 +990,7 @@ public class PlayerListener implements Listener {
                     @SuppressWarnings("deprecation")
                     public void run() {
                         if (player != null && player.isOnline()) {
-                            if (!GuiKitMenu.playerMenus.containsKey(player.getName())) {
+                            if (!GuiKingKits.guiKitMenuMap.containsKey(player.getName()) && !GuiKingKits.guiPreviewKitMap.containsKey(player.getName())) {
                                 KitStack[] kitStacks = new KitStack[getPlugin().kitList.size()];
                                 List<Kit> kitValues = new ArrayList<Kit>(getPlugin().kitList.values());
                                 for (int index = 0; index < kitValues.size(); index++) {

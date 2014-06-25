@@ -114,7 +114,7 @@ public enum Lang {
      * @deprecated
      */
     public static void sendMessage(CommandSender target, String message) {
-        target.sendMessage(String.format("&7[&5KingKits&7] %s", message));
+        target.sendMessage(__(String.format("&7[&5KingKits&7] %s", message)));
     }
 
     /**
@@ -143,7 +143,7 @@ public enum Lang {
     public static void sendMessage(CommandSender target, Lang message, Object... args) {
         String s = String.format("&7[&5KingKits&7] %s", message.format(args));
         if (!s.isEmpty()) {
-            target.sendMessage(s);
+            target.sendMessage(__(s));
         }
     }
 

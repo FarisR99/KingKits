@@ -57,7 +57,6 @@ public class ConfigValues {
 
 	// Kit delay
 	public boolean kitCooldown = false;
-	public int kitCooldownTime = 30;
 
 	// Scores
 	public boolean scores = true;

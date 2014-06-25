@@ -86,7 +86,7 @@ public class CreateKitCommand extends PlayerCommand {
                                                 this.getPlugin().kitList.remove(kitName);
                                         }
 
-                                        final Kit kit = new Kit(kitName, itemsInInv).setArmour(armourInInv);
+                                        final Kit kit = new Kit(kitName, itemsInInv).setName(kitName).setArmour(armourInInv);
                                         if (args.length == 2) {
                                             ItemStack guiItem = null;
                                             try {

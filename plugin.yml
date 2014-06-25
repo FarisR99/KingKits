@@ -7,7 +7,7 @@ softdepend: [Vault]
 commands:
     kingkits:
       description: KingKits plugin command.
-      usage: /<command>
+      usage: /<command> [<args>]
       aliases: kk
     pvpkit:
       description: Choose a kit to fight in PvP!
