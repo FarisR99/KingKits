@@ -2,8 +2,8 @@ package me.faris.kingkits.listeners.event.custom;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
@@ -11,16 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PlayerKitEvent extends Event implements Cancellable {
+public class PlayerKitEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
-    private Player thePlayer = null;
     private String kitName = "";
     private String oldKit = "";
     private List<ItemStack> kitContents = new ArrayList<ItemStack>(), armourItems = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
+    private List<String> kitCommands = new ArrayList<String>();
 
-    private boolean isCanceled = false;
+    private boolean isCancelled = false;
+
+    // Cancelled
+    // Canceled
 
     /**
      * Create a new PlayerKitEvent instance.
@@ -29,7 +32,7 @@ public class PlayerKitEvent extends Event implements Cancellable {
      * @param kitName - The new kit.
      */
     public PlayerKitEvent(Player player, String kitName) {
-        this.thePlayer = player;
+        super(player);
         this.kitName = kitName;
     }
 
@@ -41,7 +44,7 @@ public class PlayerKitEvent extends Event implements Cancellable {
      * @param oldKit - The previous kit the player was.
      */
     public PlayerKitEvent(Player player, String kitName, String oldKit) {
-        this.thePlayer = player;
+        super(player);
         this.kitName = kitName;
         this.oldKit = oldKit;
     }
@@ -56,7 +59,7 @@ public class PlayerKitEvent extends Event implements Cancellable {
      * @param armourItems - The kit's armour items.
      */
     public PlayerKitEvent(Player player, String kitName, String oldKit, List<ItemStack> newKitItems, List<ItemStack> armourItems) {
-        this.thePlayer = player;
+        super(player);
         this.kitName = kitName;
         this.oldKit = oldKit;
         this.kitContents = newKitItems;
@@ -73,7 +76,7 @@ public class PlayerKitEvent extends Event implements Cancellable {
      * @param armourItems - The kit's armour items.
      */
     public PlayerKitEvent(Player player, String kitName, String oldKit, List<ItemStack> newKitItems, List<ItemStack> armourItems, List<PotionEffect> potionEffects) {
-        this.thePlayer = player;
+        super(player);
         this.kitName = kitName;
         this.oldKit = oldKit;
         this.kitContents = newKitItems;
@@ -82,66 +85,70 @@ public class PlayerKitEvent extends Event implements Cancellable {
     }
 
     /**
-     * Returns the player *
+     * @return An unmodifiable List of all the kit-specific-commands run.
      */
-    public Player getPlayer() {
-        return this.thePlayer;
+    public List<String> getCommands() {
+        return Collections.unmodifiableList(this.kitCommands);
     }
 
     /**
-     * Returns the kit's name *
+     * @return The kit's name.
      */
     public String getKit() {
         return this.kitName;
     }
 
     /**
-     * Returns an unmodifiable List of the armour items in the kit. *
+     * @return An unmodifiable List of the armour items in the kit.
      */
     public List<ItemStack> getKitArmour() {
         return Collections.unmodifiableList(this.armourItems);
     }
 
     /**
-     * Returns an unmodifiable List of items in the kit *
+     * @return An unmodifiable List of items in the kit.
      */
     public List<ItemStack> getKitContents() {
         return Collections.unmodifiableList(this.kitContents);
     }
 
     /**
-     * Returns an unmodifiable List of all the potion effects. *
+     * @return An unmodifiable List of all the potion effects.
      */
     public List<PotionEffect> getPotionEffects() {
         return Collections.unmodifiableList(this.potionEffects);
     }
 
     /**
-     * Returns the player's old kit name *
+     * @return The player's old kit name.
      */
     public String getOldKit() {
         return this.oldKit;
+    }
+
+    public void setCommands(List<String> commands) {
+        this.kitCommands = commands != null ? commands : new ArrayList<String>();
     }
 
     /**
      * Set the armour contents in the kit *
      */
     public void setKitArmour(List<ItemStack> armourContents) {
-        if (armourContents != null) this.armourItems = armourContents;
+        this.armourItems = armourContents != null ? armourContents : new ArrayList<ItemStack>();
     }
 
     /**
      * Set the item contents of the kit *
      */
     public void setKitContents(List<ItemStack> kitContents) {
-        if (kitContents != null) this.kitContents = kitContents;
+        this.kitContents = kitContents != null ? kitContents : new ArrayList<ItemStack>();
     }
 
     /**
      * Set the potion effects gained when using the kit *
      */
     public void setPotionEffects(List<PotionEffect> potionEffects) {
-        this.potionEffects = potionEffects;
+        this.potionEffects = potionEffects != null ? potionEffects : new ArrayList<PotionEffect>();
     }
 
     public HandlerList getHandlers() {
@@ -154,11 +161,11 @@ public class PlayerKitEvent extends Event implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.isCanceled;
+        return this.isCancelled;
     }
 
     @Override
     public void setCancelled(boolean flag) {
-        this.isCanceled = flag;
+        this.isCancelled = flag;
     }
 }

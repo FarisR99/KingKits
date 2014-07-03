@@ -80,9 +80,9 @@ public class PlayerListener implements Listener {
                         p.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
                             public void run() {
                                 List<String> kitList = getPlugin().getKitList();
-                                String kits = ChatColor.GREEN + "";
+                                StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
                                 if (kitList.isEmpty()) {
-                                    kits += ChatColor.DARK_RED + "No kits made.";
+                                    sbKits.append(ChatColor.DARK_RED).append("No kits made.");
                                 } else {
                                     for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
                                         String kit = kitList.get(kitPos);
@@ -93,17 +93,17 @@ public class PlayerListener implements Listener {
                                                 ignoreKit = true;
                                         }
                                         if (!ignoreKit) {
-                                            if (kitPos == kitList.size() - 1) kits += col + kit;
-                                            else kits += col + kit + ", ";
+                                            if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
+                                            else sbKits.append(col).append(kit).append(", ");
                                         } else {
-                                            if (kitPos == kitList.size() - 1) kits = replaceLast(kits, ",", "");
+                                            if (kitPos == kitList.size() - 1) sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
                                         }
                                     }
                                 }
-                                if (kits == ChatColor.GREEN + "") {
-                                    kits = ChatColor.RED + "No kits available";
+                                if (sbKits.toString() == ChatColor.GREEN + "") {
+                                    sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
                                 }
-                                p.sendMessage(ChatColor.GOLD + "PvP Kits: " + kits);
+                                p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
                             }
                         }, 30L);
                     }

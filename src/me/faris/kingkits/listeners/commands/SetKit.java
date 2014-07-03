@@ -69,6 +69,7 @@ public class SetKit {
                     Kit newKit = plugin.kitList.get(kitName);
                     if (newKit == null) return null;
                     PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItems(), newKit.getArmour(), newKit.getPotionEffects());
+                    playerKitEvent.setCommands(newKit.getCommands());
                     player.getServer().getPluginManager().callEvent(playerKitEvent);
                     if (!playerKitEvent.isCancelled()) {
                         if (plugin.configValues.vaultValues.useEconomy && plugin.configValues.vaultValues.useCostPerKit) {
@@ -125,6 +126,10 @@ public class SetKit {
                             cmdToRun = cmdToRun.replaceAll("<player>", player.getName());
                             player.getServer().dispatchCommand(player.getServer().getConsoleSender(), cmdToRun);
                         }
+                        for (String cmdToRun : playerKitEvent.getCommands()) {
+                            cmdToRun = cmdToRun.replaceAll("<player>", player.getName());
+                            player.getServer().dispatchCommand(player.getServer().getConsoleSender(), cmdToRun);
+                        }
                         plugin.playerKits.remove(player.getName());
                         plugin.usingKits.remove(player.getName());
                         if (plugin.configValues.opBypass) {
@@ -134,7 +139,7 @@ public class SetKit {
                         } else {
                             plugin.playerKits.put(player.getName(), newKit.getRealName());
                         }
-                        plugin.usingKits.put(player.getName(), kitName);
+                        plugin.usingKits.put(player.getName(), newKit.getRealName());
                         if (plugin.configValues.customMessages != "" && plugin.configValues.customMessages != "''")
                             player.sendMessage(r(plugin.configValues.customMessages).replaceAll("<kit>", kitName));
                         if (plugin.configValues.kitParticleEffects) {

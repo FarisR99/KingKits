@@ -142,15 +142,11 @@ public class PvPKits {
      * @param kitName The kit name to check.
      */
     public static boolean kitExists(String kitName) {
-        boolean kitExists = false;
         List<String> kitList = new ArrayList<String>();
         if (Plugin.getPlugin().getKitsConfig().contains("Kits"))
-            kitList = Plugin.getPlugin().getKitsConfig().getStringList("Kits");
-        List<String> kitListLC = new ArrayList<String>();
-        for (int pos = 0; pos < kitList.size(); pos++)
-            kitListLC.add(kitList.get(pos).toLowerCase());
-        if (kitListLC.contains(kitName.toLowerCase())) kitExists = true;
-        return kitExists;
+            kitList = Plugin.getPlugin().getKitList();
+        List<String> kitListLC = Utils.toLowerCaseList(kitList);
+        return kitListLC.contains(kitName.toLowerCase());
     }
 
     /**
@@ -291,10 +287,9 @@ public class PvPKits {
      * @param guiItem The item to be shown in the GUI Inventory when using GUI mode. Set to null if you want it to be a diamond sword.
      * @param costOfKit The cost of the kit.
      */
-    @SuppressWarnings("deprecation")
     public static boolean createKit(String kitName, List<ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
-        boolean containsKit = Plugin.getPlugin().getKitsConfig().contains(kitName);
         if (!itemsInKit.isEmpty()) {
+            boolean containsKit = kitExists(kitName);
             if (containsKit) {
                 List<String> currentKits = Plugin.getPlugin().getConfigKitList();
                 List<String> currentKitsLC = Utils.toLowerCaseList(currentKits);
@@ -307,12 +302,12 @@ public class PvPKits {
             Kit kit = new Kit(kitName, costOfKit, itemsInKit, potionEffects).setGuiItem(guiItem != null ? guiItem : new ItemStack(Material.DIAMOND_SWORD));
             Plugin.getPlugin().getKitsConfig().set(kitName, kit.serialize());
             Plugin.getPlugin().saveKitsConfig();
-
             Plugin.getPlugin().kitList.put(kitName, kit);
 
             try {
                 Plugin.getPlugin().getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
             } catch (Exception ex) {
+                getPluginLogger().warning(ex.getClass().getSimpleName() + " error: " + ex.getMessage());
             }
             return true;
         }

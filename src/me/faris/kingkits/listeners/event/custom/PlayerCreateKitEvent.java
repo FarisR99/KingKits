@@ -16,7 +16,7 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
     private String kitName = "";
     private List<ItemStack> kitContents = new ArrayList<ItemStack>(), armourContents = new ArrayList<ItemStack>();
 
-    private boolean isCanceled = false;
+    private boolean isCancelled = false;
 
     /**
      * Create a new PlayerCreateKitEvent instance.
@@ -77,12 +77,12 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.isCanceled;
+        return this.isCancelled;
     }
 
     @Override
     public void setCancelled(boolean flag) {
-        this.isCanceled = flag;
+        this.isCancelled = flag;
     }
 
 }

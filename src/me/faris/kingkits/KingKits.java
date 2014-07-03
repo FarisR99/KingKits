@@ -43,7 +43,6 @@ import java.util.logging.Level;
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
     // Class Variables
-    private KingKits plugin = null;
     private Plugin pvpPlugin = null;
     private PvPKits pvpKits = null;
     private Updater updater = null;
@@ -82,7 +81,6 @@ public class KingKits extends JavaPlugin {
         this.playerKillstreaks.clear();
 
         // Initialise variables
-        this.plugin = this;
         this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now enabled.");
         this.loadConfiguration();
         try {
@@ -158,9 +156,6 @@ public class KingKits extends JavaPlugin {
     }
 
     public void onDisable() {
-        // Re-initialise variables
-        this.plugin = this;
-
         if (this.cooldownTaskID != -1) this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
 
         // Clear inventories on reload
@@ -343,11 +338,35 @@ public class KingKits extends JavaPlugin {
             if (this.configValues.kitCooldown) {
                 this.cooldownTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
                     public void run() {
-                        for (String configKey : getCooldownConfig().getKeys(true)) {
-
+                        boolean hasBeenModified = false;
+                        for (Map.Entry<String, Object> configEntrySet : getCooldownConfig().getValues(false).entrySet()) {
+                            Map<String, Object> playerMap = null;
+                            if (configEntrySet.getValue() instanceof ConfigurationSection)
+                                playerMap = ((ConfigurationSection) configEntrySet.getValue()).getValues(false);
+                            else if (configEntrySet.getValue() instanceof Map)
+                                playerMap = (Map) configEntrySet.getValue();
+                            if (playerMap != null) {
+                                for (Map.Entry<String, Object> entrySet : playerMap.entrySet()) {
+                                    String strValue = entrySet.getValue().toString();
+                                    if (Utils.isLong(strValue)) {
+                                        Kit targetKit = kitList.get(entrySet.getKey());
+                                        if (targetKit != null) {
+                                            long kitCooldown = targetKit.getCooldown();
+                                            long playerCooldown = Long.parseLong(strValue);
+                                            if (System.currentTimeMillis() - playerCooldown >= kitCooldown * 1000) {
+                                                getCooldownConfig().set(configEntrySet.getKey() + "." + entrySet.getKey(), null);
+                                                if (playerMap.size() == 1)
+                                                    getCooldownConfig().set(configEntrySet.getKey(), null);
+                                                hasBeenModified = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        if (hasBeenModified) saveCooldownConfig();
                     }
-                }, 12000L, 12000L).getTaskId();
+                }, 1200L, 1200L).getTaskId();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -357,170 +376,11 @@ public class KingKits extends JavaPlugin {
     private void loadPvPKits() {
         try {
             this.getKitsConfig().options().header("KingKits Kits Configuration.");
-            File kitsFolder = new File(this.getDataFolder(), "kits");
-            if (kitsFolder.exists() && kitsFolder.isDirectory()) {
-                File oldKitsFile = new File(kitsFolder, "config.yml");
-                FileConfiguration oldKitsFileConfig = YamlConfiguration.loadConfiguration(oldKitsFile);
-                File oldCPKFile = new File(kitsFolder, "costperkit.yml");
-                FileConfiguration oldCPKFileConfig = YamlConfiguration.loadConfiguration(oldCPKFile);
-                File oldDyesFile = new File(kitsFolder, "dyes.yml");
-                FileConfiguration oldDyesFileConfig = YamlConfiguration.loadConfiguration(oldDyesFile);
-                File oldEnchantmentsFile = new File(kitsFolder, "enchantments.yml");
-                FileConfiguration oldEnchantmentsFileConfig = YamlConfiguration.loadConfiguration(oldEnchantmentsFile);
-                File oldGUIFile = new File(kitsFolder, "guiitems.yml");
-                FileConfiguration oldGUIFileConfig = YamlConfiguration.loadConfiguration(oldGUIFile);
-                File oldLoresFile = new File(kitsFolder, "lores.yml");
-                FileConfiguration oldLoresFileConfig = YamlConfiguration.loadConfiguration(oldLoresFile);
-                File oldPotionsFile = new File(kitsFolder, "potions.yml");
-                FileConfiguration oldPotionsFileConfig = YamlConfiguration.loadConfiguration(oldPotionsFile);
-
-                List<String> kitList = oldKitsFileConfig.getStringList("Kits");
-                if (kitList != null) {
-                    for (String kitName : kitList) {
-                        if (oldKitsFileConfig.contains(kitName)) {
-                            Kit kit = new Kit(kitName);
-                            List<ItemStack> kitItems = new ArrayList<ItemStack>(), kitArmour = new ArrayList<ItemStack>();
-                            List<String> strKitItems = oldKitsFileConfig.getStringList(kitName);
-                            for (String strKitItem : strKitItems) {
-                                String[] kitSplit = strKitItem.contains(" ") ? strKitItem.split(" ") : null;
-                                if (kitSplit != null) {
-                                    if (kitSplit.length >= 3) {
-                                        String strID = kitSplit[0];
-                                        if (Utils.isInteger(strID)) {
-                                            int itemID = Integer.parseInt(strID);
-                                            int itemAmount = Utils.isInteger(kitSplit[1]) ? Integer.parseInt(kitSplit[1]) : 1;
-                                            short itemData = Utils.isShort(kitSplit[2]) ? Short.parseShort(kitSplit[2]) : (short) 0;
-                                            try {
-                                                ItemStack kitItem = new ItemStack(itemID, itemAmount, itemData);
-                                                if (kitSplit.length > 3) {
-                                                    StringBuilder sbKitItemName = new StringBuilder();
-                                                    for (int kitSplitIndex = 3; kitSplitIndex < kitSplit.length; kitSplitIndex++) {
-                                                        sbKitItemName.append(kitSplit[kitSplitIndex] + " ");
-                                                    }
-                                                    String kitItemName = sbKitItemName.toString().trim();
-                                                    if (!kitItemName.isEmpty()) {
-                                                        if (kitItem.hasItemMeta()) {
-                                                            ItemMeta kitMeta = kitItem.getItemMeta();
-                                                            kitMeta.setDisplayName(Utils.replaceChatColour(kitItemName));
-                                                            kitItem.setItemMeta(kitMeta);
-                                                        }
-                                                    }
-                                                }
-                                                if (oldDyesFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
-                                                    int itemDye = oldDyesFileConfig.getInt(kitName + " " + kitItem.getType().getId());
-                                                    if (kitItem.hasItemMeta()) {
-                                                        ItemMeta kitItemMeta = kitItem.getItemMeta();
-                                                        if (kitItemMeta instanceof LeatherArmorMeta) {
-                                                            LeatherArmorMeta kitItemLeatherArmorMeta = (LeatherArmorMeta) kitItemMeta;
-                                                            Color targetDyeColor = Color.fromRGB(itemDye);
-                                                            if (targetDyeColor != null) {
-                                                                kitItemLeatherArmorMeta.setColor(targetDyeColor);
-                                                                kitItem.setItemMeta(kitItemLeatherArmorMeta);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                if (oldEnchantmentsFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
-                                                    List<String> itemEnchantments = oldEnchantmentsFileConfig.getStringList(kitName + " " + kitItem.getType().getId());
-                                                    if (itemEnchantments != null) {
-                                                        for (String itemEnchantment : itemEnchantments) {
-                                                            if (itemEnchantment.contains(" ")) {
-                                                                String[] enchantmentSplit = itemEnchantment.split(" ");
-                                                                if (enchantmentSplit.length >= 2) {
-                                                                    String enchantmentName = enchantmentSplit[0];
-                                                                    Enchantment targetEnchantment = Utils.isInteger(enchantmentName) ? Enchantment.getById(Integer.parseInt(enchantmentName)) : Enchantment.getByName(enchantmentName);
-                                                                    if (targetEnchantment != null) {
-                                                                        int targetLevel = Utils.isInteger(enchantmentSplit[1]) ? Integer.parseInt(enchantmentSplit[1]) : 1;
-                                                                        kitItem.addUnsafeEnchantment(targetEnchantment, targetLevel);
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                if (oldLoresFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
-                                                    List<String> kitItemLores = oldLoresFileConfig.getStringList(kitName + " " + kitItem.getType().getId());
-                                                    if (kitItemLores != null) {
-                                                        if (kitItem.hasItemMeta()) {
-                                                            ItemMeta kitItemMeta = kitItem.getItemMeta();
-                                                            kitItemMeta.setLore(Utils.replaceChatColours(kitItemLores));
-                                                            kitItem.setItemMeta(kitItemMeta);
-                                                        }
-                                                    }
-                                                }
-                                                if (kitItem != null) {
-                                                    if (kitArmour.size() < 4) {
-                                                        String strKitType = kitItem.getType().toString().toLowerCase();
-                                                        if (strKitType.endsWith("helmet") || strKitType.endsWith("chestplate") || strKitType.endsWith("leggings") || strKitType.endsWith("pants") || strKitType.endsWith("boots")) {
-                                                            kitArmour.add(kitItem);
-                                                        } else {
-                                                            kitItems.add(kitItem);
-                                                        }
-                                                    } else {
-                                                        kitItems.add(kitItem);
-                                                    }
-                                                }
-                                            } catch (Exception ex) {
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            kit.setItems(kitItems);
-                            kit.setArmour(kitArmour);
-                            if (oldCPKFileConfig.contains(kitName))
-                                kit.setCost(oldCPKFileConfig.getDouble(kitName, 0D));
-                            if (oldGUIFileConfig.contains(kitName)) {
-                                int targetItemID = oldGUIFileConfig.getInt(kitName);
-                                try {
-                                    kit.setGuiItem(new ItemStack(targetItemID));
-                                } catch (Exception ex) {
-                                }
-                            }
-                            if (oldPotionsFileConfig.contains(kitName)) {
-                                List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
-                                List<String> strPotions = oldPotionsFileConfig.getStringList(kitName);
-                                if (strPotions != null) {
-                                    for (String strPotion : strPotions) {
-                                        if (strPotion.contains(" ")) {
-                                            String[] potionSplit = strPotion.split(" ");
-                                            if (potionSplit.length >= 3) {
-                                                String potionName = potionSplit[0];
-                                                PotionEffectType potionEffectType = Utils.isInteger(potionName) ? PotionEffectType.getById(Integer.parseInt(potionName)) : PotionEffectType.getByName(potionName.toUpperCase());
-                                                if (potionEffectType != null) {
-                                                    int potionAmplifier = Utils.isInteger(potionSplit[1]) ? Integer.parseInt(potionSplit[1]) : Utils.romanNumeralToInteger(potionSplit[1]);
-                                                    if (potionAmplifier == 0) potionAmplifier++;
-                                                    else if (potionAmplifier < 0) potionAmplifier *= -1;
-                                                    potionAmplifier--;
-                                                    int potionDuration = Utils.isInteger(potionSplit[2]) ? Integer.parseInt(potionSplit[2]) : 10;
-                                                    try {
-                                                        kitPotionEffects.add(new PotionEffect(potionEffectType, potionDuration, potionAmplifier));
-                                                    } catch (Exception ex) {
-                                                        continue;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    kit.setPotionEffects(kitPotionEffects);
-                                }
-                            }
-
-                            this.getKitsConfig().set(kitName, kit.serialize());
-                        }
-                    }
-                }
-                this.getKitsConfig().set("First run", this.getKitsConfig().getValues(false).isEmpty());
-                if (!Utils.renameDirectory(kitsFolder, new File(this.getDataFolder(), "oldkits"))) {
-                    if (!Utils.deleteDirectory(kitsFolder, kitsFolder.listFiles().length == 0))
-                        this.getLogger().log(Level.SEVERE, "Could not rename or delete the 'kits' folder in /plugins/KingKits. You must manually delete the folder and then reload KingKits to prevent configuration events.");
-                }
-            }
+            this.convertOldConfig();
 
             this.getKitsConfig().addDefault("First run", true);
             if (this.getKitsConfig().getBoolean("First run")) {
-                Kit defaultKit = new Kit("Default");
+                Kit defaultKit = new Kit("Default").setRealName("Default").setCommands(Arrays.asList("feed <player>", "tell <player> &6You have been fed for using the default kit."));
                 List<ItemStack> defaultKitItems = new ArrayList<ItemStack>(), defaultKitArmour = new ArrayList<ItemStack>();
 
                 ItemStack defaultSword = new ItemStack(Material.IRON_SWORD);
@@ -976,9 +836,8 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getCooldownConfig() {
-        if (this.cooldownConfig == null) {
+        if (this.cooldownConfig == null || this.customCooldownConfig == null)
             this.reloadCooldownConfig();
-        }
         return this.cooldownConfig;
     }
 
@@ -1004,6 +863,169 @@ public class KingKits extends JavaPlugin {
         this.reloadEconomyConfig();
         this.reloadKillstreaksConfig();
         this.reloadCooldownConfig();
+    }
+
+    private void convertOldConfig() {
+        File kitsFolder = new File(this.getDataFolder(), "kits");
+        if (kitsFolder.exists() && kitsFolder.isDirectory()) {
+            File oldKitsFile = new File(kitsFolder, "config.yml");
+            FileConfiguration oldKitsFileConfig = YamlConfiguration.loadConfiguration(oldKitsFile);
+            File oldCPKFile = new File(kitsFolder, "costperkit.yml");
+            FileConfiguration oldCPKFileConfig = YamlConfiguration.loadConfiguration(oldCPKFile);
+            File oldDyesFile = new File(kitsFolder, "dyes.yml");
+            FileConfiguration oldDyesFileConfig = YamlConfiguration.loadConfiguration(oldDyesFile);
+            File oldEnchantmentsFile = new File(kitsFolder, "enchantments.yml");
+            FileConfiguration oldEnchantmentsFileConfig = YamlConfiguration.loadConfiguration(oldEnchantmentsFile);
+            File oldGUIFile = new File(kitsFolder, "guiitems.yml");
+            FileConfiguration oldGUIFileConfig = YamlConfiguration.loadConfiguration(oldGUIFile);
+            File oldLoresFile = new File(kitsFolder, "lores.yml");
+            FileConfiguration oldLoresFileConfig = YamlConfiguration.loadConfiguration(oldLoresFile);
+            File oldPotionsFile = new File(kitsFolder, "potions.yml");
+            FileConfiguration oldPotionsFileConfig = YamlConfiguration.loadConfiguration(oldPotionsFile);
+
+            List<String> kitList = oldKitsFileConfig.getStringList("Kits");
+            if (kitList != null) {
+                for (String kitName : kitList) {
+                    if (oldKitsFileConfig.contains(kitName)) {
+                        Kit kit = new Kit(kitName).setRealName(kitName);
+                        List<ItemStack> kitItems = new ArrayList<ItemStack>(), kitArmour = new ArrayList<ItemStack>();
+                        List<String> strKitItems = oldKitsFileConfig.getStringList(kitName);
+                        for (String strKitItem : strKitItems) {
+                            String[] kitSplit = strKitItem.contains(" ") ? strKitItem.split(" ") : null;
+                            if (kitSplit != null) {
+                                if (kitSplit.length >= 3) {
+                                    String strID = kitSplit[0];
+                                    if (Utils.isInteger(strID)) {
+                                        int itemID = Integer.parseInt(strID);
+                                        int itemAmount = Utils.isInteger(kitSplit[1]) ? Integer.parseInt(kitSplit[1]) : 1;
+                                        short itemData = Utils.isShort(kitSplit[2]) ? Short.parseShort(kitSplit[2]) : (short) 0;
+                                        try {
+                                            ItemStack kitItem = new ItemStack(itemID, itemAmount, itemData);
+                                            if (kitSplit.length > 3) {
+                                                StringBuilder sbKitItemName = new StringBuilder();
+                                                for (int kitSplitIndex = 3; kitSplitIndex < kitSplit.length; kitSplitIndex++) {
+                                                    sbKitItemName.append(kitSplit[kitSplitIndex] + " ");
+                                                }
+                                                String kitItemName = sbKitItemName.toString().trim();
+                                                if (!kitItemName.isEmpty()) {
+                                                    if (kitItem.hasItemMeta()) {
+                                                        ItemMeta kitMeta = kitItem.getItemMeta();
+                                                        kitMeta.setDisplayName(Utils.replaceChatColour(kitItemName));
+                                                        kitItem.setItemMeta(kitMeta);
+                                                    }
+                                                }
+                                            }
+                                            if (oldDyesFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
+                                                int itemDye = oldDyesFileConfig.getInt(kitName + " " + kitItem.getType().getId());
+                                                if (kitItem.hasItemMeta()) {
+                                                    ItemMeta kitItemMeta = kitItem.getItemMeta();
+                                                    if (kitItemMeta instanceof LeatherArmorMeta) {
+                                                        LeatherArmorMeta kitItemLeatherArmorMeta = (LeatherArmorMeta) kitItemMeta;
+                                                        Color targetDyeColor = Color.fromRGB(itemDye);
+                                                        if (targetDyeColor != null) {
+                                                            kitItemLeatherArmorMeta.setColor(targetDyeColor);
+                                                            kitItem.setItemMeta(kitItemLeatherArmorMeta);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (oldEnchantmentsFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
+                                                List<String> itemEnchantments = oldEnchantmentsFileConfig.getStringList(kitName + " " + kitItem.getType().getId());
+                                                if (itemEnchantments != null) {
+                                                    for (String itemEnchantment : itemEnchantments) {
+                                                        if (itemEnchantment.contains(" ")) {
+                                                            String[] enchantmentSplit = itemEnchantment.split(" ");
+                                                            if (enchantmentSplit.length >= 2) {
+                                                                String enchantmentName = enchantmentSplit[0];
+                                                                Enchantment targetEnchantment = Utils.isInteger(enchantmentName) ? Enchantment.getById(Integer.parseInt(enchantmentName)) : Enchantment.getByName(enchantmentName);
+                                                                if (targetEnchantment != null) {
+                                                                    int targetLevel = Utils.isInteger(enchantmentSplit[1]) ? Integer.parseInt(enchantmentSplit[1]) : 1;
+                                                                    kitItem.addUnsafeEnchantment(targetEnchantment, targetLevel);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (oldLoresFileConfig.contains(kitName + " " + kitItem.getType().getId())) {
+                                                List<String> kitItemLores = oldLoresFileConfig.getStringList(kitName + " " + kitItem.getType().getId());
+                                                if (kitItemLores != null) {
+                                                    if (kitItem.hasItemMeta()) {
+                                                        ItemMeta kitItemMeta = kitItem.getItemMeta();
+                                                        kitItemMeta.setLore(Utils.replaceChatColours(kitItemLores));
+                                                        kitItem.setItemMeta(kitItemMeta);
+                                                    }
+                                                }
+                                            }
+                                            if (kitItem != null) {
+                                                if (kitArmour.size() < 4) {
+                                                    String strKitType = kitItem.getType().toString().toLowerCase();
+                                                    if (strKitType.endsWith("helmet") || strKitType.endsWith("chestplate") || strKitType.endsWith("leggings") || strKitType.endsWith("pants") || strKitType.endsWith("boots")) {
+                                                        kitArmour.add(kitItem);
+                                                    } else {
+                                                        kitItems.add(kitItem);
+                                                    }
+                                                } else {
+                                                    kitItems.add(kitItem);
+                                                }
+                                            }
+                                        } catch (Exception ex) {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        kit.setItems(kitItems);
+                        kit.setArmour(kitArmour);
+                        if (oldCPKFileConfig.contains(kitName))
+                            kit.setCost(oldCPKFileConfig.getDouble(kitName, 0D));
+                        if (oldGUIFileConfig.contains(kitName)) {
+                            int targetItemID = oldGUIFileConfig.getInt(kitName);
+                            try {
+                                kit.setGuiItem(new ItemStack(targetItemID));
+                            } catch (Exception ex) {
+                            }
+                        }
+                        if (oldPotionsFileConfig.contains(kitName)) {
+                            List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
+                            List<String> strPotions = oldPotionsFileConfig.getStringList(kitName);
+                            if (strPotions != null) {
+                                for (String strPotion : strPotions) {
+                                    if (strPotion.contains(" ")) {
+                                        String[] potionSplit = strPotion.split(" ");
+                                        if (potionSplit.length >= 3) {
+                                            String potionName = potionSplit[0];
+                                            PotionEffectType potionEffectType = Utils.isInteger(potionName) ? PotionEffectType.getById(Integer.parseInt(potionName)) : PotionEffectType.getByName(potionName.toUpperCase());
+                                            if (potionEffectType != null) {
+                                                int potionAmplifier = Utils.isInteger(potionSplit[1]) ? Integer.parseInt(potionSplit[1]) : Utils.romanNumeralToInteger(potionSplit[1]);
+                                                if (potionAmplifier == 0) potionAmplifier++;
+                                                else if (potionAmplifier < 0) potionAmplifier *= -1;
+                                                potionAmplifier--;
+                                                int potionDuration = Utils.isInteger(potionSplit[2]) ? Integer.parseInt(potionSplit[2]) : 10;
+                                                try {
+                                                    kitPotionEffects.add(new PotionEffect(potionEffectType, potionDuration, potionAmplifier));
+                                                } catch (Exception ex) {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                kit.setPotionEffects(kitPotionEffects);
+                            }
+                        }
+
+                        this.getKitsConfig().set(kitName, kit.serialize());
+                    }
+                }
+            }
+            this.getKitsConfig().set("First run", this.getKitsConfig().getValues(false).isEmpty());
+            if (!Utils.renameDirectory(kitsFolder, new File(this.getDataFolder(), "oldkits"))) {
+                if (!Utils.deleteDirectory(kitsFolder, kitsFolder.listFiles().length == 0))
+                    this.getLogger().log(Level.SEVERE, "Could not rename or delete the 'kits' folder in /plugins/KingKits. You must manually delete the folder and then reload KingKits to prevent configuration events.");
+            }
+        }
     }
 
 }

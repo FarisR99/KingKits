@@ -23,8 +23,9 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private double kitCost = 0D;
     private long kitCooldown = 0;
 
-    private ItemStack guiItem = null;
+    private List<String> kitCommands = new ArrayList<String>();
 
+    private ItemStack guiItem = null;
     private List<ItemStack> kitItems = new ArrayList<ItemStack>();
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
@@ -92,6 +93,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return Collections.unmodifiableList(this.kitArmour);
     }
 
+    public List<String> getCommands() {
+        return this.kitCommands;
+    }
+
     public long getCooldown() {
         return this.kitCooldown;
     }
@@ -139,6 +144,12 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public Kit setArmour(List<ItemStack> armour) {
         Validate.notNull(armour);
         this.kitArmour = armour;
+        return this;
+    }
+
+    public Kit setCommands(List<String> commands) {
+        Validate.notNull(commands);
+        this.kitCommands = commands;
         return this;
     }
 
@@ -190,6 +201,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Name", this.kitName != null ? this.kitName : "Kit" + new Random().nextInt());
         serializedKit.put("Cost", this.kitCost);
         serializedKit.put("Cooldown", this.kitCooldown);
+        serializedKit.put("Commands", this.kitCommands);
 
         /** GUI Item **/
         if (this.guiItem != null) {
@@ -274,7 +286,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     @Override
     public Kit clone() {
-        return new Kit(this.kitName).setGuiItem(this.guiItem).setPotionEffects(this.potionEffects).setCost(this.kitCost).setItems(this.kitItems).setArmour(this.kitArmour);
+        return new Kit(this.kitName).setRealName(this.realName).setCooldown(this.kitCooldown).setCommands(this.kitCommands).setGuiItem(this.guiItem).setPotionEffects(this.potionEffects).setCost(this.kitCost).setItems(this.kitItems).setArmour(this.kitArmour);
     }
 
     @Override
@@ -296,6 +308,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Cost")) kit.setCost(getObject(kitSection, "Cost", Double.class));
                 if (kitSection.containsKey("Cooldown"))
                     kit.setCooldown(getObject(kitSection, "Cooldown", Long.class));
+
+                if (kitSection.containsKey("Commands")) kit.setCommands(getObject(kitSection, "Commands", List.class));
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;
