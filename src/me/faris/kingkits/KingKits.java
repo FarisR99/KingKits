@@ -21,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -82,6 +83,7 @@ public class KingKits extends JavaPlugin {
 
         // Initialise variables
         this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now enabled.");
+        ConfigurationSerialization.registerClass(Kit.class);
         this.loadConfiguration();
         try {
             Lang.init(this);
@@ -188,6 +190,8 @@ public class KingKits extends JavaPlugin {
             GuiKingKits.guiPreviewKitMap.clear();
         } catch (Exception ex) {
         }
+        
+        ConfigurationSerialization.unregisterClass(Kit.class);
 
         // Clear all lists
         this.usingKits.clear();
