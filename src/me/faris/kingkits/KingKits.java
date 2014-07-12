@@ -190,8 +190,6 @@ public class KingKits extends JavaPlugin {
             GuiKingKits.guiPreviewKitMap.clear();
         } catch (Exception ex) {
         }
-        
-        ConfigurationSerialization.unregisterClass(Kit.class);
 
         ConfigurationSerialization.unregisterClass(Kit.class);
         // Clear all lists
@@ -388,6 +386,7 @@ public class KingKits extends JavaPlugin {
         try {
             this.getKitsConfig().options().header("KingKits Kits Configuration.");
             this.convertOldConfig();
+            this.convertSecondOldConfig();
 
             this.getKitsConfig().addDefault("First run", true);
             if (this.getKitsConfig().getBoolean("First run")) {
@@ -1035,6 +1034,29 @@ public class KingKits extends JavaPlugin {
                     this.getLogger().log(Level.SEVERE, "Could not rename or delete the 'kits' folder in /plugins/KingKits. You must manually delete the folder and then reload KingKits to prevent configuration events.");
             }
         }
+    }
+
+    private void convertSecondOldConfig() {
+        boolean hasModified = false;
+        for (String kitName : this.getConfigKitList()) {
+            if (this.getKitsConfig().contains(kitName + ".Items")) {
+                Map<String, Object> itemsMap = Kit.getValues(this.getKitsConfig().get(kitName + ".Items"));
+                if (itemsMap != null) {
+                    int currentIndex = 0;
+                    for (Entry<String, Object> itemsEntry : itemsMap.entrySet()) {
+                        if (Utils.isInteger(itemsEntry.getKey()) ? Material.getMaterial(Integer.parseInt(itemsEntry.getKey())) != null : Material.getMaterial(itemsEntry.getKey()) != null) {
+                            Map<String, Object> itemMap = Kit.getValues(itemsEntry);
+                            itemMap.put("Type", itemsEntry.getKey());
+                            this.getKitsConfig().set(kitName + ".Items." + itemsEntry.getKey(), null);
+                            this.getKitsConfig().set(kitName + ".Items.Slot " + currentIndex, itemMap);
+                            currentIndex++;
+                            hasModified = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (hasModified) this.saveKitsConfig();
     }
 
 }

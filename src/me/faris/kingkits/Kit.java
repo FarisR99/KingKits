@@ -504,7 +504,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     }
 
     @SuppressWarnings("unused")
-    private static <T> T getObject(Map<String, Object> map, String key, Class<T> unused) throws ClassCastException {
+    public static <T> T getObject(Map<String, Object> map, String key, Class<T> unused) throws ClassCastException {
         try {
             T value = map.containsKey(key) ? (T) map.get(key) : null;
             return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : value))) : null;
@@ -513,14 +513,17 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         }
     }
 
-    private static Map<String, Object> getValues(Map<String, Object> mainMap, String key) {
+    public static Map<String, Object> getValues(Map<String, Object> mainMap, String key) {
         Object object = mainMap != null ? mainMap.get(key) : null;
         return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
     }
 
-    private static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {
-        Object object = entrySet != null ? entrySet.getValue() : null;
+    public static Map<String, Object> getValues(Object object) {
         return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
+    }
+
+    public static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {
+        return entrySet != null ? getValues(entrySet.getValue()) : null;
     }
 
 }
