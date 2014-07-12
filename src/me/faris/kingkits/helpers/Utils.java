@@ -10,9 +10,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -314,24 +312,16 @@ public class Utils {
         }
     }
 
-    private static final Pattern STRIP_COLOUR_PATTERN = Pattern.compile("(?i)" + String.valueOf(ChatColor.COLOR_CHAR) + "[0-9A-F]");
-    private static final Pattern STRIP_FORMAT_PATTERN = Pattern.compile("(?i)" + String.valueOf(ChatColor.COLOR_CHAR) + "[K-OR]");
 
-    public static String stripColours(final String aString) {
-        if (aString == null) {
-            return null;
+    public static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
+        public int compare(String str1, String str2) {
+            int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+            if (res == 0) {
+                res = str1.compareTo(str2);
+            }
+            return res;
         }
-
-        return STRIP_COLOUR_PATTERN.matcher(aString).replaceAll("");
-    }
-
-    public static String stripFormat(final String aString) {
-        if (aString == null) {
-            return null;
-        }
-
-        return STRIP_FORMAT_PATTERN.matcher(aString).replaceAll("");
-    }
+    };
 
     public static List<String> toLowerCaseList(List<String> normalList) {
         List<String> list = new ArrayList<String>();

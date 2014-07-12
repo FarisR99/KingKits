@@ -76,41 +76,44 @@ public class PlayerListener implements Listener {
             if (this.getPlugin().configValues.listKitsOnJoin) {
                 if (event.getPlayer() != null) {
                     if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
-                        final Player p = event.getPlayer();
-                        p.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
-                            public void run() {
-                                List<String> kitList = getPlugin().getKitList();
-                                StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
-                                if (kitList.isEmpty()) {
-                                    sbKits.append(ChatColor.DARK_RED).append("No kits made.");
-                                } else {
-                                    for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
-                                        String kit = kitList.get(kitPos);
-                                        ChatColor col = ChatColor.GREEN;
-                                        boolean ignoreKit = false;
-                                        if (getPlugin().configValues.kitListPermissions) {
-                                            if (!p.hasPermission("kingkits.kits." + kit.toLowerCase()))
-                                                ignoreKit = true;
-                                        }
-                                        if (!ignoreKit) {
-                                            if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
-                                            else sbKits.append(col).append(kit).append(", ");
-                                        } else {
-                                            if (kitPos == kitList.size() - 1) sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
-                                        }
-                                    }
-                                }
-                                if (sbKits.toString() == ChatColor.GREEN + "") {
-                                    sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
-                                }
-                                p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
-                            }
-                        }, 30L);
+                        this.listKitsOnJoin(event.getPlayer());
                     }
                 }
             }
         } catch (Exception ex) {
         }
+    }
+
+    private void listKitsOnJoin(final Player p) {
+        p.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
+            public void run() {
+                List<String> kitList = getPlugin().getKitList();
+                StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
+                if (kitList.isEmpty()) {
+                    sbKits.append(ChatColor.DARK_RED).append("No kits made.");
+                } else {
+                    for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
+                        String kit = kitList.get(kitPos);
+                        ChatColor col = ChatColor.GREEN;
+                        boolean ignoreKit = false;
+                        if (getPlugin().configValues.kitListPermissions) {
+                            if (!p.hasPermission("kingkits.kits." + kit.toLowerCase()))
+                                ignoreKit = true;
+                        }
+                        if (!ignoreKit) {
+                            if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
+                            else sbKits.append(col).append(kit).append(", ");
+                        } else {
+                            if (kitPos == kitList.size() - 1) sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
+                        }
+                    }
+                }
+                if (sbKits.toString() == ChatColor.GREEN + "") {
+                    sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
+                }
+                p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
+            }
+        }, 30L);
     }
 
     /**
@@ -802,17 +805,17 @@ public class PlayerListener implements Listener {
     }
 
     /**
-     * Removes the kit and clears a player's inventory when the player changes worlds *
+     * Do stuff when the player changes worlds.
      */
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void removeKitOnWorldChange(PlayerChangedWorldEvent event) {
+    public void onWorldChange(PlayerChangedWorldEvent event) {
         try {
             if (!this.getPlugin().configValues.pvpWorlds.contains("All") && !this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
                 if (this.getPlugin().playerKits.containsKey(event.getPlayer().getName()))
                     this.getPlugin().playerKits.remove(event.getPlayer().getName());
                 if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
                     this.getPlugin().usingKits.remove(event.getPlayer().getName());
-                    if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled("Multiverse-Inventories")) {
+                    if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
                         event.getPlayer().getInventory().clear();
                         event.getPlayer().getInventory().setArmorContents(null);
                         for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
@@ -824,6 +827,8 @@ public class PlayerListener implements Listener {
                 event.getPlayer().getInventory().setArmorContents(null);
                 for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
                     event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
+                if (this.getPlugin().configValues.listKitsOnJoin)
+                    this.listKitsOnJoin(event.getPlayer());
             }
         } catch (Exception ex) {
         }
@@ -1018,6 +1023,8 @@ public class PlayerListener implements Listener {
                     Scoreboard playerBoard = event.getPlayer().getScoreboard();
                     playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Score:"));
                     playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Killstreak:"));
+                    event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Score:");
+                    event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Killstreak:");
                     playerBoard.clearSlot(DisplaySlot.SIDEBAR);
                     event.getPlayer().setScoreboard(playerBoard);
                 }
@@ -1032,7 +1039,13 @@ public class PlayerListener implements Listener {
             Scoreboard pScoreboard = event.getPlayer().getScoreboard();
             if (pScoreboard != null) {
                 if (pScoreboard.getObjective("KingKits") != null) {
-                    event.getPlayer().setScoreboard(event.getPlayer().getServer().getScoreboardManager().getNewScoreboard());
+                    Scoreboard playerBoard = event.getPlayer().getScoreboard();
+                    playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Score:"));
+                    playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Killstreak:"));
+                    event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Score:");
+                    event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Killstreak:");
+                    playerBoard.clearSlot(DisplaySlot.SIDEBAR);
+                    event.getPlayer().setScoreboard(playerBoard);
                 }
             }
         } catch (Exception ex) {

@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class KitCommand extends KingCommand {
@@ -34,6 +35,7 @@ public class KitCommand extends KingCommand {
                                     List<String> kitList = new ArrayList<String>(this.getPlugin().kitList.keySet());
                                     sender.sendMessage(r("&aKits List (" + kitList.size() + "):"));
                                     if (!kitList.isEmpty()) {
+                                        if (this.getPlugin().configValues.sortAlphabetically) Collections.sort(kitList, Utils.ALPHABETICAL_ORDER);
                                         for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
                                             String kitName = kitList.get(kitPos).split(" ")[0];
                                             if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {

@@ -13,10 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class PvPKits {
@@ -363,7 +360,12 @@ public class PvPKits {
      */
     public static void showKitMenu(Player player) {
         if (Plugin.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") || Plugin.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
-            List<Kit> kitValues = new ArrayList<Kit>(Plugin.getPlugin().kitList.values());
+            List<String> kitNames = new ArrayList<String>(Plugin.getPlugin().kitList.keySet());
+            if (Plugin.getPlugin().configValues.sortAlphabetically)
+                Collections.sort(kitNames, Utils.ALPHABETICAL_ORDER);
+            List<Kit> kitValues = new ArrayList<Kit>();
+            for (String kitName : kitNames) kitValues.add(Plugin.getPlugin().kitList.get(kitName));
+
             KitStack[] kitStacks = new KitStack[kitValues.size()];
             for (int index = 0; index < kitValues.size(); index++) {
                 Kit kit = kitValues.get(index);

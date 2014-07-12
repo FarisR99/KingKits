@@ -15,6 +15,7 @@ public class ConfigValues {
 
 	public boolean listKitsOnJoin = true;
 	public boolean kitListPermissions = false;
+    public boolean sortAlphabetically = true;
 
 	public boolean cmdKitListPermissions = true;
 
@@ -84,12 +85,11 @@ public class ConfigValues {
 	public String commandToRun = "";
 
 	public List<String> pvpWorlds = Arrays.asList("All");
+    public String multiInvsPlugin = "Multiverse-Inventories";
 
 	public String customMessages = "";
 
 	public String kitListMode = "Text";
-
-	public String scoreboardTitle = ChatColor.RED + "KingKits";
 
 	public String strKitSign = "[Kit]";
 	public String strKitListSign = "[KList]";

@@ -68,8 +68,10 @@ public class CreateKitCommand extends PlayerCommand {
 
                                 List<ItemStack> itemsInInv = new ArrayList<ItemStack>();
                                 List<ItemStack> armourInInv = new ArrayList<ItemStack>();
-                                for (ItemStack item : p.getInventory().getContents())
-                                    if (item != null && item.getType() != Material.AIR) itemsInInv.add(item);
+                                for (ItemStack item : p.getInventory().getContents()) {
+                                    if (item != null) itemsInInv.add(item);
+                                    else itemsInInv.add(new ItemStack(Material.AIR));
+                                }
                                 for (ItemStack armour : p.getInventory().getArmorContents())
                                     if (armour != null && armour.getType() != Material.AIR) armourInInv.add(armour);
                                 PlayerCreateKitEvent createKitEvent = new PlayerCreateKitEvent(p, kitName, itemsInInv, armourInInv);

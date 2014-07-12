@@ -223,9 +223,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         /** Items **/
         if (this.kitItems != null && !this.kitItems.isEmpty()) {
             Map<String, Object> itemsMap = new HashMap<String, Object>();
-            for (ItemStack kitItem : this.kitItems) {
-                if (kitItem != null) {
-                    Map<String, Object> kitItemMap = new HashMap<String, Object>();
+            for (int i = 0; i < 36; i++) {
+                ItemStack kitItem = this.kitItems.size() > i ? this.kitItems.get(i) : null;
+                if (kitItem != null && kitItem.getType() != Material.AIR) {
+                    Map<String, Object> kitItemMap = new LinkedHashMap<String, Object>();
+                    kitItemMap.put("Type", kitItem.getType().toString());
                     String itemName = kitItem.hasItemMeta() && kitItem.getItemMeta().hasDisplayName() ? kitItem.getItemMeta().getDisplayName() : null;
                     if (itemName != null) kitItemMap.put("Name", Utils.replaceBukkitColour(itemName));
                     kitItemMap.put("Amount", kitItem.getAmount());
@@ -236,7 +238,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     if (!enchantmentMap.isEmpty()) kitItemMap.put("Enchantments", enchantmentMap);
                     if (kitItem.hasItemMeta() && kitItem.getItemMeta().hasLore())
                         kitItemMap.put("Lore", Utils.replaceBukkitColours(kitItem.getItemMeta().getLore()));
-                    itemsMap.put(kitItem.getType().toString(), kitItemMap);
+                    itemsMap.put("Slot " + i, kitItemMap);
                 }
             }
             serializedKit.put("Items", itemsMap);
@@ -349,50 +351,71 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 }
                 if (kitSection.containsKey("Items")) {
                     Map<String, Object> itemsMap = getValues(kitSection, "Items");
-                    List<ItemStack> kitItems = new ArrayList<ItemStack>();
+                    List<ItemStack> kitItems = new ArrayList<ItemStack>() {
+                        {
+                            for (int i = 0; i < 36; i++) {
+                                this.add(new ItemStack(Material.AIR));
+                            }
+                        }
+                    };
+
                     for (Map.Entry<String, Object> entrySet : itemsMap.entrySet()) {
-                        Map<String, Object> kitMap = getValues(entrySet);
-                        String strType = entrySet.getKey();
-                        ItemStack kitItem = null;
-                        Material kitMaterial = null;
-                        Material itemType = null;
-                        if (Utils.isInteger(strType)) {
-                            itemType = Material.getMaterial(Integer.parseInt(strType));
-                        } else {
-                            itemType = Material.getMaterial(strType);
-                        }
-                        if (itemType == null) continue;
-                        String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
-                        int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
-                        short itemData = kitMap.containsKey("Data") ? getObject(kitMap, "Data", Short.class) : (short) 0;
-                        kitItem = new ItemStack(itemType, itemAmount, itemData);
-                        if (itemName != null && !itemName.isEmpty()) {
-                            ItemMeta itemMeta = kitItem.getItemMeta();
-                            if (itemMeta != null) {
-                                itemMeta.setDisplayName(Utils.replaceChatColour(itemName));
-                                kitItem.setItemMeta(itemMeta);
-                            }
-                        }
-                        if (kitMap.containsKey("Enchantments")) {
-                            Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
-                            for (Map.Entry<String, Object> enchantmentEntrySet : guiItemEnchantments.entrySet()) {
-                                Enchantment enchantmentType = Utils.isInteger(entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utils.getEnchantmentName(enchantmentEntrySet.getKey()));
-                                if (enchantmentType != null) {
-                                    String enchantmentValue = enchantmentEntrySet.getValue().toString();
-                                    int enchantmentLevel = Utils.isInteger(enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
-                                    kitItem.addUnsafeEnchantment(enchantmentType, enchantmentLevel);
+                        String strSlot = entrySet.getKey();
+                        if (strSlot.contains(" ")) {
+                            String[] slotSplit = strSlot.split(" ");
+                            if (slotSplit[0].equals("Slot") && Utils.isInteger(slotSplit[1])) {
+                                Map<String, Object> kitMap = getValues(entrySet);
+                                String strType = kitMap.containsKey("Type") ? getObject(kitMap, "Type", String.class) : Material.AIR.toString();
+                                ItemStack kitItem = null;
+                                Material kitMaterial = null;
+                                Material itemType = null;
+                                if (Utils.isInteger(strType)) {
+                                    itemType = Material.getMaterial(Integer.parseInt(strType));
+                                } else {
+                                    itemType = Material.getMaterial(strType);
                                 }
+                                if (itemType == null) continue;
+                                String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
+                                int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
+                                short itemData = kitMap.containsKey("Data") ? getObject(kitMap, "Data", Short.class) : (short) 0;
+                                kitItem = new ItemStack(itemType, itemAmount, itemData);
+                                if (itemName != null && !itemName.isEmpty()) {
+                                    ItemMeta itemMeta = kitItem.getItemMeta();
+                                    if (itemMeta != null) {
+                                        itemMeta.setDisplayName(Utils.replaceChatColour(itemName));
+                                        kitItem.setItemMeta(itemMeta);
+                                    }
+                                }
+                                if (kitMap.containsKey("Enchantments")) {
+                                    Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
+                                    for (Map.Entry<String, Object> enchantmentEntrySet : guiItemEnchantments.entrySet()) {
+                                        Enchantment enchantmentType = Utils.isInteger(entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utils.getEnchantmentName(enchantmentEntrySet.getKey()));
+                                        if (enchantmentType != null) {
+                                            String enchantmentValue = enchantmentEntrySet.getValue().toString();
+                                            int enchantmentLevel = Utils.isInteger(enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
+                                            kitItem.addUnsafeEnchantment(enchantmentType, enchantmentLevel);
+                                        }
+                                    }
+                                }
+                                if (kitMap.containsKey("Lore")) {
+                                    List<String> guiItemLore = getObject(kitMap, "Lore", List.class);
+                                    ItemMeta guiItemMeta = kitItem.getItemMeta();
+                                    if (guiItemMeta != null) {
+                                        guiItemMeta.setLore(Utils.replaceChatColours(guiItemLore));
+                                        kitItem.setItemMeta(guiItemMeta);
+                                    }
+                                }
+                                try {
+                                    if (kitItem != null) kitItems.set(Integer.parseInt(slotSplit[1]), kitItem);
+                                } catch (Exception ex) {
+                                    System.out.println("Could not register the item at slot " + slotSplit[1] + " in the kit '" + kitName + "'.");
+                                }
+                            } else {
+                                kitItems.add(new ItemStack(Material.AIR));
                             }
+                        } else {
+                            kitItems.add(new ItemStack(Material.AIR));
                         }
-                        if (kitMap.containsKey("Lore")) {
-                            List<String> guiItemLore = getObject(kitMap, "Lore", List.class);
-                            ItemMeta guiItemMeta = kitItem.getItemMeta();
-                            if (guiItemMeta != null) {
-                                guiItemMeta.setLore(Utils.replaceChatColours(guiItemLore));
-                                kitItem.setItemMeta(guiItemMeta);
-                            }
-                        }
-                        if (kitItem != null) kitItems.add(kitItem);
                     }
                     kit.setItems(kitItems);
                 }

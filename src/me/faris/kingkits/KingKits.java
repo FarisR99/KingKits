@@ -193,6 +193,7 @@ public class KingKits extends JavaPlugin {
         
         ConfigurationSerialization.unregisterClass(Kit.class);
 
+        ConfigurationSerialization.unregisterClass(Kit.class);
         // Clear all lists
         this.usingKits.clear();
         this.playerKits.clear();
@@ -215,6 +216,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().options().header("KingKits Configuration");
             this.getConfig().addDefault("Op bypass", true);
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
+            this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
             this.getConfig().addDefault("Enable kits command", true);
             this.getConfig().addDefault("Enable create kits command", true);
             this.getConfig().addDefault("Enable delete kits command", true);
@@ -232,6 +234,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Use permissions on join", true);
             this.getConfig().addDefault("Use permissions for kit list", true);
             this.getConfig().addDefault("Kit list mode", "Text");
+            this.getConfig().addDefault("Sort kits alphabetically", true);
             this.getConfig().addDefault("Remove items on leave", true);
             this.getConfig().addDefault("Drop items on death", false);
             this.getConfig().addDefault("Drop items", false);
@@ -263,12 +266,15 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Clear items on kit creation", true);
             this.getConfig().addDefault("Kit particle effects", false);
             this.getConfig().addDefault("Show kit preview", false);
+            if (this.getConfig().contains("Scoreboards")) this.getConfig().set("Scoreboards", null);
+            if (this.getConfig().contains("Scoreboard title")) this.getConfig().set("Scoreboard title", null);
             this.getConfig().options().copyDefaults(true);
             this.getConfig().options().copyHeader(true);
             this.saveConfig();
 
             this.configValues.opBypass = this.getConfig().getBoolean("Op bypass");
             this.configValues.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
+            this.configValues.multiInvsPlugin = this.getConfig().getString("Multiple world inventories plugin");
             this.cmdValues.pvpKits = this.getConfig().getBoolean("Enable kits command");
             this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
             this.cmdValues.deleteKits = this.getConfig().getBoolean("Enable delete kits command");
@@ -282,6 +288,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
             this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
             this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
+            this.configValues.sortAlphabetically = this.getConfig().getBoolean("Sort kits alphabetically");
             this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions on join");
             this.configValues.cmdKitListPermissions = this.getConfig().getBoolean("Use permissions for kit list");
             this.configValues.removeItemsOnLeave = this.getConfig().getBoolean("Remove items on leave");
@@ -348,7 +355,7 @@ public class KingKits extends JavaPlugin {
                             if (configEntrySet.getValue() instanceof ConfigurationSection)
                                 playerMap = ((ConfigurationSection) configEntrySet.getValue()).getValues(false);
                             else if (configEntrySet.getValue() instanceof Map)
-                                playerMap = (Map) configEntrySet.getValue();
+                                playerMap = (Map<String, Object>) configEntrySet.getValue();
                             if (playerMap != null) {
                                 for (Map.Entry<String, Object> entrySet : playerMap.entrySet()) {
                                     String strValue = entrySet.getValue().toString();
@@ -417,7 +424,7 @@ public class KingKits extends JavaPlugin {
                     if (objKitConfigSection instanceof ConfigurationSection)
                         kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
                     else if (objKitConfigSection instanceof Map)
-                        kit = Kit.deserialize((Map) objKitConfigSection);
+                        kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
                     if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName));
                     else
                         this.getLogger().warning("Could not register the kit '" + kitName + "' it has been invalidly defined in the configuration.");
@@ -840,8 +847,7 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getCooldownConfig() {
-        if (this.cooldownConfig == null || this.customCooldownConfig == null)
-            this.reloadCooldownConfig();
+        if (this.cooldownConfig == null || this.customCooldownConfig == null) this.reloadCooldownConfig();
         return this.cooldownConfig;
     }
 
@@ -982,8 +988,7 @@ public class KingKits extends JavaPlugin {
                         }
                         kit.setItems(kitItems);
                         kit.setArmour(kitArmour);
-                        if (oldCPKFileConfig.contains(kitName))
-                            kit.setCost(oldCPKFileConfig.getDouble(kitName, 0D));
+                        if (oldCPKFileConfig.contains(kitName)) kit.setCost(oldCPKFileConfig.getDouble(kitName, 0D));
                         if (oldGUIFileConfig.contains(kitName)) {
                             int targetItemID = oldGUIFileConfig.getInt(kitName);
                             try {
