@@ -82,7 +82,6 @@ public class KingKits extends JavaPlugin {
         this.playerKillstreaks.clear();
 
         // Initialise variables
-        this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now enabled.");
         ConfigurationSerialization.registerClass(Kit.class);
         this.loadConfiguration();
         try {
@@ -203,8 +202,6 @@ public class KingKits extends JavaPlugin {
         // Unregister all permissions
         for (Permission registeredPerm : this.permissions.permissionsList)
             this.getServer().getPluginManager().removePermission(registeredPerm);
-
-        this.getLogger().info(this.getDescription().getFullName() + " by KingFaris10 is now disabled.");
     }
 
     // Load Configurations
