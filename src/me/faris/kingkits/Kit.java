@@ -317,12 +317,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     ItemStack guiItem = null;
                     if (guiItemMap.containsKey("Type")) {
                         String strType = getObject(guiItemMap, "Type", String.class);
-                        Material itemType = null;
-                        if (Utils.isInteger(strType)) {
-                            itemType = Material.getMaterial(Integer.parseInt(strType));
-                        } else {
-                            itemType = Material.getMaterial(strType);
-                        }
+                        Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
                         if (itemType == null) itemType = Material.DIAMOND_SWORD;
                         int itemAmount = guiItemMap.containsKey("Amount") ? getObject(guiItemMap, "Amount", Integer.class) : 1;
                         short itemData = guiItemMap.containsKey("Data") ? getObject(guiItemMap, "Data", Short.class) : (short) 0;
@@ -368,12 +363,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                 String strType = kitMap.containsKey("Type") ? getObject(kitMap, "Type", String.class) : Material.AIR.toString();
                                 ItemStack kitItem = null;
                                 Material kitMaterial = null;
-                                Material itemType = null;
-                                if (Utils.isInteger(strType)) {
-                                    itemType = Material.getMaterial(Integer.parseInt(strType));
-                                } else {
-                                    itemType = Material.getMaterial(strType);
-                                }
+                                Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
                                 if (itemType == null) continue;
                                 String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
                                 int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
@@ -426,12 +416,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                         Map<String, Object> kitMap = getValues(entrySet);
                         String strType = getObject(kitMap, "Type", String.class);
                         ItemStack kitArmourItem = null;
-                        Material itemType = null;
-                        if (Utils.isInteger(strType)) {
-                            itemType = Material.getMaterial(Integer.parseInt(strType));
-                        } else {
-                            itemType = Material.getMaterial(strType);
-                        }
+                        Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
                         if (itemType == null) continue;
                         String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
                         String strItemDye = kitMap.containsKey("Dye") ? kitMap.get("Dye").toString() : "-1";
