@@ -1,6 +1,6 @@
 name: KingKits
 main: me.faris.kingkits.KingKits
-version: 3.0.0
+version: ${project.version}
 description: Have battles with enemies using custom made kits!
 author: KingFaris10
 softdepend: [Vault]

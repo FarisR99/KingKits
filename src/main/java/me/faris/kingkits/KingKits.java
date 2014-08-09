@@ -80,7 +80,7 @@ public class KingKits extends JavaPlugin {
         this.playerScores.clear();
         this.compassTargets.clear();
         this.playerKillstreaks.clear();
-
+        
         // Initialise variables
         ConfigurationSerialization.registerClass(Kit.class);
         this.loadConfiguration();
