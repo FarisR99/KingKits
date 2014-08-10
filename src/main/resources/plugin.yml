@@ -1,5 +1,5 @@
 name: KingKits
-main: me.faris.kingkits.KingKits
+main: com.faris.kingkits.KingKits
 version: ${project.version}
 description: Have battles with enemies using custom made kits!
 author: KingFaris10
@@ -18,10 +18,10 @@ commands:
     deletekit:
       description: Delete a PvP kit.
       usage: /<command> [<name>]
+    renamekit:
+      description: Rename a PvP kit.
+      usage: /<command> [<name> <newname>]
     refill:
       description: Refill bowl(s).
       usage: /<command> [<all>]
       aliases: soup
-    renamekit:
-      description: Rename a PvP kit.
-      usage: /<command> [<name> <newname>]
