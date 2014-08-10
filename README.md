@@ -10,4 +10,4 @@ IntelliJ
 3. Select it and then select Maven as the project type.
 4. Done!
 
-Copyright @ KingFaris10 2013
+Copyright @ KingFaris10 2013-2014
