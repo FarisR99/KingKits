@@ -8,6 +8,24 @@
     <artifactId>KingKits</artifactId>
     <version>3.0.1</version>
 
+    <packaging>jar</packaging>
+
+    <name>KingKits</name>
+    <url>http://dev.bukkit.org/bukkit-plugins/kingkits/</url>
+
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <github.global.server>github</github.global.server>
+    </properties>
+
 
     <build>
         <resources>
@@ -65,7 +83,31 @@
                 </executions>
             </plugin>
 
-
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.8</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>
+                    <noJekyll>true</noJekyll>
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                    <branch>refs/heads/mvn-repo</branch>
+                    <merge>true</merge>
+                    <includes>
+                        <include>**/*</include>
+                    </includes>
+                    <repositoryName>KingKits</repositoryName>
+                    <repositoryOwner>KingFaris10</repositoryOwner>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -85,7 +127,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>RELEASE</version>
+            <version>LATEST</version>
         </dependency>
 
         <dependency>
@@ -94,4 +136,10 @@
             <version>RELEASE</version>
         </dependency>
     </dependencies>
+
+    <scm>
+        <connection>scm:git:git@github.com:KingFaris10/KingKits.git</connection>
+        <url>scm:git:git@github.com:KingFaris10/KingKits.git</url>
+        <developerConnection>scm:git:git@github.com:KingFaris10/KingKits.git</developerConnection>
+    </scm>
 </project>

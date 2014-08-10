@@ -219,3 +219,14 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+##############
+## Script files
+##############
+*.bat
+*.sh
+
+##############
+## Maven Target Folder
+##############
+target/
