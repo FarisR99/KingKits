@@ -7,11 +7,13 @@ import com.faris.kingkits.listeners.event.custom.PlayerKitEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
 import java.util.List;
+import java.util.Map;
 
 public class SetKit {
     private static KingKits pl;
@@ -68,7 +70,7 @@ public class SetKit {
                     String oldKit = plugin.playerKits.containsKey(player.getName()) ? plugin.playerKits.get(player.getName()) : "";
                     Kit newKit = plugin.kitList.get(kitName);
                     if (newKit == null) return null;
-                    PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItems(), newKit.getArmour(), newKit.getPotionEffects());
+                    PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItemsWithSlot(), newKit.getArmour(), newKit.getPotionEffects());
                     playerKitEvent.setCommands(newKit.getCommands());
                     player.getServer().getPluginManager().callEvent(playerKitEvent);
                     if (!playerKitEvent.isCancelled()) {
@@ -101,8 +103,19 @@ public class SetKit {
                         player.setGameMode(GameMode.SURVIVAL);
                         for (PotionEffect potionEffect : player.getActivePotionEffects())
                             player.removePotionEffect(potionEffect.getType());
-                        List<ItemStack> kitItems = playerKitEvent.getKitContents();
-                        player.getInventory().addItem(kitItems.toArray(new ItemStack[kitItems.size()]));
+                        Map<Integer, ItemStack> kitItems = playerKitEvent.getKitContentsWithSlots();
+                        for (Map.Entry<Integer, ItemStack> kitItem : kitItems.entrySet()) {
+                            try {
+                                if (kitItem.getValue() != null && kitItem.getValue().getType() != Material.AIR) {
+                                    int slot = kitItem.getKey();
+                                    if (slot >= 0 && slot < player.getInventory().getSize()) {
+                                        player.getInventory().setItem(slot, kitItem.getValue());
+                                    }
+                                }
+                            } catch (Exception ex) {
+                                continue;
+                            }
+                        }
                         List<ItemStack> armourItems = playerKitEvent.getKitArmour();
                         for (ItemStack armourItem : armourItems) {
                             if (armourItem != null) {

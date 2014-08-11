@@ -7,23 +7,19 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class PlayerKitEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
     private String kitName = "";
     private String oldKit = "";
-    private List<ItemStack> kitContents = new ArrayList<ItemStack>(), armourItems = new ArrayList<ItemStack>();
+    private Map<Integer, ItemStack> kitContents = new HashMap<Integer, ItemStack>();
+    private List<ItemStack> armourItems = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
     private List<String> kitCommands = new ArrayList<String>();
 
     private boolean isCancelled = false;
-
-    // Cancelled
-    // Canceled
 
     /**
      * Create a new PlayerKitEvent instance.
@@ -58,7 +54,7 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
      * @param newKitItems - The kit items.
      * @param armourItems - The kit's armour items.
      */
-    public PlayerKitEvent(Player player, String kitName, String oldKit, List<ItemStack> newKitItems, List<ItemStack> armourItems) {
+    public PlayerKitEvent(Player player, String kitName, String oldKit, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourItems) {
         super(player);
         this.kitName = kitName;
         this.oldKit = oldKit;
@@ -75,7 +71,7 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
      * @param newKitItems - The kit items.
      * @param armourItems - The kit's armour items.
      */
-    public PlayerKitEvent(Player player, String kitName, String oldKit, List<ItemStack> newKitItems, List<ItemStack> armourItems, List<PotionEffect> potionEffects) {
+    public PlayerKitEvent(Player player, String kitName, String oldKit, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourItems, List<PotionEffect> potionEffects) {
         super(player);
         this.kitName = kitName;
         this.oldKit = oldKit;
@@ -109,7 +105,14 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
      * @return An unmodifiable List of items in the kit.
      */
     public List<ItemStack> getKitContents() {
-        return Collections.unmodifiableList(this.kitContents);
+        return new ArrayList<ItemStack>(this.kitContents.values());
+    }
+
+    /**
+     * @return An unmodifiable Map of items in the kit with their slots.
+     */
+    public Map<Integer, ItemStack> getKitContentsWithSlots() {
+        return Collections.unmodifiableMap(this.kitContents);
     }
 
     /**
@@ -141,7 +144,20 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
      * Set the item contents of the kit *
      */
     public void setKitContents(List<ItemStack> kitContents) {
-        this.kitContents = kitContents != null ? kitContents : new ArrayList<ItemStack>();
+        this.kitContents = new HashMap<Integer, ItemStack>();
+        if (kitContents != null) {
+            for (int i = 0; i < kitContents.size(); i++) {
+                ItemStack kitContent = kitContents.get(i);
+                if (kitContent != null) this.kitContents.put(i, kitContent);
+            }
+        }
+    }
+
+    /**
+     * Set the item contents of the kit *
+     */
+    public void setKitContents(Map<Integer, ItemStack> kitContents) {
+        this.kitContents = kitContents != null ? kitContents : new HashMap<Integer, ItemStack>();
     }
 
     /**

@@ -120,6 +120,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return new ArrayList<ItemStack>(this.kitItems.values());
     }
 
+    public Map<Integer, ItemStack> getItemsWithSlot() {
+        return Collections.unmodifiableMap(this.kitItems);
+    }
+
     public List<ItemStack> getMergedItems() {
         List<ItemStack> kitItems = new ArrayList<ItemStack>(this.kitItems.values());
         kitItems.addAll(this.kitArmour);
@@ -519,5 +523,4 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {
         return entrySet != null ? getValues(entrySet.getValue()) : null;
     }
-
 }
