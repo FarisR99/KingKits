@@ -1,9 +1,11 @@
 package com.faris.kingkits.helpers;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -30,20 +32,6 @@ public class Utils {
             if (!ignoreErrors) ex.printStackTrace();
         }
         return (directory.delete());
-    }
-
-    public static boolean renameDirectory(File directory, File newDirectory) {
-        try {
-            if (directory.isDirectory()) {
-                directory.renameTo(newDirectory);
-            } else {
-                directory.mkdir();
-                directory.renameTo(newDirectory);
-            }
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
     }
 
     public static int getDye(String friendlyName) {
@@ -121,6 +109,11 @@ public class Utils {
         return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
     }
 
+    public static Collection<? extends Player> getOnlinePlayers() {
+        Object onlinePlayers = Bukkit.getOnlinePlayers();
+        return onlinePlayers instanceof Collection ? (Collection<? extends Player>) onlinePlayers : (onlinePlayers instanceof Player[] ? new ArrayList<Player>(Arrays.asList((Player[]) onlinePlayers)) : new ArrayList<Player>());
+    }
+
     public static String getPotionName(String friendlyName) {
         if (friendlyName != null) {
             if (friendlyName.equalsIgnoreCase("Confusion")) return PotionEffectType.CONFUSION.getName();
@@ -154,15 +147,6 @@ public class Utils {
         return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
     }
 
-    public static boolean isByte(String aString) {
-        try {
-            Byte.parseByte(aString);
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
     public static boolean isInteger(String aString) {
         try {
             Integer.parseInt(aString);
@@ -193,6 +177,20 @@ public class Utils {
     public static boolean isUUID(String string) {
         try {
             UUID.fromString(string);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public static boolean renameDirectory(File directory, File newDirectory) {
+        try {
+            if (directory.isDirectory()) {
+                directory.renameTo(newDirectory);
+            } else {
+                directory.mkdir();
+                directory.renameTo(newDirectory);
+            }
             return true;
         } catch (Exception ex) {
             return false;

@@ -13,7 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CreateKitCommand extends PlayerCommand {
 
@@ -66,11 +68,13 @@ public class CreateKitCommand extends PlayerCommand {
                                     }
                                 }
 
-                                List<ItemStack> itemsInInv = new ArrayList<ItemStack>();
+                                Map<Integer, ItemStack> itemsInInv = new HashMap<Integer, ItemStack>();
                                 List<ItemStack> armourInInv = new ArrayList<ItemStack>();
-                                for (ItemStack item : p.getInventory().getContents()) {
-                                    if (item != null) itemsInInv.add(item);
-                                    else itemsInInv.add(new ItemStack(Material.AIR));
+                                ItemStack[] pContents = p.getInventory().getContents();
+                                if (pContents == null) pContents = new ItemStack[p.getInventory().getSize()];
+                                for (int i = 0; i < p.getInventory().getSize(); i++) {
+                                    if (pContents.length > i && pContents[i] != null) itemsInInv.put(i, pContents[i]);
+                                    else itemsInInv.put(i, new ItemStack(Material.AIR));
                                 }
                                 for (ItemStack armour : p.getInventory().getArmorContents())
                                     if (armour != null && armour.getType() != Material.AIR) armourInInv.add(armour);
@@ -78,7 +82,7 @@ public class CreateKitCommand extends PlayerCommand {
                                 p.getServer().getPluginManager().callEvent(createKitEvent);
 
                                 if (!createKitEvent.isCancelled()) {
-                                    itemsInInv = createKitEvent.getKitContents();
+                                    itemsInInv = createKitEvent.getKitContentsWithSlots();
                                     armourInInv = createKitEvent.getKitArmour();
                                     if (itemsInInv.size() > 0 || armourInInv.size() > 0) {
                                         if (containsKit) {

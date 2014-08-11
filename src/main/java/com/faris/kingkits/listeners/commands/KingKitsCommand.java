@@ -125,7 +125,7 @@ public class KingKitsCommand extends KingCommand {
                                 this.sendNoAccess(sender);
                             }
                         } else {
-                            Lang.sendMessage(sender, Lang.COMMAND_GEN_INGAME);
+                            Lang.sendMessage(sender, Lang.COMMAND_GEN_IN_GAME);
                         }
                     } else if (strCommand.equalsIgnoreCase("setcooldown")) {
                         if (sender.hasPermission(this.getPlugin().permissions.cmdSetCooldown)) {

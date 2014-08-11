@@ -274,6 +274,14 @@ public class PvPKits {
         Plugin.getPlugin().playerScores.put(playerUUID, value);
     }
 
+    public static boolean createKit(String kitName, List<ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
+        Map<Integer, ItemStack> mapItemsInKit = new HashMap<Integer, ItemStack>();
+        for (int i = 0; i < itemsInKit.size(); i++) {
+            mapItemsInKit.put(i, itemsInKit.get(i));
+        }
+        return createKit(kitName, mapItemsInKit, potionEffects, guiItem, costOfKit);
+    }
+
     /**
      * Create a kit.
      * Returns if the creation of the kit is successful.
@@ -284,7 +292,7 @@ public class PvPKits {
      * @param guiItem The item to be shown in the GUI Inventory when using GUI mode. Set to null if you want it to be a diamond sword.
      * @param costOfKit The cost of the kit.
      */
-    public static boolean createKit(String kitName, List<ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
+    public static boolean createKit(String kitName, Map<Integer, ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
         if (!itemsInKit.isEmpty()) {
             boolean containsKit = kitExists(kitName);
             if (containsKit) {

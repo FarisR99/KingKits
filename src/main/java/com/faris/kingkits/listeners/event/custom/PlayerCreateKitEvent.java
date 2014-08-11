@@ -1,20 +1,20 @@
 package com.faris.kingkits.listeners.event.custom;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
     private String kitName = "";
-    private List<ItemStack> kitContents = new ArrayList<ItemStack>(), armourContents = new ArrayList<ItemStack>();
+    private Map<Integer, ItemStack> kitContents = new HashMap<Integer, ItemStack>();
+    private List<ItemStack> armourContents = new ArrayList<ItemStack>();
 
     private boolean isCancelled = false;
 
@@ -25,7 +25,25 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
      * @param kitName - The new kit.
      * @param newKitItems - The kit items.
      */
-    public PlayerCreateKitEvent(Player player, String kitName, List<ItemStack> newKitItems, List<ItemStack> armourContents) {
+    public PlayerCreateKitEvent(Player player, String kitName, final List<ItemStack> newKitItems, List<ItemStack> armourContents) {
+        this(player, kitName, new HashMap<Integer, ItemStack>() {
+            {
+                for (int i = 0; i < newKitItems.size(); i++) {
+                    this.put(i, newKitItems.get(i));
+                }
+            }
+        }, armourContents);
+
+    }
+
+    /**
+     * Create a new PlayerCreateKitEvent instance.
+     *
+     * @param player - The player.
+     * @param kitName - The new kit.
+     * @param newKitItems - The kit items.
+     */
+    public PlayerCreateKitEvent(Player player, String kitName, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourContents) {
         super(player);
         this.kitName = kitName;
         this.kitContents = newKitItems;
@@ -50,7 +68,11 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
      * Returns an unmodifiable List of items in the new kit *
      */
     public List<ItemStack> getKitContents() {
-        return Collections.unmodifiableList(this.kitContents);
+        return new ArrayList<ItemStack>(this.kitContents.values());
+    }
+
+    public Map<Integer, ItemStack> getKitContentsWithSlots() {
+        return Collections.unmodifiableMap(this.kitContents);
     }
 
     /**
@@ -64,6 +86,19 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
      * Set the item contents of the new kit *
      */
     public void setKitContents(List<ItemStack> kitContents) {
+        if (kitContents != null) {
+            this.kitContents = new HashMap<Integer, ItemStack>();
+            for (int i = 0; i < kitContents.size(); i++) {
+                ItemStack kitContent = kitContents.get(i);
+                this.kitContents.put(i, kitContent == null ? new ItemStack(Material.AIR) : kitContent);
+            }
+        }
+    }
+
+    /**
+     * Set the item contents of the new kit *
+     */
+    public void setKitContents(Map<Integer, ItemStack> kitContents) {
         if (kitContents != null) this.kitContents = kitContents;
     }
 

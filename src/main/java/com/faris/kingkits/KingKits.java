@@ -31,6 +31,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Scoreboard;
+import org.mcstats.Metrics;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class KingKits extends JavaPlugin {
         this.playerScores.clear();
         this.compassTargets.clear();
         this.playerKillstreaks.clear();
-        
+
         // Initialise variables
         ConfigurationSerialization.registerClass(Kit.class);
         this.loadConfiguration();
@@ -147,7 +148,7 @@ public class KingKits extends JavaPlugin {
         }
 
         try {
-            new org.mcstats.Metrics(this).start();
+            new Metrics(this).start();
         } catch (Exception ex) {
             this.getLogger().warning("Could not start metrics due to a(n) " + ex.getClass().getSimpleName() + " error.");
             ex.printStackTrace();
@@ -159,15 +160,12 @@ public class KingKits extends JavaPlugin {
 
         // Clear inventories on reload
         if (this.configValues.clearInvsOnReload) {
-            for (int pos = 0; pos < this.getServer().getOnlinePlayers().length; pos++) {
-                Player target = this.getServer().getOnlinePlayers()[pos];
-                if (target != null) {
-                    if (PvPKits.hasKit(target.getName(), false)) {
-                        target.getInventory().clear();
-                        target.getInventory().setArmorContents(null);
-                        for (PotionEffect potionEffect : target.getActivePotionEffects())
-                            target.removePotionEffect(potionEffect.getType());
-                    }
+            for (Player target : Utils.getOnlinePlayers()) {
+                if (PvPKits.hasKit(target.getName(), false)) {
+                    target.getInventory().clear();
+                    target.getInventory().setArmorContents(null);
+                    for (PotionEffect potionEffect : target.getActivePotionEffects())
+                        target.removePotionEffect(potionEffect.getType());
                 }
             }
         }
@@ -189,6 +187,7 @@ public class KingKits extends JavaPlugin {
         }
 
         ConfigurationSerialization.unregisterClass(Kit.class);
+
         // Clear all lists
         this.usingKits.clear();
         this.playerKits.clear();
@@ -200,12 +199,16 @@ public class KingKits extends JavaPlugin {
         // Unregister all permissions
         for (Permission registeredPerm : this.permissions.permissionsList)
             this.getServer().getPluginManager().removePermission(registeredPerm);
+
+        this.permissions = null;
+        Plugin.setPlugin(null);
     }
 
     // Load Configurations
     public void loadConfiguration() {
         try {
-            if (this.cooldownTaskID != -1) this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
+            if (this.cooldownTaskID != -1 && this.getServer().getScheduler().isQueued(this.cooldownTaskID))
+                this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
             this.getConfig().options().header("KingKits Configuration");
             this.getConfig().addDefault("Op bypass", true);
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
@@ -254,8 +257,6 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Enable killstreaks", false);
             this.getConfig().addDefault("Disable item breaking", true);
             this.getConfig().addDefault("Kit menu on join", false);
-            this.getConfig().addDefault("Scoreboards", false);
-            this.getConfig().addDefault("Scoreboard title", "&cKingKits");
             this.getConfig().addDefault("Clear items on kit creation", true);
             this.getConfig().addDefault("Kit particle effects", false);
             this.getConfig().addDefault("Show kit preview", false);

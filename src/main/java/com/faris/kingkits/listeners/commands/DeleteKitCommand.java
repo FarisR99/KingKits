@@ -39,8 +39,7 @@ public class DeleteKitCommand extends PlayerCommand {
                                         this.getPlugin().kitList.remove(kitName);
 
                                     player.sendMessage(r("&4" + kitName + " &6was successfully deleted."));
-                                    for (int pos3 = 0; pos3 < player.getServer().getOnlinePlayers().length; pos3++) {
-                                        Player target = player.getServer().getOnlinePlayers()[pos3];
+                                    for (Player target : Utils.getOnlinePlayers()) {
                                         if (target != null) {
                                             if (this.getPlugin().usingKits.containsKey(target.getName())) {
                                                 String targetKit = this.getPlugin().usingKits.get(target.getName());

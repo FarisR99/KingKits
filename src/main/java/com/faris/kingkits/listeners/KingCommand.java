@@ -87,7 +87,7 @@ public abstract class KingCommand implements CommandExecutor {
      * Send the "no access" message to a player/console *
      */
     protected void sendNoAccess(CommandSender sender) {
-        Lang.sendMessage(sender, Lang.COMMAND_GEN_NOPERM);
+        Lang.sendMessage(sender, Lang.COMMAND_GEN_NO_PERMISSION);
     }
 
 }

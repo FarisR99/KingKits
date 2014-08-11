@@ -26,7 +26,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private List<String> kitCommands = new ArrayList<String>();
 
     private ItemStack guiItem = null;
-    private List<ItemStack> kitItems = new ArrayList<ItemStack>();
+    private Map<Integer, ItemStack> kitItems = new HashMap<Integer, ItemStack>();
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
 
@@ -45,7 +45,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
     }
 
-    public Kit(String kitName, List<ItemStack> kitItems) {
+    public Kit(String kitName, Map<Integer, ItemStack> kitItems) {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notEmpty(kitName);
@@ -53,7 +53,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
     }
 
-    public Kit(String kitName, List<ItemStack> kitItems, List<PotionEffect> potionEffects) {
+    public Kit(String kitName, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notNull(potionEffects);
@@ -63,7 +63,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
     }
 
-    public Kit(String kitName, double kitCost, List<ItemStack> kitItems) {
+    public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems) {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notEmpty(kitName);
@@ -72,7 +72,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
     }
 
-    public Kit(String kitName, double kitCost, List<ItemStack> kitItems, List<PotionEffect> potionEffects) {
+    public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notNull(potionEffects);
@@ -85,7 +85,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     public Kit addItem(ItemStack itemStack) {
         Validate.notNull(itemStack);
-        this.kitItems.add(itemStack);
+        this.kitItems.put(this.getFreeSlot(), itemStack);
         return this;
     }
 
@@ -105,16 +105,23 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this.kitCost;
     }
 
+    private int getFreeSlot() {
+        for (int i = 0; i < 36; i++) {
+            if (!this.kitItems.containsKey(new Integer(i))) return i;
+        }
+        return this.kitItems.size() + 1;
+    }
+
     public ItemStack getGuiItem() {
         return this.guiItem;
     }
 
     public List<ItemStack> getItems() {
-        return Collections.unmodifiableList(this.kitItems);
+        return new ArrayList<ItemStack>(this.kitItems.values());
     }
 
     public List<ItemStack> getMergedItems() {
-        List<ItemStack> kitItems = new ArrayList<ItemStack>(this.kitItems);
+        List<ItemStack> kitItems = new ArrayList<ItemStack>(this.kitItems.values());
         kitItems.addAll(this.kitArmour);
         return Collections.unmodifiableList(kitItems);
     }
@@ -142,8 +149,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     }
 
     public Kit setArmour(List<ItemStack> armour) {
-        Validate.notNull(armour);
-        this.kitArmour = armour;
+        if (armour != null) this.kitArmour = armour;
         return this;
     }
 
@@ -164,14 +170,22 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     }
 
     public Kit setGuiItem(ItemStack guiItem) {
-        Validate.notNull(guiItem);
-        this.guiItem = guiItem;
+        this.guiItem = guiItem != null ? guiItem : new ItemStack(Material.AIR);
         return this;
     }
 
     public Kit setItems(List<ItemStack> items) {
-        Validate.notNull(items);
-        this.kitItems = items;
+        if (items != null) {
+            this.kitItems = new HashMap<Integer, ItemStack>();
+            for (int i = 0; i < items.size(); i++) {
+                this.kitItems.put(i, items.get(i));
+            }
+        }
+        return this;
+    }
+
+    public Kit setItems(Map<Integer, ItemStack> items) {
+        if (items != null) this.kitItems = items;
         return this;
     }
 
@@ -346,10 +360,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 }
                 if (kitSection.containsKey("Items")) {
                     Map<String, Object> itemsMap = getValues(kitSection, "Items");
-                    List<ItemStack> kitItems = new ArrayList<ItemStack>() {
+                    Map<Integer, ItemStack> kitItems = new HashMap<Integer, ItemStack>() {
                         {
                             for (int i = 0; i < 36; i++) {
-                                this.add(new ItemStack(Material.AIR));
+                                this.put(i, new ItemStack(Material.AIR));
                             }
                         }
                     };
@@ -362,7 +376,6 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                 Map<String, Object> kitMap = getValues(entrySet);
                                 String strType = kitMap.containsKey("Type") ? getObject(kitMap, "Type", String.class) : Material.AIR.toString();
                                 ItemStack kitItem = null;
-                                Material kitMaterial = null;
                                 Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
                                 if (itemType == null) continue;
                                 String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
@@ -396,15 +409,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                     }
                                 }
                                 try {
-                                    if (kitItem != null) kitItems.set(Integer.parseInt(slotSplit[1]), kitItem);
+                                    if (kitItem != null) kitItems.put(Integer.parseInt(slotSplit[1]), kitItem);
                                 } catch (Exception ex) {
                                     System.out.println("Could not register the item at slot " + slotSplit[1] + " in the kit '" + kitName + "'.");
                                 }
-                            } else {
-                                kitItems.add(new ItemStack(Material.AIR));
                             }
-                        } else {
-                            kitItems.add(new ItemStack(Material.AIR));
                         }
                     }
                     kit.setItems(kitItems);
