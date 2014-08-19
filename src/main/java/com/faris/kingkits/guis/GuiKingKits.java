@@ -50,6 +50,7 @@ public abstract class GuiKingKits implements Listener {
 
     public boolean openMenu() {
         this.closeMenu(false, true);
+        if (this.plugin == null) this.plugin = Plugin.getPlugin();
         if (!guiPreviewKitMap.containsKey(this.playerName)) {
             if (this.getPlayer() != null) {
                 this.guiInventory.clear();
@@ -67,6 +68,7 @@ public abstract class GuiKingKits implements Listener {
         if (this.guiInventory != null) this.guiInventory.clear();
         if (unregisterEvents) HandlerList.unregisterAll(this);
         if (closeInventory && this.player != null) this.player.closeInventory();
+        this.plugin = null;
     }
 
     @EventHandler
