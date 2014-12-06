@@ -59,7 +59,7 @@ public class ConfigValues {
 	public boolean kitCooldown = false;
 
 	// Scores
-	public boolean scores = true;
+	public boolean scores = false;
 	public String scoreFormat = "&6[&a<score>&6]";
 	public int scoreIncrement = 2;
 	public int maxScore = Integer.MAX_VALUE;

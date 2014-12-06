@@ -41,7 +41,7 @@ public class PvPKits {
      * @param player The player to check.
      */
     public static boolean hasKit(String player) {
-        return Plugin.getPlugin().usingKits.containsKey(player);
+        return Plugin.getPlugin() != null && Plugin.getPlugin().usingKits != null && Plugin.getPlugin().usingKits.get(player) != null;
     }
 
     /**
@@ -63,9 +63,9 @@ public class PvPKits {
      */
     public static boolean hasKit(String player, boolean ignoreOPs) {
         if (ignoreOPs) {
-            return Plugin.getPlugin().playerKits.containsKey(player);
+            return Plugin.getPlugin() != null && Plugin.getPlugin().playerKits != null && Plugin.getPlugin().playerKits.get(player) != null;
         } else {
-            return Plugin.getPlugin().usingKits.containsKey(player);
+            return Plugin.getPlugin() != null && Plugin.getPlugin().usingKits != null &&  Plugin.getPlugin().usingKits.get(player) != null;
         }
     }
 

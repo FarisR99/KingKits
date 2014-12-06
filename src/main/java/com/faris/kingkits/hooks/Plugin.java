@@ -1,6 +1,7 @@
 package com.faris.kingkits.hooks;
 
 import com.faris.kingkits.KingKits;
+import org.bukkit.Bukkit;
 
 public class Plugin {
     private static KingKits pvpKits = null;
@@ -10,7 +11,7 @@ public class Plugin {
     }
 
     public static KingKits getPlugin() {
-        return pvpKits;
+        return pvpKits != null ? pvpKits : (Bukkit.getPluginManager().isPluginEnabled("KingKits") ? (KingKits) Bukkit.getPluginManager().getPlugin("KingKits") : null);
     }
 
     public static boolean isInitialised() {

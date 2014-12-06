@@ -74,7 +74,7 @@ public abstract class GuiKingKits implements Listener {
     @EventHandler
     protected abstract void onPlayerClickInventory(InventoryClickEvent event);
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOW)
     protected void onPlayerCloseInventory(InventoryCloseEvent event) {
         try {
             if (this.guiInventory != null && event.getInventory() != null) {

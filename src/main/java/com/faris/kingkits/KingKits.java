@@ -82,7 +82,11 @@ public class KingKits extends JavaPlugin {
 
         // Initialise variables
         ConfigurationSerialization.registerClass(Kit.class);
-        this.loadConfiguration();
+        try {
+            this.loadConfiguration();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         try {
             Lang.init(this);
         } catch (Exception ex) {
@@ -115,7 +119,7 @@ public class KingKits extends JavaPlugin {
 
         // Check for updates
         if (this.configValues.checkForUpdates) {
-            this.updater = new Updater(this, 56371, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
+            this.updater = new Updater(this, 2209, false);
             if (this.updater.getResult() == Updater.UpdateResult.UPDATE_AVAILABLE) {
                 String title = "============================================";
                 String titleSpace = "                                            ";
@@ -126,23 +130,23 @@ public class KingKits extends JavaPlugin {
                     this.getServer().getConsoleSender().sendMessage("KingKits");
                 }
                 this.getLogger().info(title);
-                this.getLogger().info("A new version is available: " + this.updater.getLatestName());
+                this.getLogger().info("A new version is available: KingKits v" + this.updater.getVersion());
                 this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
                 if (this.configValues.automaticUpdates) {
-                    this.getLogger().info("Downloading " + this.updater.getLatestName() + "...");
-                    this.updater = new Updater(this, 56371, this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, false);
+                    /** this.getLogger().info("Cannot download KingKits v" + this.updater.getVersion() + "...");
+                    // TODO: Wait for updater to allow auto-downloading.
                     Updater.UpdateResult updateResult = this.updater.getResult();
-                    if (updateResult == Updater.UpdateResult.FAIL_APIKEY)
-                        this.getLogger().warning("Download failed: Improperly configured the server's API key in the configuration");
-                    else if (updateResult == Updater.UpdateResult.FAIL_DBO)
-                        this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
-                    else if (updateResult == Updater.UpdateResult.FAIL_DOWNLOAD)
-                        this.getLogger().warning("Download failed: Could not download the file.");
+                    if (updateResult == Updater.UpdateResult.BAD_RESOURCEID)
+                        this.getLogger().warning("Download failed: Invalid resource ID.");
+                    else if (updateResult == Updater.UpdateResult.DISABLED)
+                        this.getLogger().warning("Download failed: Updater disabled.");
                     else if (updateResult == Updater.UpdateResult.FAIL_NOVERSION)
                         this.getLogger().warning("Download failed: The latest version has an incorrect title.");
-                    else this.getLogger().info("The latest version of KingKits has been downloaded.");
+                    else if (updateResult == Updater.UpdateResult.FAIL_SPIGOT)
+                        this.getLogger().warning("Download failed: Spigot failed.");
+                    // else this.getLogger().info("The latest version of KingKits has been downloaded."); **/
                 } else {
-                    this.getLogger().info("Download it from: " + this.updater.getLatestFileLink());
+                    this.getLogger().info("Download it from: http://www.spigotmc.org/threads/kingkits.37947");
                 }
             }
         }
@@ -205,7 +209,7 @@ public class KingKits extends JavaPlugin {
     }
 
     // Load Configurations
-    public void loadConfiguration() {
+    public void loadConfiguration() throws Exception {
         try {
             if (this.cooldownTaskID != -1 && this.getServer().getScheduler().isQueued(this.cooldownTaskID))
                 this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
@@ -220,9 +224,9 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Enable refill command", true);
             this.getConfig().addDefault("Kit sign", "[Kit]");
             this.getConfig().addDefault("Kit list sign", "[KList]");
-            this.getConfig().addDefault("Kit sign valid", "&0[&1Kit&0]");
-            this.getConfig().addDefault("Kit sign invalid", "&0[&cKit&0]");
-            this.getConfig().addDefault("Kit list sign valid", "&0[&1KList&0]");
+            this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
+            this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
+            this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
             this.getConfig().addDefault("Kit cooldown enabled", false);
             if (this.getConfig().contains("Kit cooldown.Enabled")) this.getConfig().set("Kit cooldown.Enabled", null);
             if (this.getConfig().contains("Kit cooldown.Time")) this.getConfig().set("Kit cooldown.Time", null);
@@ -240,7 +244,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("One kit per life", false);
             this.getConfig().addDefault("Check for updates", true);
             this.getConfig().addDefault("Automatically update", false);
-            this.getConfig().addDefault("Enable score", true);
+            this.getConfig().addDefault("Enable score", false);
             this.getConfig().addDefault("Score chat prefix", "&6[&a<score>&6]");
             this.getConfig().addDefault("Score per kill", 2);
             this.getConfig().addDefault("Max score", Integer.MAX_VALUE);
@@ -326,7 +330,7 @@ public class KingKits extends JavaPlugin {
             this.loadEconomy();
             this.loadKillstreaks();
 
-            for (Player onlinePlayer : this.getServer().getOnlinePlayers()) {
+            for (Player onlinePlayer : Utils.getOnlinePlayers()) {
                 Scoreboard playerScoreboard = onlinePlayer.getScoreboard();
                 if (playerScoreboard != null) {
                     if (playerScoreboard.getObjective("KingKits") != null) {
@@ -374,7 +378,7 @@ public class KingKits extends JavaPlugin {
                 }, 1200L, 1200L).getTaskId();
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw ex;
         }
     }
 
@@ -541,7 +545,7 @@ public class KingKits extends JavaPlugin {
         this.getKillstreaksConfig().options().header("KingKits Killstreak Configuration");
         this.getKillstreaksConfig().addDefault("First run", true);
         if (this.getKillstreaksConfig().getBoolean("First run")) {
-            this.getKillstreaksConfig().set("Killstreak 9001", Arrays.asList("broadcast &c<player>&a's killstreak is over 9000!"));
+            this.getKillstreaksConfig().set("Killstreak 9001", Arrays.asList("broadcast &c<player>&a's killstreak is over 9000!", "msg <player> Well done!"));
             this.getKillstreaksConfig().set("First run", false);
         }
         this.getKillstreaksConfig().options().copyDefaults(true);

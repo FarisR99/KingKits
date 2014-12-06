@@ -104,7 +104,8 @@ public class PlayerListener implements Listener {
                             if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
                             else sbKits.append(col).append(kit).append(", ");
                         } else {
-                            if (kitPos == kitList.size() - 1) sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
+                            if (kitPos == kitList.size() - 1)
+                                sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
                         }
                     }
                 }
@@ -119,7 +120,7 @@ public class PlayerListener implements Listener {
     /**
      * Lets players create a sign kit *
      */
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void createKitSign(SignChangeEvent event) {
         try {
             if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
@@ -134,17 +135,26 @@ public class PlayerListener implements Listener {
                             p.sendMessage(ChatColor.RED + "Please enter a kit name on the second line.");
                         }
                     } else {
-                        p.sendMessage(ChatColor.DARK_RED + "You do not have access to do create a KingKits sign.");
+                        p.sendMessage(ChatColor.DARK_RED + "You do not have access to create a KingKits sign.");
+                        event.setLine(0, "");
+                        event.setLine(1, "");
+                        event.setLine(2, "");
+                        event.setLine(3, "");
                     }
                 } else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strKitListSign)) {
                     if (p.hasPermission(this.getPlugin().permissions.kitListSign)) {
                         event.setLine(0, this.getPlugin().configValues.strKitListSignValid);
                     } else {
-                        p.sendMessage(ChatColor.DARK_RED + "You do not have access to do create a KingKits list sign.");
+                        p.sendMessage(ChatColor.DARK_RED + "You do not have access to create a KingKits list sign.");
+                        event.setLine(0, "");
+                        event.setLine(1, "");
+                        event.setLine(2, "");
+                        event.setLine(3, "");
                     }
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -162,7 +172,7 @@ public class PlayerListener implements Listener {
                         if ((block instanceof Sign)) {
                             Sign sign = (Sign) block;
                             String signLine0 = sign.getLine(0);
-                            if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitSignValid)) {
+                            if (signLine0.equalsIgnoreCase((this.getPlugin().configValues.strKitSignValid.startsWith("&0") ? this.getPlugin().configValues.strKitSignValid.replaceFirst("&0", "") : this.getPlugin().configValues.strKitSignValid))) {
                                 if (player.hasPermission(this.getPlugin().permissions.kitUseSign)) {
                                     String line1 = sign.getLine(1);
                                     if (line1 != null) {
@@ -210,7 +220,7 @@ public class PlayerListener implements Listener {
                                     player.sendMessage(ChatColor.RED + "You do not have permission to use this sign.");
                                 }
                                 event.setCancelled(true);
-                            } else if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitListSignValid)) {
+                            } else if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitListSignValid.startsWith("&0") ? this.getPlugin().configValues.strKitListSignValid.replaceFirst("&0", "") : this.getPlugin().configValues.strKitListSignValid)) {
                                 if (player.hasPermission(this.getPlugin().permissions.kitListSign)) {
                                     if (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
                                         List<String> kitList = this.getPlugin().getKitList();
@@ -241,6 +251,7 @@ public class PlayerListener implements Listener {
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -269,6 +280,7 @@ public class PlayerListener implements Listener {
                     player.removePotionEffect(activeEffect.getType());
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -298,6 +310,7 @@ public class PlayerListener implements Listener {
                 guiPreviewKit.closeMenu(true, true);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -323,6 +336,7 @@ public class PlayerListener implements Listener {
             if (this.getPlugin().usingKits.containsKey(player.getName()))
                 this.getPlugin().usingKits.remove(player.getName());
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -707,6 +721,21 @@ public class PlayerListener implements Listener {
                     }
                 }
             }
+            if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName()) && event.getPlayer().getGameMode() == GameMode.SURVIVAL && this.getPlugin().configValues.disableItemBreaking) {
+                final Player player = event.getPlayer();
+                if (player.getItemInHand() != null && (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                    player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
+                        @Override
+                        public void run() {
+                            if (player != null && player.isOnline() && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                                ItemStack item = player.getItemInHand();
+                                item.setDurability((short) 0);
+                                player.setItemInHand(item);
+                            }
+                        }
+                    });
+                }
+            }
         } catch (Exception ex) {
         }
     }
@@ -823,10 +852,12 @@ public class PlayerListener implements Listener {
                     }
                 }
             } else if (this.getPlugin().configValues.pvpWorlds.contains("All") || (!this.getPlugin().configValues.pvpWorlds.contains(event.getFrom().getName()) && this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))) {
-                event.getPlayer().getInventory().clear();
-                event.getPlayer().getInventory().setArmorContents(null);
-                for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
-                    event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
+                if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
+                    event.getPlayer().getInventory().clear();
+                    event.getPlayer().getInventory().setArmorContents(null);
+                    for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
+                        event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
+                }
                 if (this.getPlugin().configValues.listKitsOnJoin)
                     this.listKitsOnJoin(event.getPlayer());
             }
@@ -873,6 +904,16 @@ public class PlayerListener implements Listener {
                         List<String> killstreakCommands = this.getPlugin().getKillstreaksConfig().getStringList("Killstreak " + currentKillstreak);
                         for (String killstreakCommand : killstreakCommands)
                             event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replaceAll("<player>", event.getPlayer().getName()).replaceAll("<killstreak>", "" + currentKillstreak));
+                    }
+                    if (PvPKits.hasKit(event.getPlayer())) {
+                        Kit playerKit = PvPKits.getKitByName(PvPKits.getKit(event.getPlayer()));
+                        if (playerKit != null) {
+                            if (playerKit.getKillstreaks().containsKey(currentKillstreak)) {
+                                List<String> killstreakCommands = playerKit.getKillstreaks().get(currentKillstreak);
+                                for (String killstreakCommand : killstreakCommands)
+                                    event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replaceAll("<player>", event.getPlayer().getName()).replaceAll("<killstreak>", "" + currentKillstreak));
+                            }
+                        }
                     }
                 }
             }
@@ -929,10 +970,21 @@ public class PlayerListener implements Listener {
         try {
             if (this.getPlugin().configValues.disableItemBreaking) {
                 if (event.getDamager() instanceof Player) {
-                    Player player = (Player) event.getDamager();
+                    final Player player = (Player) event.getDamager();
                     if (player.getGameMode() == GameMode.SURVIVAL) {
-                        if (this.getPlugin().usingKits.containsKey(player.getName()))
-                            player.getItemInHand().setDurability((short) 1);
+                        if (this.getPlugin().usingKits.containsKey(player.getName()) && player.getItemInHand() != null && (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                            player.getItemInHand().setDurability((short) 0);
+                            player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (player != null && player.isOnline() && getPlugin().usingKits.containsKey(player.getName()) && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                                        ItemStack item = player.getItemInHand();
+                                        item.setDurability((short) 0);
+                                        player.setItemInHand(item);
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
                 if (event.getEntity() instanceof Player) {
@@ -978,7 +1030,7 @@ public class PlayerListener implements Listener {
                 if (event.getItem() != null) {
                     if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
                         if (this.isTool(event.getItem().getType()) || event.getItem().getType() == Material.FISHING_ROD || event.getItem().getType() == Material.FLINT_AND_STEEL)
-                            event.getItem().setDurability((short) 1);
+                            event.getItem().setDurability((short) 0);
                     }
                 }
             }
@@ -1076,7 +1128,7 @@ public class PlayerListener implements Listener {
      * Returns if a material is a tool/sword *
      */
     private boolean isTool(Material material) {
-        return material == Material.WOOD_SWORD || material == Material.STONE_SWORD || material == Material.GOLD_SWORD || material == Material.IRON_SWORD || material == Material.DIAMOND_SWORD || material == Material.WOOD_PICKAXE || material == Material.STONE_PICKAXE || material == Material.GOLD_PICKAXE || material == Material.IRON_PICKAXE || material == Material.DIAMOND_PICKAXE || material == Material.WOOD_AXE || material == Material.STONE_AXE || material == Material.GOLD_AXE || material == Material.IRON_AXE || material == Material.DIAMOND_AXE || material == Material.WOOD_SPADE || material == Material.STONE_SPADE || material == Material.GOLD_SPADE || material == Material.IRON_SPADE || material == Material.DIAMOND_SPADE || material == Material.WOOD_HOE || material == Material.STONE_HOE || material == Material.GOLD_HOE || material == Material.IRON_HOE || material == Material.DIAMOND_HOE;
+        return material.name().endsWith("SWORD") || material.name().endsWith("PICKAXE") || material.name().endsWith("AXE") || material.name().endsWith("SPADE") || material.name().endsWith("SHOVEL") || material.name().endsWith("HOE");
     }
 
     /**

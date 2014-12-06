@@ -48,12 +48,25 @@ public class KingKitsCommand extends KingCommand {
                                 KingKitsPreReloadEvent kkPreReloadEvent = new KingKitsPreReloadEvent(sender);
                                 sender.getServer().getPluginManager().callEvent(kkPreReloadEvent);
                                 if (!kkPreReloadEvent.isCancelled()) {
-                                    this.getPlugin().reloadAllConfigs();
-                                    this.getPlugin().loadConfiguration();
+                                    try {
+                                        this.getPlugin().reloadAllConfigs();
+                                        this.getPlugin().loadConfiguration();
+                                        try {
+                                            if (sender.getServer().getPluginManager().isPluginEnabled("KingKitsSpecial") && sender.getServer().getPluginCommand("kkspecial") != null) {
+                                                sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "kkspecial reload");
+                                            }
+                                        } catch (Exception ex) {
+                                        }
 
-                                    sender.sendMessage(ChatColor.GOLD + "You reloaded KingKits configurations.");
-                                    KingKitsReloadEvent kkReloadEvent = new KingKitsReloadEvent(sender);
-                                    sender.getServer().getPluginManager().callEvent(kkReloadEvent);
+                                        sender.sendMessage(ChatColor.GOLD + "You reloaded KingKits configurations.");
+                                        KingKitsReloadEvent kkReloadEvent = new KingKitsReloadEvent(sender);
+                                        sender.getServer().getPluginManager().callEvent(kkReloadEvent);
+                                    } catch (Exception ex) {
+                                        sender.sendMessage(ChatColor.RED + "Failed to reload KingKits configurations.");
+
+                                        KingKitsReloadEvent kkReloadEvent = new KingKitsReloadEvent(sender, ex);
+                                        sender.getServer().getPluginManager().callEvent(kkReloadEvent);
+                                    }
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "A plugin has not allowed you to reload the configuration.");
                                 }

@@ -29,6 +29,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private Map<Integer, ItemStack> kitItems = new HashMap<Integer, ItemStack>();
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
+    private Map<Long, List<String>> killstreakCommands = new HashMap<Long, List<String>>();
 
     public Kit(String kitName) {
         Validate.notNull(kitName);
@@ -124,6 +125,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return Collections.unmodifiableMap(this.kitItems);
     }
 
+    public Map<Long, List<String>> getKillstreaks() {
+        return this.killstreakCommands;
+    }
+
     public List<ItemStack> getMergedItems() {
         List<ItemStack> kitItems = new ArrayList<ItemStack>(this.kitItems.values());
         kitItems.addAll(this.kitArmour);
@@ -193,6 +198,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this;
     }
 
+    public Kit setKillstreaks(Map<Long, List<String>> killstreaks) {
+        if (killstreaks != null) this.killstreakCommands = killstreaks;
+        return this;
+    }
+
     public Kit setName(String name) {
         Validate.notNull(name);
         Validate.notEmpty(name);
@@ -250,6 +260,9 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     if (itemName != null) kitItemMap.put("Name", Utils.replaceBukkitColour(itemName));
                     kitItemMap.put("Amount", kitItem.getAmount());
                     kitItemMap.put("Data", kitItem.getDurability());
+                    if (kitItem.getItemMeta() instanceof LeatherArmorMeta) {
+                        kitItemMap.put("Dye", Utils.ItemUtils.getDye(kitItem));
+                    }
                     Map<String, Integer> enchantmentMap = new HashMap<String, Integer>();
                     for (Map.Entry<Enchantment, Integer> entrySet : kitItem.getEnchantments().entrySet())
                         enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
@@ -299,6 +312,16 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 potionEffectsMap.put(WordUtils.capitalizeFully(potionEffect.getType().getName().toLowerCase().replace("_", " ")), potionEffectMap);
             }
             if (!potionEffectsMap.isEmpty()) serializedKit.put("Potion Effects", potionEffectsMap);
+        }
+
+        if (this.killstreakCommands != null && !this.killstreakCommands.isEmpty()) {
+            Map<String, Object> killstreakCmds = new HashMap<String, Object>();
+            for (Map.Entry<Long, List<String>> killstreakEntry : this.killstreakCommands.entrySet()) {
+                if (killstreakEntry.getValue() != null && !killstreakEntry.getValue().isEmpty()) {
+                    killstreakCmds.put("Killstreak " + killstreakEntry.getKey(), killstreakEntry.getValue());
+                }
+            }
+            if (!killstreakCmds.isEmpty()) serializedKit.put("Killstreaks", killstreakCmds);
         }
 
         return serializedKit;
@@ -393,6 +416,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                         kitItem.setItemMeta(itemMeta);
                                     }
                                 }
+                                if (kitMap.containsKey("Dye")) {
+                                    int itemDye = getObject(kitMap, "Dye", Integer.class);
+                                    if (itemDye > 0) Utils.ItemUtils.setDye(kitItem, itemDye);
+                                }
                                 if (kitMap.containsKey("Enchantments")) {
                                     Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
                                     for (Map.Entry<String, Object> enchantmentEntrySet : guiItemEnchantments.entrySet()) {
@@ -415,7 +442,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                 try {
                                     if (kitItem != null) kitItems.put(Integer.parseInt(slotSplit[1]), kitItem);
                                 } catch (Exception ex) {
-                                    System.out.println("Could not register the item at slot " + slotSplit[1] + " in the kit '" + kitName + "'.");
+                                    System.out.println("Could not register the item at slot " + slotSplit[1] + " in the kit '" + kitName + "' due to a(n) " + ex.getClass().getSimpleName() + " error.");
                                 }
                             }
                         }
@@ -436,7 +463,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                         int itemDye = Utils.isInteger(strItemDye) ? Integer.parseInt(strItemDye) : Utils.getDye(strItemDye);
                         int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
                         short itemData = kitMap.containsKey("Data") ? getObject(kitMap, "Data", Short.class) : (short) 0;
-                        kitArmourItem = new ItemStack(itemType, itemAmount, itemData);
+                        kitArmourItem = new ItemStack(itemType, itemAmount);
+                        kitArmourItem.setDurability(itemData);
                         if (itemName != null && !itemName.isEmpty()) {
                             ItemMeta itemMeta = kitArmourItem.getItemMeta();
                             if (itemMeta != null) {
@@ -478,21 +506,46 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Potion Effects")) {
                     List<PotionEffect> potionEffectList = new ArrayList<PotionEffect>();
                     Map<String, Object> potionEffectsMap = getValues(kitSection, "Potion Effects");
-                    for (Map.Entry<String, Object> potionEntrySet : potionEffectsMap.entrySet()) {
-                        PotionEffectType effectType = Utils.isInteger(potionEntrySet.getKey()) ? PotionEffectType.getById(Integer.parseInt(potionEntrySet.getKey())) : PotionEffectType.getByName(Utils.getPotionName(potionEntrySet.getKey()));
-                        if (effectType != null && (potionEntrySet.getValue() instanceof ConfigurationSection || potionEntrySet.getValue() instanceof Map)) {
-                            Map<String, Object> potionEntrySetMap = getValues(potionEntrySet);
-                            int potionLevel = potionEntrySetMap.containsKey("Level") ? getObject(potionEntrySetMap, "Level", Integer.class) : 1;
-                            if (potionLevel > 0) potionLevel--;
-                            int potionDuration = potionEntrySetMap.containsKey("Duration") ? getObject(potionEntrySetMap, "Duration", Integer.class) : Integer.MAX_VALUE;
-                            try {
-                                potionEffectList.add(new PotionEffect(effectType, potionDuration * 20, potionLevel));
-                            } catch (Exception ex) {
-                                potionEffectList.add(new PotionEffect(effectType, Integer.MAX_VALUE, potionLevel));
+                    if (potionEffectsMap != null) {
+                        for (Map.Entry<String, Object> potionEntrySet : potionEffectsMap.entrySet()) {
+                            PotionEffectType effectType = Utils.isInteger(potionEntrySet.getKey()) ? PotionEffectType.getById(Integer.parseInt(potionEntrySet.getKey())) : PotionEffectType.getByName(Utils.getPotionName(potionEntrySet.getKey()));
+                            if (effectType != null && (potionEntrySet.getValue() instanceof ConfigurationSection || potionEntrySet.getValue() instanceof Map)) {
+                                Map<String, Object> potionEntrySetMap = getValues(potionEntrySet);
+                                int potionLevel = potionEntrySetMap.containsKey("Level") ? getObject(potionEntrySetMap, "Level", Integer.class) : 1;
+                                if (potionLevel > 0) potionLevel--;
+                                int potionDuration = potionEntrySetMap.containsKey("Duration") ? getObject(potionEntrySetMap, "Duration", Integer.class) : Integer.MAX_VALUE;
+                                try {
+                                    potionEffectList.add(new PotionEffect(effectType, potionDuration == -1 ? Integer.MAX_VALUE : potionDuration * 20, potionLevel));
+                                } catch (Exception ex) {
+                                    potionEffectList.add(new PotionEffect(effectType, Integer.MAX_VALUE, potionLevel));
+                                }
                             }
                         }
+                        kit.setPotionEffects(potionEffectList);
                     }
-                    kit.setPotionEffects(potionEffectList);
+                }
+                if (kitSection.containsKey("Killstreaks")) {
+                    Map<Long, List<String>> killstreakCmds = new HashMap<Long, List<String>>();
+                    Map<String, Object> killstreakMap = getValues(kitSection, "Killstreaks");
+                    if (killstreakMap != null) {
+                        for (Map.Entry<String, Object> killstreakEntry : killstreakMap.entrySet()) {
+                            if (killstreakEntry.getValue() instanceof List) {
+                                if (killstreakEntry.getKey() != null && killstreakEntry.getKey().startsWith("Killstreak ")) {
+                                    String strKillstreak = killstreakEntry.getKey().replaceFirst("Killstreak ", "");
+                                    if (Utils.isLong(strKillstreak)) {
+                                        try {
+                                            long killstreak = Long.parseLong(strKillstreak);
+                                            List<String> cmds = (List<String>) killstreakEntry.getValue();
+                                            if (cmds != null && !cmds.isEmpty()) killstreakCmds.put(killstreak, cmds);
+                                        } catch (Exception ex) {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        kit.setKillstreaks(killstreakCmds);
+                    }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

@@ -4,6 +4,7 @@ package com.faris.kingkits.helpers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -109,9 +110,12 @@ public class Utils {
         return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
     }
 
-    public static Collection<? extends Player> getOnlinePlayers() {
-        Object onlinePlayers = Bukkit.getOnlinePlayers();
-        return onlinePlayers instanceof Collection ? (Collection<? extends Player>) onlinePlayers : (onlinePlayers instanceof Player[] ? new ArrayList<Player>(Arrays.asList((Player[]) onlinePlayers)) : new ArrayList<Player>());
+    public static List<Player> getOnlinePlayers() {
+        List<Player> onlinePlayers = new ArrayList<Player>();
+        for (World world : Bukkit.getWorlds()) {
+            if (world != null) onlinePlayers.addAll(world.getPlayers());
+        }
+        return onlinePlayers;
     }
 
     public static String getPotionName(String friendlyName) {
