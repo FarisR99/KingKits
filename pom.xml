@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>3.0.1</version>
+    <version>3.0.3</version>
 
     <packaging>jar</packaging>
 
@@ -75,6 +75,7 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.bukkit</exclude>
+                                    <exclude>org.spigotmc</exclude>
                                     <exclude>net.milkbowl.vault</exclude>
                                 </excludes>
                             </artifactSet>
@@ -116,7 +117,10 @@
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/groups/public/</url>
         </repository>
-
+        <repository>
+            <id>spigot-repo</id>
+            <url>http://repo.md-5.net/content/groups/public/</url>
+        </repository>
         <repository>
             <id>vault-repo</id>
             <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
@@ -129,7 +133,11 @@
             <artifactId>bukkit</artifactId>
             <version>LATEST</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.8-R0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>VaultAPI</artifactId>
