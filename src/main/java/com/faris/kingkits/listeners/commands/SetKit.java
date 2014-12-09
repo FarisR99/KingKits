@@ -127,6 +127,8 @@ public class SetKit {
                                     player.getInventory().setLeggings(armourItem);
                                 else if (strArmourType.endsWith("boots"))
                                     player.getInventory().setBoots(armourItem);
+                                else if (player.getInventory().getHelmet() == null)
+                                    player.getInventory().setHelmet(armourItem);
                                 else player.getInventory().addItem(armourItem);
                             }
                         }
