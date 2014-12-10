@@ -2,6 +2,8 @@ package com.faris.kingkits.guis;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helpers.KitStack;
+import com.faris.kingkits.helpers.Utils;
+import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.SetKit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -102,10 +104,10 @@ public class GuiKitMenu extends GuiKingKits {
                                     event.setCancelled(true);
                                     this.closeMenu(true, true);
                                     if (this.guiKitStacks.length >= event.getSlot()) {
-                                        final String kitName = this.guiKitStacks[event.getSlot()].getKitName();
+                                        final String kitName = Utils.stripColour(this.guiKitStacks[event.getSlot()].getKitName());
                                         if (kitName != null) {
                                             if (event.getWhoClicked().hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-                                                final Kit kit = this.getPlugin().kitList.get(kitName);
+                                                final Kit kit = PvPKits.getKitByName(kitName);
                                                 final Player player = (Player) event.getWhoClicked();
                                                 boolean validCooldown = true;
                                                 if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
@@ -120,8 +122,9 @@ public class GuiKitMenu extends GuiKingKits {
                                                         }
                                                     }
                                                 }
-                                                if (validCooldown)
+                                                if (validCooldown) {
                                                     SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                                }
                                             } else if (this.getPlugin().configValues.showKitPreview) {
                                                 if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
                                                     final Player player = (Player) event.getWhoClicked();

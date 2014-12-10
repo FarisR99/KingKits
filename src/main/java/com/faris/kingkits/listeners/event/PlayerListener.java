@@ -721,19 +721,34 @@ public class PlayerListener implements Listener {
                     }
                 }
             }
-            if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName()) && event.getPlayer().getGameMode() == GameMode.SURVIVAL && this.getPlugin().configValues.disableItemBreaking) {
-                final Player player = event.getPlayer();
-                if (player.getItemInHand() != null && (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
-                    player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
-                        @Override
-                        public void run() {
-                            if (player != null && player.isOnline() && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
-                                ItemStack item = player.getItemInHand();
-                                item.setDurability((short) 0);
-                                player.setItemInHand(item);
-                            }
+            if (event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+                String playerKit = this.getPlugin().usingKits.get(event.getPlayer().getName());
+                if (playerKit != null) {
+                    boolean repair = false;
+                    if (this.getPlugin().configValues.disableItemBreaking) {
+                        repair = true;
+                    } else {
+                        Kit kit = PvPKits.getKitByName(playerKit);
+                        if (kit != null && !kit.canItemsBreak()) {
+                            repair = true;
                         }
-                    });
+                    }
+                    if (repair) {
+                        final Player player = event.getPlayer();
+                        if (player.getItemInHand() != null && (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                            player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (player != null && player.isOnline() && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                                        ItemStack item = player.getItemInHand();
+                                        item.setDurability((short) 0);
+                                        player.setItemInHand(item);
+                                        player.updateInventory();
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -968,12 +983,22 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void noWeaponBreakDamage(EntityDamageByEntityEvent event) {
         try {
-            if (this.getPlugin().configValues.disableItemBreaking) {
-                if (event.getDamager() instanceof Player) {
-                    final Player player = (Player) event.getDamager();
-                    if (player.getGameMode() == GameMode.SURVIVAL) {
-                        if (this.getPlugin().usingKits.containsKey(player.getName()) && player.getItemInHand() != null && (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
-                            player.getItemInHand().setDurability((short) 0);
+            if (event.getDamager() instanceof Player) {
+                final Player player = (Player) event.getDamager();
+                if (player.getGameMode() == GameMode.SURVIVAL) {
+                    if (player.getItemInHand() != null && this.getPlugin().usingKits.containsKey(player.getName())) {
+                        boolean repair = false;
+                        if ((this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+                            if (this.getPlugin().configValues.disableItemBreaking) {
+                                repair = true;
+                            } else {
+                                Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(player.getName()));
+                                if (kit != null && !kit.canItemsBreak()) {
+                                    repair = true;
+                                }
+                            }
+                        }
+                        if (repair) {
                             player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
                                 @Override
                                 public void run() {
@@ -981,20 +1006,33 @@ public class PlayerListener implements Listener {
                                         ItemStack item = player.getItemInHand();
                                         item.setDurability((short) 0);
                                         player.setItemInHand(item);
+                                        player.updateInventory();
                                     }
                                 }
                             });
                         }
                     }
                 }
-                if (event.getEntity() instanceof Player) {
-                    Player player = (Player) event.getEntity();
-                    if (player.getGameMode() == GameMode.SURVIVAL) {
-                        if (this.getPlugin().usingKits.containsKey(player.getName())) {
+            }
+            if (event.getEntity() instanceof Player) {
+                Player player = (Player) event.getEntity();
+                if (player.getGameMode() == GameMode.SURVIVAL) {
+                    if (this.getPlugin().usingKits.containsKey(player.getName())) {
+                        boolean repair = false;
+                        if (this.getPlugin().configValues.disableItemBreaking) {
+                            repair = true;
+                        } else {
+                            Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(player.getName()));
+                            if (kit != null && !kit.canItemsBreak()) {
+                                repair = true;
+                            }
+                        }
+                        if (repair) {
                             ItemStack[] armour = player.getInventory().getArmorContents();
                             for (ItemStack i : armour)
                                 i.setDurability((short) 0);
                             player.getInventory().setArmorContents(armour);
+                            player.updateInventory();
                         }
                     }
                 }
@@ -1009,11 +1047,20 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void noWeaponBreakDamage(EntityShootBowEvent event) {
         try {
-            if (this.getPlugin().configValues.disableItemBreaking) {
-                if (event.getEntity() instanceof Player) {
-                    Player player = (Player) event.getEntity();
-                    if (this.getPlugin().usingKits.containsKey(player.getName()))
-                        event.getBow().setDurability((short) 1);
+            if (event.getEntity() instanceof Player) {
+                Player player = (Player) event.getEntity();
+                if (this.getPlugin().usingKits.containsKey(player.getName())) {
+                    boolean repair = false;
+                    if (this.getPlugin().configValues.disableItemBreaking) {
+                        repair = true;
+                    } else {
+                        Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(player.getName()));
+                        if (kit != null && !kit.canItemsBreak()) {
+                            repair = true;
+                        }
+                    }
+                    if (repair)
+                        event.getBow().setDurability((short) 0);
                 }
             }
         } catch (Exception ex) {
@@ -1026,11 +1073,19 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void noWeaponBreakDamage(PlayerInteractEvent event) {
         try {
-            if (this.getPlugin().configValues.disableItemBreaking) {
-                if (event.getItem() != null) {
-                    if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
-                        if (this.isTool(event.getItem().getType()) || event.getItem().getType() == Material.FISHING_ROD || event.getItem().getType() == Material.FLINT_AND_STEEL)
-                            event.getItem().setDurability((short) 0);
+            if (event.getItem() != null) {
+                if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
+                    if (this.isTool(event.getItem().getType()) || event.getItem().getType() == Material.FISHING_ROD || event.getItem().getType() == Material.FLINT_AND_STEEL) {
+                        boolean repair = false;
+                        if (this.getPlugin().configValues.disableItemBreaking) {
+                            repair = true;
+                        } else {
+                            Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(event.getPlayer().getName()));
+                            if (kit != null && !kit.canItemsBreak()) {
+                                repair = true;
+                            }
+                        }
+                        if (repair) event.getItem().setDurability((short) 0);
                     }
                 }
             }

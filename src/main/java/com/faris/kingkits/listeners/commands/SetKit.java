@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Map;
 
 public class SetKit {
-    private static KingKits pl;
 
     public static void setKingKit(KingKits plugin, Player player, String kitName, boolean sendMessages) throws Exception {
-        final Kit kit = setKit(plugin, player, sendMessages, kitName);
+        final Kit kit = setKit(player, sendMessages, kitName);
         if (kit != null) {
             if (kit.hasCooldown() && !player.hasPermission(plugin.permissions.kitBypassCooldown)) {
                 final String playerName = player.getName();
                 final String newKitName = kit.getRealName();
+                KingKits pl = KingKits.getInstance();
                 pl.getCooldownConfig().set(playerName + "." + newKitName, System.currentTimeMillis());
                 pl.saveCooldownConfig();
             }
@@ -31,14 +31,14 @@ public class SetKit {
     }
 
 
-    public static boolean setKit(KingKits plugin, Player player, String kitName, boolean sendMessages) throws Exception {
-        return setKit(plugin, player, sendMessages, kitName) != null;
+    public static boolean setKit(Player player, String kitName, boolean sendMessages) throws Exception {
+        return setKit(player, sendMessages, kitName) != null;
     }
 
     @SuppressWarnings("deprecation")
-    public static Kit setKit(KingKits plugin, Player player, boolean sendMessages, String kitName) throws Exception {
-        if (plugin == null | player == null || kitName == null) return null;
-        pl = plugin;
+    public static Kit setKit(Player player, boolean sendMessages, String kitName) throws Exception {
+        if (player == null || kitName == null) return null;
+        KingKits plugin = KingKits.getInstance();
         if (plugin.configValues.pvpWorlds.contains("All") || plugin.configValues.pvpWorlds.contains(player.getWorld().getName())) {
             List<String> kitList = plugin.getConfigKitList();
             List<String> kitListLC = Utils.toLowerCaseList(kitList);
@@ -68,7 +68,7 @@ public class SetKit {
                         }
                     }
                     String oldKit = plugin.playerKits.containsKey(player.getName()) ? plugin.playerKits.get(player.getName()) : "";
-                    Kit newKit = plugin.kitList.get(kitName);
+                    Kit newKit = plugin.kitList.get(Utils.stripColour(kitName));
                     if (newKit == null) return null;
                     PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItemsWithSlot(), newKit.getArmour(), newKit.getPotionEffects());
                     playerKitEvent.setCommands(newKit.getCommands());
@@ -178,26 +178,6 @@ public class SetKit {
 
     private static String r(String val) {
         return Utils.replaceChatColour(val);
-    }
-
-    public static boolean isNumeric(String val) {
-        try {
-            @SuppressWarnings("unused")
-            int i = Integer.parseInt(val);
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    public static boolean isShort(String val) {
-        try {
-            @SuppressWarnings("unused")
-            short i = Short.parseShort(val);
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
     }
 
 }

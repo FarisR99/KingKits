@@ -1,7 +1,6 @@
 package com.faris.kingkits.guis;
 
 import com.faris.kingkits.KingKits;
-import com.faris.kingkits.hooks.Plugin;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -34,7 +33,7 @@ public abstract class GuiKingKits implements Listener {
      */
     public GuiKingKits(Player player, Inventory inventory) {
         Validate.notNull(player);
-        this.plugin = Plugin.getPlugin();
+        this.plugin = KingKits.getInstance();
 
         this.player = player;
         this.playerName = this.player.getName();
@@ -43,14 +42,15 @@ public abstract class GuiKingKits implements Listener {
         if (this.guiInventory == null)
             this.guiInventory = this.player.getServer().createInventory(this.player, InventoryType.CHEST);
 
-        if (Plugin.isInitialised()) this.player.getServer().getPluginManager().registerEvents(this, this.plugin);
+        if (KingKits.getInstance() != null)
+            this.player.getServer().getPluginManager().registerEvents(this, this.plugin);
         else
             this.player.getServer().getPluginManager().registerEvents(this, Bukkit.getPluginManager().getPlugin("KingKits"));
     }
 
     public boolean openMenu() {
         this.closeMenu(false, true);
-        if (this.plugin == null) this.plugin = Plugin.getPlugin();
+        if (this.plugin == null) KingKits.getInstance();
         if (!guiPreviewKitMap.containsKey(this.playerName)) {
             if (this.getPlayer() != null) {
                 this.guiInventory.clear();

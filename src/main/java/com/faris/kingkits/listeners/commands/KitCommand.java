@@ -107,7 +107,7 @@ public class KitCommand extends KingCommand {
                                     if (kitListLC.contains(kitName.toLowerCase()))
                                         kitName = kitList.get(kitListLC.indexOf(kitName.toLowerCase()));
                                     try {
-                                        SetKit.setKit(this.getPlugin(), target, kitName, false);
+                                        SetKit.setKit(target, kitName, false);
                                     } catch (Exception ex) {
                                         ex.printStackTrace();
                                         sender.sendMessage(ChatColor.RED + "An error occurred.");

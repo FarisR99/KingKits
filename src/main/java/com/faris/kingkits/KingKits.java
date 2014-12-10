@@ -6,7 +6,6 @@ import com.faris.kingkits.guis.GuiPreviewKit;
 import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.UUIDFetcher;
 import com.faris.kingkits.helpers.Utils;
-import com.faris.kingkits.hooks.Plugin;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.*;
 import com.faris.kingkits.listeners.event.PlayerListener;
@@ -42,8 +41,9 @@ import java.util.logging.Level;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
+    private static KingKits pluginInstance = null;
+
     // Class Variables
-    private Plugin pvpPlugin = null;
     private PvPKits pvpKits = null;
     private Updater updater = null;
     public Permissions permissions = new Permissions();
@@ -71,7 +71,8 @@ public class KingKits extends JavaPlugin {
     private int cooldownTaskID = -1;
 
     public void onEnable() {
-        this.pvpPlugin = new Plugin(this);
+        pluginInstance = this;
+
         this.pvpKits = new PvPKits();
         // Clear all lists
         this.usingKits.clear();
@@ -134,17 +135,17 @@ public class KingKits extends JavaPlugin {
                 this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
                 if (this.configValues.automaticUpdates) {
                     /** this.getLogger().info("Cannot download KingKits v" + this.updater.getVersion() + "...");
-                    // TODO: Wait for updater to allow auto-downloading.
-                    Updater.UpdateResult updateResult = this.updater.getResult();
-                    if (updateResult == Updater.UpdateResult.BAD_RESOURCEID)
-                        this.getLogger().warning("Download failed: Invalid resource ID.");
-                    else if (updateResult == Updater.UpdateResult.DISABLED)
-                        this.getLogger().warning("Download failed: Updater disabled.");
-                    else if (updateResult == Updater.UpdateResult.FAIL_NOVERSION)
-                        this.getLogger().warning("Download failed: The latest version has an incorrect title.");
-                    else if (updateResult == Updater.UpdateResult.FAIL_SPIGOT)
-                        this.getLogger().warning("Download failed: Spigot failed.");
-                    // else this.getLogger().info("The latest version of KingKits has been downloaded."); **/
+                     // TODO: Wait for updater to allow auto-downloading.
+                     Updater.UpdateResult updateResult = this.updater.getResult();
+                     if (updateResult == Updater.UpdateResult.BAD_RESOURCEID)
+                     this.getLogger().warning("Download failed: Invalid resource ID.");
+                     else if (updateResult == Updater.UpdateResult.DISABLED)
+                     this.getLogger().warning("Download failed: Updater disabled.");
+                     else if (updateResult == Updater.UpdateResult.FAIL_NOVERSION)
+                     this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+                     else if (updateResult == Updater.UpdateResult.FAIL_SPIGOT)
+                     this.getLogger().warning("Download failed: Spigot failed.");
+                     // else this.getLogger().info("The latest version of KingKits has been downloaded."); **/
                 } else {
                     this.getLogger().info("Download it from: http://www.spigotmc.org/threads/kingkits.37947");
                 }
@@ -205,7 +206,7 @@ public class KingKits extends JavaPlugin {
             this.getServer().getPluginManager().removePermission(registeredPerm);
 
         this.permissions = null;
-        Plugin.setPlugin(null);
+        pluginInstance = null;
     }
 
     // Load Configurations
@@ -1057,6 +1058,10 @@ public class KingKits extends JavaPlugin {
             }
         }
         if (hasModified) this.saveKitsConfig();
+    }
+
+    public static KingKits getInstance() {
+        return pluginInstance;
     }
 
 }

@@ -1,7 +1,6 @@
 package com.faris.kingkits;
 
 import com.faris.kingkits.helpers.Utils;
-import com.faris.kingkits.hooks.Plugin;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
@@ -30,6 +29,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
     private Map<Long, List<String>> killstreakCommands = new HashMap<Long, List<String>>();
+
+    private boolean itemBreaking = true;
 
     public Kit(String kitName) {
         Validate.notNull(kitName);
@@ -90,6 +91,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this;
     }
 
+    public boolean canItemsBreak() {
+        return this.itemBreaking;
+    }
+
     public List<ItemStack> getArmour() {
         return Collections.unmodifiableList(this.kitArmour);
     }
@@ -148,7 +153,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     }
 
     public boolean hasCooldown() {
-        return Plugin.getPlugin().configValues.kitCooldown && this.kitCooldown > 0;
+        return KingKits.getInstance().configValues.kitCooldown && this.kitCooldown > 0;
     }
 
     public Kit removeItem(ItemStack itemStack) {
@@ -159,6 +164,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     public Kit setArmour(List<ItemStack> armour) {
         if (armour != null) this.kitArmour = armour;
+        return this;
+    }
+
+    public Kit setBreakableItems(boolean breakableItems) {
+        this.itemBreaking = breakableItems;
         return this;
     }
 
@@ -230,6 +240,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Cost", this.kitCost);
         serializedKit.put("Cooldown", this.kitCooldown);
         serializedKit.put("Commands", this.kitCommands);
+        serializedKit.put("Item breaking", this.itemBreaking);
 
         /** GUI Item **/
         if (this.guiItem != null) {
@@ -351,8 +362,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Cost")) kit.setCost(getObject(kitSection, "Cost", Double.class));
                 if (kitSection.containsKey("Cooldown"))
                     kit.setCooldown(getObject(kitSection, "Cooldown", Long.class));
-
                 if (kitSection.containsKey("Commands")) kit.setCommands(getObject(kitSection, "Commands", List.class));
+                if (kitSection.containsKey("Item breaking") && kitSection.get("Item breaking") != null) {
+                    kit.setBreakableItems(Boolean.valueOf(kitSection.get("Item breaking").toString()));
+                    System.out.println("Breakable items (" + kitName + "): " + kit.canItemsBreak());
+                }
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;

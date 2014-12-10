@@ -187,6 +187,14 @@ public class Utils {
         }
     }
 
+    public static int processDecimal(int decimal, int lastNumber, int lastDecimal) {
+        if (lastNumber > decimal) {
+            return lastDecimal - decimal;
+        } else {
+            return lastDecimal + decimal;
+        }
+    }
+
     public static boolean renameDirectory(File directory, File newDirectory) {
         try {
             if (directory.isDirectory()) {
@@ -305,12 +313,8 @@ public class Utils {
         return romanInteger;
     }
 
-    public static int processDecimal(int decimal, int lastNumber, int lastDecimal) {
-        if (lastNumber > decimal) {
-            return lastDecimal - decimal;
-        } else {
-            return lastDecimal + decimal;
-        }
+    public static String stripColour(String kitName) {
+        return kitName != null ? ChatColor.stripColor(kitName) : kitName;
     }
 
 

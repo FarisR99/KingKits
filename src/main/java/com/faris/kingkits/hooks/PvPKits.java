@@ -1,5 +1,6 @@
 package com.faris.kingkits.hooks;
 
+import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.guis.GuiKitMenu;
 import com.faris.kingkits.helpers.KitStack;
@@ -22,7 +23,7 @@ public class PvPKits {
      * Get KingKit's logger.
      */
     public static Logger getPluginLogger() {
-        return Plugin.getPlugin().getLogger();
+        return KingKits.getInstance().getLogger();
     }
 
     /**
@@ -41,7 +42,7 @@ public class PvPKits {
      * @param player The player to check.
      */
     public static boolean hasKit(String player) {
-        return Plugin.getPlugin() != null && Plugin.getPlugin().usingKits != null && Plugin.getPlugin().usingKits.get(player) != null;
+        return KingKits.getInstance() != null && KingKits.getInstance().usingKits != null && KingKits.getInstance().usingKits.get(player) != null;
     }
 
     /**
@@ -63,9 +64,9 @@ public class PvPKits {
      */
     public static boolean hasKit(String player, boolean ignoreOPs) {
         if (ignoreOPs) {
-            return Plugin.getPlugin() != null && Plugin.getPlugin().playerKits != null && Plugin.getPlugin().playerKits.get(player) != null;
+            return KingKits.getInstance() != null && KingKits.getInstance().playerKits != null && KingKits.getInstance().playerKits.get(player) != null;
         } else {
-            return Plugin.getPlugin() != null && Plugin.getPlugin().usingKits != null &&  Plugin.getPlugin().usingKits.get(player) != null;
+            return KingKits.getInstance() != null && KingKits.getInstance().usingKits != null && KingKits.getInstance().usingKits.get(player) != null;
         }
     }
 
@@ -85,7 +86,7 @@ public class PvPKits {
      * @param player The player to get the kit name from.
      */
     public static String getKit(String player) {
-        if (hasKit(player)) return Plugin.getPlugin().usingKits.get(player);
+        if (hasKit(player)) return KingKits.getInstance().usingKits.get(player);
         else return null;
     }
 
@@ -96,7 +97,7 @@ public class PvPKits {
      * @return The kit.
      */
     public static Kit getKitByName(String kitName) {
-        return kitName != null ? Plugin.getPlugin().kitList.get(kitName) : null;
+        return kitName != null ? KingKits.getInstance().kitList.get(Utils.stripColour(kitName)) : null;
     }
 
     /**
@@ -105,7 +106,7 @@ public class PvPKits {
      * @return A list of registered kits.
      */
     public static List<Kit> getKits() {
-        return new ArrayList<Kit>(Plugin.getPlugin().kitList.values());
+        return new ArrayList<Kit>(KingKits.getInstance().kitList.values());
     }
 
     /**
@@ -115,9 +116,9 @@ public class PvPKits {
      */
     public static List<String> getPlayersUsingKit(String kitName) {
         List<String> playersUsingKit = new ArrayList<String>();
-        List<String> playersInKitMap = new ArrayList<String>(Plugin.getPlugin().usingKits.keySet());
-        for (int pos = 0; pos < Plugin.getPlugin().usingKits.size(); pos++) {
-            String kit = Plugin.getPlugin().usingKits.get(pos);
+        List<String> playersInKitMap = new ArrayList<String>(KingKits.getInstance().usingKits.keySet());
+        for (int pos = 0; pos < KingKits.getInstance().usingKits.size(); pos++) {
+            String kit = KingKits.getInstance().usingKits.get(pos);
             if (kitName.equalsIgnoreCase(kit)) {
                 playersUsingKit.add(playersInKitMap.get(pos));
             }
@@ -129,7 +130,7 @@ public class PvPKits {
      * Get players using and their kits : Returns an empty map if no one is using a kit.
      */
     public static Map<String, String> getPlayersAndKits() {
-        return Plugin.getPlugin().usingKits;
+        return KingKits.getInstance().usingKits;
     }
 
     /**
@@ -140,8 +141,8 @@ public class PvPKits {
      */
     public static boolean kitExists(String kitName) {
         List<String> kitList = new ArrayList<String>();
-        if (Plugin.getPlugin().getKitsConfig().contains("Kits"))
-            kitList = Plugin.getPlugin().getKitList();
+        if (KingKits.getInstance().getKitsConfig().contains("Kits"))
+            kitList = KingKits.getInstance().getKitList();
         List<String> kitListLC = Utils.toLowerCaseList(kitList);
         return kitListLC.contains(kitName.toLowerCase());
     }
@@ -164,8 +165,8 @@ public class PvPKits {
      */
     public static void removePlayer(String player) {
         if (hasKit(player, false)) {
-            Plugin.getPlugin().usingKits.remove(player);
-            Plugin.getPlugin().playerKits.remove(player);
+            KingKits.getInstance().usingKits.remove(player);
+            KingKits.getInstance().playerKits.remove(player);
         }
     }
 
@@ -191,7 +192,7 @@ public class PvPKits {
                         removePlayer(target.getName());
                     }
                     try {
-                        SetKit.setKit(Plugin.getPlugin(), target, kit, true);
+                        SetKit.setKit(target, kit, true);
                     } catch (Exception ex) {
                         String msg = "Error, couldn't set the player's kit to " + kit + ".";
                         if (useSyso) System.out.println(msg);
@@ -235,8 +236,8 @@ public class PvPKits {
      */
     public static int getScore(String playerUUID) {
         UUID uuid = UUID.fromString(playerUUID);
-        if (Plugin.getPlugin().playerScores.containsKey(uuid)) {
-            return (Integer) Plugin.getPlugin().playerScores.get(uuid);
+        if (KingKits.getInstance().playerScores.containsKey(uuid)) {
+            return (Integer) KingKits.getInstance().playerScores.get(uuid);
         } else {
             return -1;
         }
@@ -247,7 +248,7 @@ public class PvPKits {
      * Note: The return type of the map is (String, Object) which is actually a Map of (String, Integer), just cast all the values to integer.
      */
     public static Map<UUID, Object> getScores() {
-        return Plugin.getPlugin().playerScores;
+        return KingKits.getInstance().playerScores;
     }
 
     /**
@@ -268,10 +269,11 @@ public class PvPKits {
      */
     public static void setScore(String uuid, int value) {
         UUID playerUUID = UUID.fromString(uuid);
-        if (Plugin.getPlugin().playerScores.containsKey(playerUUID)) Plugin.getPlugin().playerScores.remove(playerUUID);
+        if (KingKits.getInstance().playerScores.containsKey(playerUUID))
+            KingKits.getInstance().playerScores.remove(playerUUID);
         if (value < 0) value *= -1;
         if (value > Integer.MAX_VALUE) value -= Integer.MAX_VALUE;
-        Plugin.getPlugin().playerScores.put(playerUUID, value);
+        KingKits.getInstance().playerScores.put(playerUUID, value);
     }
 
     public static boolean createKit(String kitName, List<ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
@@ -296,21 +298,21 @@ public class PvPKits {
         if (!itemsInKit.isEmpty()) {
             boolean containsKit = kitExists(kitName);
             if (containsKit) {
-                List<String> currentKits = Plugin.getPlugin().getConfigKitList();
+                List<String> currentKits = KingKits.getInstance().getConfigKitList();
                 List<String> currentKitsLC = Utils.toLowerCaseList(currentKits);
                 if (currentKitsLC.contains(kitName.toLowerCase()))
                     kitName = currentKits.get(currentKitsLC.indexOf(kitName.toLowerCase()));
 
-                Plugin.getPlugin().getKitsConfig().set(kitName, null);
-                Plugin.getPlugin().saveKitsConfig();
+                KingKits.getInstance().getKitsConfig().set(kitName, null);
+                KingKits.getInstance().saveKitsConfig();
             }
             Kit kit = new Kit(kitName, costOfKit, itemsInKit, potionEffects).setGuiItem(guiItem != null ? guiItem : new ItemStack(Material.DIAMOND_SWORD));
-            Plugin.getPlugin().getKitsConfig().set(kitName, kit.serialize());
-            Plugin.getPlugin().saveKitsConfig();
-            Plugin.getPlugin().kitList.put(kitName, kit);
+            KingKits.getInstance().getKitsConfig().set(kitName, kit.serialize());
+            KingKits.getInstance().saveKitsConfig();
+            KingKits.getInstance().kitList.put(kitName, kit);
 
             try {
-                Plugin.getPlugin().getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
+                KingKits.getInstance().getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
             } catch (Exception ex) {
                 getPluginLogger().warning(ex.getClass().getSimpleName() + " error: " + ex.getMessage());
             }
@@ -326,13 +328,13 @@ public class PvPKits {
      * @param kitName The name of the kit to be deleted.
      */
     public static boolean deleteKit(String kitName) {
-        List<String> kits = Plugin.getPlugin().getConfigKitList();
+        List<String> kits = KingKits.getInstance().getConfigKitList();
         List<String> kitsLC = Utils.toLowerCaseList(kits);
         if (kitsLC.contains(kitName.toLowerCase())) {
             kitName = kits.get(kitsLC.indexOf(kitName.toLowerCase()));
-            Plugin.getPlugin().getKitsConfig().set(kitName, null);
-            Plugin.getPlugin().saveKitsConfig();
-            Plugin.getPlugin().kitList.remove(kitName);
+            KingKits.getInstance().getKitsConfig().set(kitName, null);
+            KingKits.getInstance().saveKitsConfig();
+            KingKits.getInstance().kitList.remove(kitName);
             return true;
         }
         return false;
@@ -356,8 +358,8 @@ public class PvPKits {
      * @param player The name of the player.
      */
     public static long getKillstreak(String player) {
-        if (Plugin.getPlugin().playerKillstreaks.containsKey(player))
-            return Plugin.getPlugin().playerKillstreaks.get(player);
+        if (KingKits.getInstance().playerKillstreaks.containsKey(player))
+            return KingKits.getInstance().playerKillstreaks.get(player);
         else return 0L;
     }
 
@@ -367,12 +369,12 @@ public class PvPKits {
      * @param player - The Kit GUI viewer.
      */
     public static void showKitMenu(Player player) {
-        if (Plugin.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") || Plugin.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
-            List<String> kitNames = new ArrayList<String>(Plugin.getPlugin().kitList.keySet());
-            if (Plugin.getPlugin().configValues.sortAlphabetically)
+        if (KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu")) {
+            List<String> kitNames = new ArrayList<String>(KingKits.getInstance().kitList.keySet());
+            if (KingKits.getInstance().configValues.sortAlphabetically)
                 Collections.sort(kitNames, Utils.ALPHABETICAL_ORDER);
             List<Kit> kitValues = new ArrayList<Kit>();
-            for (String kitName : kitNames) kitValues.add(Plugin.getPlugin().kitList.get(kitName));
+            for (String kitName : kitNames) kitValues.add(KingKits.getInstance().kitList.get(kitName));
 
             KitStack[] kitStacks = new KitStack[kitValues.size()];
             for (int index = 0; index < kitValues.size(); index++) {
