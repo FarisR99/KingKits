@@ -6,12 +6,12 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.6</version>
 
     <packaging>jar</packaging>
 
     <name>KingKits</name>
-    <url>http://dev.bukkit.org/bukkit-plugins/kingkits/</url>
+    <url>http://www.spigotmc.org/resources/kingkits.2209/</url>
 
     <distributionManagement>
         <repository>
@@ -141,7 +141,8 @@
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>VaultAPI</artifactId>
-            <version>RELEASE</version>
+            <version>1.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -123,7 +123,7 @@ public class GuiKitMenu extends GuiKingKits {
                                                     }
                                                 }
                                                 if (validCooldown) {
-                                                    SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                                    SetKit.setKingKit(player, kitName, true);
                                                 }
                                             } else if (this.getPlugin().configValues.showKitPreview) {
                                                 if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
@@ -131,11 +131,12 @@ public class GuiKitMenu extends GuiKingKits {
                                                     player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
                                                         public void run() {
                                                             if (player != null) {
-                                                                if (!guiPreviewKitMap.containsKey(player.getName()))
+                                                                if (!guiPreviewKitMap.containsKey(player.getName())) {
                                                                     new GuiPreviewKit(player, kitName).openMenu();
+                                                                }
                                                             }
                                                         }
-                                                    }, 5L);
+                                                    }, 3L);
                                                 }
                                             }
                                         }
@@ -154,6 +155,7 @@ public class GuiKitMenu extends GuiKingKits {
                     this.closeMenu(true, true);
                 }
             }
+            ex.printStackTrace();
         }
     }
 }

@@ -17,13 +17,13 @@ import java.util.Map;
 
 public class SetKit {
 
-    public static void setKingKit(KingKits plugin, Player player, String kitName, boolean sendMessages) throws Exception {
+    public static void setKingKit(Player player, String kitName, boolean sendMessages) throws Exception {
         final Kit kit = setKit(player, sendMessages, kitName);
         if (kit != null) {
-            if (kit.hasCooldown() && !player.hasPermission(plugin.permissions.kitBypassCooldown)) {
+            KingKits pl = KingKits.getInstance();
+            if (kit.hasCooldown() && !player.hasPermission(pl.permissions.kitBypassCooldown)) {
                 final String playerName = player.getName();
                 final String newKitName = kit.getRealName();
-                KingKits pl = KingKits.getInstance();
                 pl.getCooldownConfig().set(playerName + "." + newKitName, System.currentTimeMillis());
                 pl.saveCooldownConfig();
             }

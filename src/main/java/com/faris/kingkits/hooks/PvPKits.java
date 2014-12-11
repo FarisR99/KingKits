@@ -97,6 +97,11 @@ public class PvPKits {
      * @return The kit.
      */
     public static Kit getKitByName(String kitName) {
+        for (Kit kit : KingKits.getInstance().kitList.values()) {
+            if (kit != null && Utils.stripColour(kitName).equals(Utils.stripColour(kit.getRealName()))) {
+                return kit;
+            }
+        }
         return kitName != null ? KingKits.getInstance().kitList.get(Utils.stripColour(kitName)) : null;
     }
 
@@ -295,6 +300,7 @@ public class PvPKits {
      * @param costOfKit The cost of the kit.
      */
     public static boolean createKit(String kitName, Map<Integer, ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
+        if (KingKits.getInstance() == null) return false;
         if (!itemsInKit.isEmpty()) {
             boolean containsKit = kitExists(kitName);
             if (containsKit) {
@@ -328,7 +334,7 @@ public class PvPKits {
      * @param kitName The name of the kit to be deleted.
      */
     public static boolean deleteKit(String kitName) {
-        List<String> kits = KingKits.getInstance().getConfigKitList();
+        List<String> kits = KingKits.getInstance() != null ? KingKits.getInstance().getConfigKitList() : new ArrayList<String>();
         List<String> kitsLC = Utils.toLowerCaseList(kits);
         if (kitsLC.contains(kitName.toLowerCase())) {
             kitName = kits.get(kitsLC.indexOf(kitName.toLowerCase()));
@@ -358,7 +364,7 @@ public class PvPKits {
      * @param player The name of the player.
      */
     public static long getKillstreak(String player) {
-        if (KingKits.getInstance().playerKillstreaks.containsKey(player))
+        if (KingKits.getInstance() != null && KingKits.getInstance().playerKillstreaks.containsKey(player))
             return KingKits.getInstance().playerKillstreaks.get(player);
         else return 0L;
     }
@@ -369,7 +375,7 @@ public class PvPKits {
      * @param player - The Kit GUI viewer.
      */
     public static void showKitMenu(Player player) {
-        if (KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu")) {
+        if (KingKits.getInstance() != null && (KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
             List<String> kitNames = new ArrayList<String>(KingKits.getInstance().kitList.keySet());
             if (KingKits.getInstance().configValues.sortAlphabetically)
                 Collections.sort(kitNames, Utils.ALPHABETICAL_ORDER);

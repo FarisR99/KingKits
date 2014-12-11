@@ -1,11 +1,14 @@
 package com.faris.kingkits.guis;
 
+import com.faris.kingkits.Kit;
 import com.faris.kingkits.hooks.PvPKits;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -23,7 +26,8 @@ public class GuiPreviewKit extends GuiKingKits {
      */
     public GuiPreviewKit(Player player, String kitName) {
         super(player, player.getServer().createInventory(player, 45, ChatColor.RED + kitName + ChatColor.DARK_GRAY + " kit preview"));
-        this.guiItemStacks = this.getPlugin().kitList.containsKey(kitName) ? this.getPlugin().kitList.get(kitName).getMergedItems() : new ArrayList<ItemStack>();
+        Kit kit = PvPKits.getKitByName(kitName);
+        this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
     }
 
     @Override
@@ -91,7 +95,22 @@ public class GuiPreviewKit extends GuiKingKits {
                             public void run() {
                                 if (player != null && player.isOnline()) player.updateInventory();
                             }
-                        }, 5L);
+                        }, 2L);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    protected void onPlayerCloseInventory(InventoryCloseEvent event) {
+        try {
+            if (this.guiInventory != null && event.getInventory() != null) {
+                if (event.getPlayer() instanceof Player) {
+                    if (this.getPlayerName().equals(event.getPlayer().getName())) {
+                        this.closeMenu(true, false);
                     }
                 }
             }

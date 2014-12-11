@@ -182,7 +182,7 @@ public class PlayerListener implements Listener {
                                             if (kitListLC.contains(line1.toLowerCase())) {
                                                 String kitName = kitList.get(kitListLC.indexOf(line1.toLowerCase()));
                                                 try {
-                                                    final Kit kit = this.getPlugin().kitList.get(kitName);
+                                                    final Kit kit = PvPKits.getKitByName(kitName);
                                                     boolean validCooldown = true;
                                                     if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
                                                         if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
@@ -197,7 +197,7 @@ public class PlayerListener implements Listener {
                                                         }
                                                     }
                                                     if (validCooldown)
-                                                        SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                                        SetKit.setKingKit(player, kitName, true);
                                                 } catch (Exception e) {
                                                     player.sendMessage(ChatColor.RED + "Error while trying to set your kit. If it does not work after trying again, try using /pvpkit.");
                                                 }

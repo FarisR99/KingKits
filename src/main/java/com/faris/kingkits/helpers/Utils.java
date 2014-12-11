@@ -314,7 +314,7 @@ public class Utils {
     }
 
     public static String stripColour(String kitName) {
-        return kitName != null ? ChatColor.stripColor(kitName) : kitName;
+        return kitName != null ? ChatColor.stripColor(kitName) : "";
     }
 
 

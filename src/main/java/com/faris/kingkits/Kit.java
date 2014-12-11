@@ -365,7 +365,6 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Commands")) kit.setCommands(getObject(kitSection, "Commands", List.class));
                 if (kitSection.containsKey("Item breaking") && kitSection.get("Item breaking") != null) {
                     kit.setBreakableItems(Boolean.valueOf(kitSection.get("Item breaking").toString()));
-                    System.out.println("Breakable items (" + kitName + "): " + kit.canItemsBreak());
                 }
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");

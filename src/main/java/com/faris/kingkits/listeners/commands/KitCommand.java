@@ -63,7 +63,7 @@ public class KitCommand extends KingCommand {
                                 if (kitListLC.contains(kitName.toLowerCase()))
                                     kitName = kitList.get(kitListLC.indexOf(kitName.toLowerCase()));
                                 try {
-                                    final Kit kit = this.getPlugin().kitList.get(kitName);
+                                    final Kit kit = PvPKits.getKitByName(kitName);
                                     if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
                                         if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
                                             long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
@@ -82,13 +82,13 @@ public class KitCommand extends KingCommand {
                                                 GuiPreviewKit guiPreviewKit = new GuiPreviewKit(player, kitName);
                                                 guiPreviewKit.openMenu();
                                             } else {
-                                                SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                                SetKit.setKingKit(player, kitName, true);
                                             }
                                         } else {
-                                            SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                            SetKit.setKingKit(player, kitName, true);
                                         }
                                     } else {
-                                        SetKit.setKingKit(this.getPlugin(), player, kitName, true);
+                                        SetKit.setKingKit(player, kitName, true);
                                     }
                                 } catch (Exception ex) {
                                     ex.printStackTrace();

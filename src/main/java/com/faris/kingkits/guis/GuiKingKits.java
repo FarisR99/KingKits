@@ -20,7 +20,6 @@ public abstract class GuiKingKits implements Listener {
     public static Map<String, GuiKitMenu> guiKitMenuMap = new HashMap<String, GuiKitMenu>();
     public static Map<String, GuiPreviewKit> guiPreviewKitMap = new HashMap<String, GuiPreviewKit>();
 
-    private KingKits plugin = null;
     private Player player = null;
     private String playerName = null;
     protected Inventory guiInventory = null;
@@ -33,7 +32,6 @@ public abstract class GuiKingKits implements Listener {
      */
     public GuiKingKits(Player player, Inventory inventory) {
         Validate.notNull(player);
-        this.plugin = KingKits.getInstance();
 
         this.player = player;
         this.playerName = this.player.getName();
@@ -43,14 +41,13 @@ public abstract class GuiKingKits implements Listener {
             this.guiInventory = this.player.getServer().createInventory(this.player, InventoryType.CHEST);
 
         if (KingKits.getInstance() != null)
-            this.player.getServer().getPluginManager().registerEvents(this, this.plugin);
+            this.player.getServer().getPluginManager().registerEvents(this, this.getPlugin());
         else
             this.player.getServer().getPluginManager().registerEvents(this, Bukkit.getPluginManager().getPlugin("KingKits"));
     }
 
     public boolean openMenu() {
-        this.closeMenu(false, true);
-        if (this.plugin == null) KingKits.getInstance();
+        this.closeMenu(false, false);
         if (!guiPreviewKitMap.containsKey(this.playerName)) {
             if (this.getPlayer() != null) {
                 this.guiInventory.clear();
@@ -68,7 +65,6 @@ public abstract class GuiKingKits implements Listener {
         if (this.guiInventory != null) this.guiInventory.clear();
         if (unregisterEvents) HandlerList.unregisterAll(this);
         if (closeInventory && this.player != null) this.player.closeInventory();
-        this.plugin = null;
     }
 
     @EventHandler
@@ -79,10 +75,13 @@ public abstract class GuiKingKits implements Listener {
         try {
             if (this.guiInventory != null && event.getInventory() != null) {
                 if (event.getPlayer() instanceof Player) {
-                    if (this.playerName.equals(event.getPlayer().getName())) this.closeMenu(true, false);
+                    if (this.playerName.equals(event.getPlayer().getName())) {
+                        this.closeMenu(true, false);
+                    }
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -91,11 +90,11 @@ public abstract class GuiKingKits implements Listener {
     }
 
     protected String getPlayerName() {
-        return this.playerName;
+        return this.playerName != null ? this.playerName : "";
     }
 
     protected KingKits getPlugin() {
-        return this.plugin;
+        return KingKits.getInstance();
     }
 
 }
