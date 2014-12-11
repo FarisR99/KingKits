@@ -9,6 +9,7 @@ import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.*;
 import com.faris.kingkits.listeners.event.PlayerListener;
+import com.faris.kingkits.sql.KingKitsSQL;
 import com.faris.kingkits.values.CommandValues;
 import com.faris.kingkits.values.ConfigValues;
 import org.bukkit.Bukkit;
@@ -46,6 +47,7 @@ public class KingKits extends JavaPlugin {
     // Class Variables
     private PvPKits pvpKits = null;
     private Updater updater = null;
+    private KingKitsSQL kkSql = null;
     public Permissions permissions = new Permissions();
     public CommandValues cmdValues = new CommandValues();
     public ConfigValues configValues = new ConfigValues();
@@ -163,6 +165,11 @@ public class KingKits extends JavaPlugin {
     public void onDisable() {
         if (this.cooldownTaskID != -1) this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
 
+        if (this.kkSql != null) {
+            this.kkSql.onDisable();
+            this.kkSql = null;
+        }
+
         // Clear inventories on reload
         if (this.configValues.clearInvsOnReload) {
             for (Player target : Utils.getOnlinePlayers()) {
@@ -214,8 +221,16 @@ public class KingKits extends JavaPlugin {
         try {
             if (this.cooldownTaskID != -1 && this.getServer().getScheduler().isQueued(this.cooldownTaskID))
                 this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
+            if (KingKitsSQL.isInitialised() || KingKitsSQL.isOpen()) KingKitsSQL.closeConnection();
             this.getConfig().options().header("KingKits Configuration");
             this.getConfig().addDefault("Op bypass", true);
+            this.getConfig().addDefault("MySQL.Enabled", false);
+            this.getConfig().addDefault("MySQL.Host", "127.0.0.1");
+            this.getConfig().addDefault("MySQL.Port", 3306);
+            this.getConfig().addDefault("MySQL.Username", "root");
+            this.getConfig().addDefault("MySQL.Password", "");
+            this.getConfig().addDefault("MySQL.Database", "kingkits");
+            this.getConfig().addDefault("MySQL.Table prefix", "kk_");
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
             this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
             this.getConfig().addDefault("Enable kits command", true);
@@ -326,6 +341,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.scoreFormat = this.getConfig().getString("Score chat prefix");
             this.configValues.maxScore = this.getConfig().getInt("Max score");
 
+            this.loadMySQL();
             this.loadPvPKits();
             this.loadScores();
             this.loadEconomy();
@@ -381,6 +397,12 @@ public class KingKits extends JavaPlugin {
         } catch (Exception ex) {
             throw ex;
         }
+    }
+
+    private void loadMySQL() {
+        if (KingKitsSQL.isOpen()) KingKitsSQL.closeConnection();
+        KingKitsSQL.sqlEnabled = this.getConfig().getBoolean("MySQL.Enabled", false);
+        this.kkSql = new KingKitsSQL(this.getConfig().getString("MySQL.Host", "127.0.0.1"), this.getConfig().getInt("MySQL.Port", 3306), this.getConfig().getString("MySQL.Username", "root"), this.getConfig().getString("MySQL.Password", ""), this.getConfig().getString("MySQL.Database", "kingkits"), this.getConfig().getString("MySQL.Table prefix", "kk_"));
     }
 
     private void loadPvPKits() {

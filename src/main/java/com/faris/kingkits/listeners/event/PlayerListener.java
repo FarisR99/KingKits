@@ -10,6 +10,7 @@ import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.SetKit;
 import com.faris.kingkits.listeners.event.custom.PlayerKilledEvent;
+import com.faris.kingkits.sql.KingKitsSQL;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -418,7 +419,7 @@ public class PlayerListener implements Listener {
             if (event.getEntityType() == EntityType.PLAYER) {
                 if (this.getPlugin().configValues.scores) {
                     if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getWorld().getName())) {
-                        Player killer = event.getEntity().getKiller();
+                        final Player killer = event.getEntity().getKiller();
                         if (killer != null && !event.getEntity().getName().equals(killer.getName())) {
                             try {
                                 if (!this.getPlugin().playerScores.containsKey(killer.getUniqueId()))
@@ -430,6 +431,16 @@ public class PlayerListener implements Listener {
                                 this.getPlugin().playerScores.put(killer.getUniqueId(), newScore);
                                 this.getPlugin().getScoresConfig().set("Scores." + killer.getUniqueId(), (long) newScore);
                                 this.getPlugin().saveScoresConfig();
+
+                                if (KingKitsSQL.sqlEnabled) {
+                                    final int kScore = newScore;
+                                    killer.getServer().getScheduler().runTaskAsynchronously(this.getPlugin(), new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            KingKitsSQL.setScore(killer, kScore);
+                                        }
+                                    });
+                                }
                             } catch (Exception ex) {
                             }
                         }
