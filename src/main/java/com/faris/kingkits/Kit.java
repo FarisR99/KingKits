@@ -5,12 +5,14 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.block.Skull;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -248,6 +250,15 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
             guiItemMap.put("Type", this.guiItem.getType().toString());
             guiItemMap.put("Amount", this.guiItem.getAmount());
             guiItemMap.put("Data", this.guiItem.getDurability());
+            // Dye colour
+            int dyeColour = Utils.ItemUtils.getDye(this.guiItem);
+            if (dyeColour > 0)
+                guiItemMap.put("Dye", dyeColour);
+            // Skull skin
+            if (this.guiItem.getItemMeta() instanceof SkullMeta) {
+                SkullMeta skullMeta = (SkullMeta) this.guiItem.getItemMeta();
+                if (skullMeta.getOwner() != null) guiItemMap.put("Skin", skullMeta.getOwner());
+            }
             // Enchantments
             Map<String, Integer> enchantmentMap = new HashMap<String, Integer>();
             for (Map.Entry<Enchantment, Integer> entrySet : this.guiItem.getEnchantments().entrySet())
@@ -274,6 +285,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     if (kitItem.getItemMeta() instanceof LeatherArmorMeta) {
                         kitItemMap.put("Dye", Utils.ItemUtils.getDye(kitItem));
                     }
+                    if (kitItem.getItemMeta() instanceof SkullMeta) {
+                        SkullMeta skullMeta = (SkullMeta) kitItem.getItemMeta();
+                        if (skullMeta.getOwner() != null) kitItemMap.put("Skin", skullMeta.getOwner());
+                    }
                     Map<String, Integer> enchantmentMap = new HashMap<String, Integer>();
                     for (Map.Entry<Enchantment, Integer> entrySet : kitItem.getEnchantments().entrySet())
                         enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
@@ -295,10 +310,14 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     String armourName = kitArmour.hasItemMeta() && kitArmour.getItemMeta().hasDisplayName() ? kitArmour.getItemMeta().getDisplayName() : null;
                     if (armourName != null) kitArmourMap.put("Name", Utils.replaceBukkitColour(armourName));
                     kitArmourMap.put("Type", kitArmour.getType().toString());
+                    kitArmourMap.put("Data", kitArmour.getDurability());
                     int dyeColour = Utils.ItemUtils.getDye(kitArmour);
                     if (dyeColour > 0)
                         kitArmourMap.put("Dye", dyeColour);
-                    kitArmourMap.put("Data", kitArmour.getDurability());
+                    if (kitArmour.getItemMeta() instanceof SkullMeta) {
+                        SkullMeta skullMeta = (SkullMeta) kitArmour.getItemMeta();
+                        if (skullMeta.getOwner() != null) kitArmourMap.put("Skin", skullMeta.getOwner());
+                    }
                     Map<String, Integer> enchantmentMap = new HashMap<String, Integer>();
                     for (Map.Entry<Enchantment, Integer> entrySet : kitArmour.getEnchantments().entrySet())
                         enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
@@ -376,6 +395,15 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                         int itemAmount = guiItemMap.containsKey("Amount") ? getObject(guiItemMap, "Amount", Integer.class) : 1;
                         short itemData = guiItemMap.containsKey("Data") ? getObject(guiItemMap, "Data", Short.class) : (short) 0;
                         guiItem = new ItemStack(itemType, itemAmount, itemData);
+                        if (guiItemMap.containsKey("Dye")) {
+                            int itemDye = getObject(guiItemMap, "Dye", Integer.class);
+                            if (itemDye > 0) Utils.ItemUtils.setDye(guiItem, itemDye);
+                        }
+                        if (guiItemMap.containsKey("Skin") && guiItem.getItemMeta() instanceof SkullMeta) {
+                            SkullMeta skullMeta = (SkullMeta) guiItem.getItemMeta();
+                            skullMeta.setOwner(getObject(guiItemMap, "Skin", String.class));
+                            guiItem.setItemMeta(skullMeta);
+                        }
                         if (guiItemMap.containsKey("Enchantments")) {
                             Map<String, Object> guiItemEnchantments = getValues(guiItemMap, "Enchantments");
                             for (Map.Entry<String, Object> entrySet : guiItemEnchantments.entrySet()) {
@@ -432,6 +460,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                 if (kitMap.containsKey("Dye")) {
                                     int itemDye = getObject(kitMap, "Dye", Integer.class);
                                     if (itemDye > 0) Utils.ItemUtils.setDye(kitItem, itemDye);
+                                }
+                                if (kitMap.containsKey("Skin") && kitItem.getItemMeta() instanceof SkullMeta) {
+                                    SkullMeta skullMeta = (SkullMeta) kitItem.getItemMeta();
+                                    skullMeta.setOwner(getObject(kitMap, "Skin", String.class));
+                                    kitItem.setItemMeta(skullMeta);
                                 }
                                 if (kitMap.containsKey("Enchantments")) {
                                     Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
@@ -492,6 +525,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                                 leatherArmorMeta.setColor(Color.fromRGB(itemDye));
                                 kitArmourItem.setItemMeta(leatherArmorMeta);
                             }
+                        }
+                        if (kitMap.containsKey("Skin") && kitArmourItem.getItemMeta() instanceof SkullMeta) {
+                            SkullMeta skullMeta = (SkullMeta) kitArmourItem.getItemMeta();
+                            skullMeta.setOwner(getObject(kitMap, "Skin", String.class));
+                            kitArmourItem.setItemMeta(skullMeta);
                         }
                         if (kitMap.containsKey("Enchantments")) {
                             Map<String, Object> kitArmourEnchantments = getValues(kitMap, "Enchantments");
