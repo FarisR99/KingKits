@@ -86,8 +86,7 @@ public class PvPKits {
      * @param player The player to get the kit name from.
      */
     public static String getKit(String player) {
-        if (hasKit(player)) return KingKits.getInstance().usingKits.get(player);
-        else return null;
+        return KingKits.getInstance() != null && KingKits.getInstance().usingKits != null ? KingKits.getInstance().usingKits.get(player) : null;
     }
 
     /**
@@ -124,7 +123,7 @@ public class PvPKits {
         List<String> playersInKitMap = new ArrayList<String>(KingKits.getInstance().usingKits.keySet());
         for (int pos = 0; pos < KingKits.getInstance().usingKits.size(); pos++) {
             String kit = KingKits.getInstance().usingKits.get(pos);
-            if (kitName.equalsIgnoreCase(kit)) {
+            if (kit.equalsIgnoreCase(kitName)) {
                 playersUsingKit.add(playersInKitMap.get(pos));
             }
         }
@@ -135,7 +134,7 @@ public class PvPKits {
      * Get players using and their kits : Returns an empty map if no one is using a kit.
      */
     public static Map<String, String> getPlayersAndKits() {
-        return KingKits.getInstance().usingKits;
+        return Collections.unmodifiableMap(KingKits.getInstance().usingKits);
     }
 
     /**
