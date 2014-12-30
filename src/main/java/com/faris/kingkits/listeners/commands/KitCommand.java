@@ -41,7 +41,7 @@ public class KitCommand extends KingCommand {
                                             if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
                                                 sender.sendMessage(r("&6" + (kitPos + 1) + ". " + kitName));
                                             } else {
-                                                if (this.getPlugin().configValues.cmdKitListPermissions)
+                                                if (this.getPlugin().configValues.kitListPermissions)
                                                     sender.sendMessage(r("&4" + (kitPos + 1) + ". " + kitName));
                                             }
                                         }

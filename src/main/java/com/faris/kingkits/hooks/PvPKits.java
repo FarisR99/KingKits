@@ -96,12 +96,13 @@ public class PvPKits {
      * @return The kit.
      */
     public static Kit getKitByName(String kitName) {
+        String strippedKitName = Utils.stripColour(kitName);
         for (Kit kit : KingKits.getInstance().kitList.values()) {
-            if (kit != null && Utils.stripColour(kitName).equals(Utils.stripColour(kit.getRealName()))) {
+            if (kit != null && (strippedKitName.equals(Utils.stripColour(kit.getRealName())) || strippedKitName.equals(Utils.stripColour(kit.getName())))) {
                 return kit;
             }
         }
-        return kitName != null ? KingKits.getInstance().kitList.get(Utils.stripColour(kitName)) : null;
+        return kitName != null ? KingKits.getInstance().kitList.get(strippedKitName) : null;
     }
 
     /**
@@ -368,25 +369,54 @@ public class PvPKits {
         else return 0L;
     }
 
+    /**
+     * Display the Kit GUI menu to a player.
+     *
+     * @param player - The Kit GUI viewer.
+     */
+    public static void showKitMenu(Player player) {
+        showKitMenu(player, false);
+    }
+
     @SuppressWarnings("deprecation")
     /**
      * Display the Kit GUI menu to a player.
      * @param player - The Kit GUI viewer.
+     * @param ignoreChecks - Ignore the checking of whether the kit list mode is set to GUI/Menu.
      */
-    public static void showKitMenu(Player player) {
-        if (KingKits.getInstance() != null && (KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
-            List<String> kitNames = new ArrayList<String>(KingKits.getInstance().kitList.keySet());
-            if (KingKits.getInstance().configValues.sortAlphabetically)
-                Collections.sort(kitNames, Utils.ALPHABETICAL_ORDER);
+    public static void showKitMenu(Player player, boolean ignoreChecks) {
+        if (KingKits.getInstance() != null && (!ignoreChecks ? KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu") : true)) {
             List<Kit> kitValues = new ArrayList<Kit>();
-            for (String kitName : kitNames) kitValues.add(KingKits.getInstance().kitList.get(kitName));
+            if (KingKits.getInstance().configValues.sortAlphabetically) {
+                List<String> kitNames = new ArrayList<String>(KingKits.getInstance().kitList.keySet());
+                Collections.sort(kitNames, Utils.ALPHABETICAL_ORDER);
+
+                for (int index = 0; index < kitNames.size(); index++) {
+                    Kit kit = KingKits.getInstance().kitList.get(kitNames.get(index));
+                    if (kit != null) {
+                        if (!KingKits.getInstance().configValues.kitListPermissions) {
+                            if (!player.hasPermission("kingkits.kits." + kit.getRealName().toLowerCase())) continue;
+                        }
+                        kitValues.add(kit);
+                    }
+                }
+            } else {
+                for (Kit kit : KingKits.getInstance().kitList.values()) {
+                    if (kit != null) {
+                        if (!KingKits.getInstance().configValues.kitListPermissions) {
+                            if (!player.hasPermission("kingkits.kits." + kit.getRealName().toLowerCase())) continue;
+                        }
+                        kitValues.add(kit);
+                    }
+                }
+            }
 
             KitStack[] kitStacks = new KitStack[kitValues.size()];
             for (int index = 0; index < kitValues.size(); index++) {
                 Kit kit = kitValues.get(index);
                 kitStacks[index] = new KitStack(kit.getName(), kit.getGuiItem());
             }
-            ChatColor menuColour = kitStacks.length > 0 ? ChatColor.DARK_BLUE : ChatColor.RED;
+            ChatColor menuColour = kitStacks.length > 0 ? ChatColor.AQUA : ChatColor.RED;
             new GuiKitMenu(player, menuColour + "PvP Kits", kitStacks).openMenu();
         }
     }

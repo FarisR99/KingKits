@@ -13,10 +13,10 @@ public class ConfigValues {
 	public boolean opBypass = true;
 
 	public boolean listKitsOnJoin = true;
-	public boolean kitListPermissions = false;
+	public boolean kitListPermissionsJoin = false;
     public boolean sortAlphabetically = true;
 
-	public boolean cmdKitListPermissions = true;
+	public boolean kitListPermissions = true;
 
 	public boolean dropItemsOnDeath = false;
 	public boolean dropItems = false;
@@ -84,7 +84,8 @@ public class ConfigValues {
 	public String commandToRun = "";
 
 	public List<String> pvpWorlds = Arrays.asList("All");
-    public String multiInvsPlugin = "Multiverse-Inventories";
+	public String multiInvsPlugin = "Multiverse-Inventories";
+	public boolean multiInvs = false;
 
 	public String customMessages = "";
 

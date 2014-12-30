@@ -123,7 +123,7 @@ public class GuiKitMenu extends GuiKingKits {
                                                     }
                                                 }
                                                 if (validCooldown) {
-                                                    SetKit.setKingKit(player, kitName, true);
+                                                    SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
                                                 }
                                             } else if (this.getPlugin().configValues.showKitPreview) {
                                                 if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {

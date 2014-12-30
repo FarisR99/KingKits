@@ -1,4 +1,4 @@
-package com.faris.kingkits;
+package com.faris.kingkits.updater;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -10,7 +10,10 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 
-public class Updater {
+/**
+ * @author PatoTheBest
+ */
+public class SpigotUpdater {
 
     private JavaPlugin plugin;
     private final String API_KEY = "98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4";
@@ -23,7 +26,7 @@ public class Updater {
     private String version;
     private String oldVersion;
 
-    private Updater.UpdateResult result = Updater.UpdateResult.DISABLED;
+    private SpigotUpdater.UpdateResult result = SpigotUpdater.UpdateResult.DISABLED;
 
     private HttpURLConnection connection;
 
@@ -31,65 +34,65 @@ public class Updater {
         NO_UPDATE,
         DISABLED,
         FAIL_SPIGOT,
-        FAIL_NOVERSION,
-        BAD_RESOURCEID,
+        FAIL_NO_VERSION,
+        BAD_RESOURCE_ID,
         UPDATE_AVAILABLE
     }
 
-    public Updater(JavaPlugin plugin, Integer resourceId, boolean disabled) {
+    public SpigotUpdater(JavaPlugin plugin, Integer resourceId, boolean disabled) {
         RESOURCE_ID = resourceId + "";
         this.plugin = plugin;
-        oldVersion = this.plugin.getDescription().getVersion();
+        this.oldVersion = this.plugin.getDescription().getVersion();
 
         if (disabled) {
-            result = UpdateResult.DISABLED;
+            this.result = UpdateResult.DISABLED;
             return;
         }
 
         try {
-            connection = (HttpURLConnection) new URL(HOST + QUERY).openConnection();
+            this.connection = (HttpURLConnection) new URL(HOST + QUERY).openConnection();
         } catch (IOException e) {
-            result = UpdateResult.FAIL_SPIGOT;
+            this.result = UpdateResult.FAIL_SPIGOT;
             return;
         }
 
         WRITE_STRING = "key=" + API_KEY + "&resource=" + RESOURCE_ID;
-        run();
+        this.run();
     }
 
     private void run() {
-        connection.setDoOutput(true);
+        this.connection.setDoOutput(true);
         try {
-            connection.setRequestMethod(REQUEST_METHOD);
-            connection.getOutputStream().write(WRITE_STRING.getBytes("UTF-8"));
+            this.connection.setRequestMethod(REQUEST_METHOD);
+            this.connection.getOutputStream().write(WRITE_STRING.getBytes("UTF-8"));
         } catch (ProtocolException e1) {
-            result = UpdateResult.FAIL_SPIGOT;
+            this.result = UpdateResult.FAIL_SPIGOT;
         } catch (UnsupportedEncodingException e) {
-            result = UpdateResult.FAIL_SPIGOT;
+            this.result = UpdateResult.FAIL_SPIGOT;
         } catch (IOException e) {
-            result = UpdateResult.FAIL_SPIGOT;
+            this.result = UpdateResult.FAIL_SPIGOT;
         }
         String version;
         try {
-            version = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+            version = new BufferedReader(new InputStreamReader(this.connection.getInputStream())).readLine();
         } catch (Exception e) {
-            result = UpdateResult.BAD_RESOURCEID;
+            this.result = UpdateResult.BAD_RESOURCE_ID;
             return;
         }
         if (version.length() <= 7) {
             this.version = version;
             version.replace("[^A-Za-z]", "").replace("|", "");
-            versionCheck();
+            this.versionCheck();
             return;
         }
-        result = UpdateResult.BAD_RESOURCEID;
+        this.result = UpdateResult.BAD_RESOURCE_ID;
     }
 
     private void versionCheck() {
-        if (shouldUpdate(oldVersion, version)) {
-            result = UpdateResult.UPDATE_AVAILABLE;
+        if (this.shouldUpdate(this.oldVersion, this.version)) {
+            this.result = UpdateResult.UPDATE_AVAILABLE;
         } else {
-            result = UpdateResult.NO_UPDATE;
+            this.result = UpdateResult.NO_UPDATE;
         }
     }
 
@@ -98,11 +101,11 @@ public class Updater {
     }
 
     public UpdateResult getResult() {
-        return result;
+        return this.result;
     }
 
     public String getVersion() {
-        return version;
+        return this.version;
     }
 
 }

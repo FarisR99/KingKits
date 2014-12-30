@@ -10,6 +10,8 @@ import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.*;
 import com.faris.kingkits.listeners.event.PlayerListener;
 import com.faris.kingkits.sql.KingKitsSQL;
+import com.faris.kingkits.updater.BukkitUpdater;
+import com.faris.kingkits.updater.SpigotUpdater;
 import com.faris.kingkits.values.CommandValues;
 import com.faris.kingkits.values.ConfigValues;
 import org.bukkit.Bukkit;
@@ -46,7 +48,6 @@ public class KingKits extends JavaPlugin {
 
     // Class Variables
     private PvPKits pvpKits = null;
-    private Updater updater = null;
     private KingKitsSQL kkSql = null;
     public Permissions permissions = new Permissions();
     public CommandValues cmdValues = new CommandValues();
@@ -122,34 +123,52 @@ public class KingKits extends JavaPlugin {
 
         // Check for updates
         if (this.configValues.checkForUpdates) {
-            this.updater = new Updater(this, 2209, false);
-            if (this.updater.getResult() == Updater.UpdateResult.UPDATE_AVAILABLE) {
-                String title = "============================================";
-                String titleSpace = "                                            ";
-                this.getLogger().info(title);
-                try {
-                    this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
-                } catch (Exception ex) {
-                    this.getServer().getConsoleSender().sendMessage("KingKits");
+            if (this.getServer().getVersion().contains("Spigot")) {
+                SpigotUpdater updater = new SpigotUpdater(this, 2209, false);
+                if (updater.getResult() == SpigotUpdater.UpdateResult.UPDATE_AVAILABLE) {
+                    String title = "============================================";
+                    String titleSpace = "                                            ";
+                    this.getLogger().info(title);
+                    try {
+                        this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
+                    } catch (Exception ex) {
+                        this.getServer().getConsoleSender().sendMessage("KingKits");
+                    }
+                    this.getLogger().info(title);
+                    this.getLogger().info("A new version is available: KingKits v" + updater.getVersion());
+                    this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
+                    this.getLogger().info((this.configValues.automaticUpdates ? "Automatic updates do not work for Spigot. " : "") + "Download it from: http://www.spigotmc.org/threads/kingkits.37947");
                 }
-                this.getLogger().info(title);
-                this.getLogger().info("A new version is available: KingKits v" + this.updater.getVersion());
-                this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
-                if (this.configValues.automaticUpdates) {
-                    /** this.getLogger().info("Cannot download KingKits v" + this.updater.getVersion() + "...");
-                     // TODO: Wait for updater to allow auto-downloading.
-                     Updater.UpdateResult updateResult = this.updater.getResult();
-                     if (updateResult == Updater.UpdateResult.BAD_RESOURCEID)
-                     this.getLogger().warning("Download failed: Invalid resource ID.");
-                     else if (updateResult == Updater.UpdateResult.DISABLED)
-                     this.getLogger().warning("Download failed: Updater disabled.");
-                     else if (updateResult == Updater.UpdateResult.FAIL_NOVERSION)
-                     this.getLogger().warning("Download failed: The latest version has an incorrect title.");
-                     else if (updateResult == Updater.UpdateResult.FAIL_SPIGOT)
-                     this.getLogger().warning("Download failed: Spigot failed.");
-                     // else this.getLogger().info("The latest version of KingKits has been downloaded."); **/
-                } else {
-                    this.getLogger().info("Download it from: http://www.spigotmc.org/threads/kingkits.37947");
+            } else {
+                BukkitUpdater updater = new BukkitUpdater(this, 56371, this.getFile(), BukkitUpdater.UpdateType.NO_DOWNLOAD, false);
+                if (updater.getResult() == BukkitUpdater.UpdateResult.UPDATE_AVAILABLE) {
+                    String title = "============================================";
+                    String titleSpace = "                                            ";
+                    this.getLogger().info(title);
+                    try {
+                        this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
+                    } catch (Exception ex) {
+                        this.getServer().getConsoleSender().sendMessage("KingKits");
+                    }
+                    this.getLogger().info(title);
+                    this.getLogger().info("A new version is available: " + updater.getLatestName());
+                    this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
+                    if (this.configValues.automaticUpdates) {
+                        this.getLogger().info("Downloading " + updater.getLatestName() + "...");
+                        updater = new BukkitUpdater(this, 56371, this.getFile(), BukkitUpdater.UpdateType.NO_VERSION_CHECK, false);
+                        BukkitUpdater.UpdateResult updateResult = updater.getResult();
+                        if (updateResult == BukkitUpdater.UpdateResult.FAIL_APIKEY)
+                            this.getLogger().warning("Download failed: Improperly configured the server's API key in the configuration");
+                        else if (updateResult == BukkitUpdater.UpdateResult.FAIL_DBO)
+                            this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
+                        else if (updateResult == BukkitUpdater.UpdateResult.FAIL_DOWNLOAD)
+                            this.getLogger().warning("Download failed: Could not download the file.");
+                        else if (updateResult == BukkitUpdater.UpdateResult.FAIL_NOVERSION)
+                            this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+                        else this.getLogger().info("The latest version of KingKits has been downloaded.");
+                    } else {
+                        this.getLogger().info("Download it from: " + updater.getLatestFileLink());
+                    }
                 }
             }
         }
@@ -233,6 +252,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("MySQL.Table prefix", "kk_");
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
             this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
+            this.getConfig().addDefault("Multi-inventories", this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin")));
             this.getConfig().addDefault("Enable kits command", true);
             this.getConfig().addDefault("Enable create kits command", true);
             this.getConfig().addDefault("Enable delete kits command", true);
@@ -289,6 +309,12 @@ public class KingKits extends JavaPlugin {
             this.configValues.opBypass = this.getConfig().getBoolean("Op bypass");
             this.configValues.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
             this.configValues.multiInvsPlugin = this.getConfig().getString("Multiple world inventories plugin");
+            this.configValues.multiInvs = this.getConfig().getBoolean("Multi-inventories");
+            if (!this.configValues.multiInvs && this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin"))) {
+                this.configValues.multiInvs = true;
+                this.getConfig().set("Multi-inventories", true);
+                this.saveConfig();
+            }
             this.cmdValues.pvpKits = this.getConfig().getBoolean("Enable kits command");
             this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
             this.cmdValues.deleteKits = this.getConfig().getBoolean("Enable delete kits command");
@@ -303,8 +329,8 @@ public class KingKits extends JavaPlugin {
             this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
             this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
             this.configValues.sortAlphabetically = this.getConfig().getBoolean("Sort kits alphabetically");
-            this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions on join");
-            this.configValues.cmdKitListPermissions = this.getConfig().getBoolean("Use permissions for kit list");
+            this.configValues.kitListPermissionsJoin = this.getConfig().getBoolean("Use permissions on join");
+            this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions for kit list");
             this.configValues.removeItemsOnLeave = this.getConfig().getBoolean("Remove items on leave");
             this.configValues.dropItemsOnDeath = this.getConfig().getBoolean("Drop items on death");
             this.configValues.dropItems = this.getConfig().getBoolean("Drop items");
@@ -626,8 +652,8 @@ public class KingKits extends JavaPlugin {
                 if (currency.lastIndexOf('s') == message.length()) currency = this.replaceLast(currency, "s", "");
             }
         }
-        message = message.replaceAll("<currency>", currency);
-        message = message.replaceAll("<money>", String.valueOf(amount));
+        message = message.replace("<currency>", currency);
+        message = message.replace("<money>", String.valueOf(amount));
         return Utils.replaceChatColour(message);
     }
 
@@ -685,9 +711,9 @@ public class KingKits extends JavaPlugin {
                 if (currency.lastIndexOf('s') == message.length() - 1) currency = this.replaceLast(currency, "s", "");
             }
         }
-        message = message.replaceAll("<currency>", currency);
-        message = message.replaceAll("<money>", String.valueOf(amount));
-        message = message.replaceAll("<target>", killer.getName());
+        message = message.replace("<currency>", currency);
+        message = message.replace("<money>", String.valueOf(amount));
+        message = message.replace("<target>", killer.getName());
         return Utils.replaceChatColour(message);
     }
 
@@ -700,9 +726,9 @@ public class KingKits extends JavaPlugin {
                 if (currency.lastIndexOf('s') == message.length() - 1) currency = this.replaceLast(currency, "s", "");
             }
         }
-        message = message.replaceAll("<currency>", currency);
-        message = message.replaceAll("<money>", String.valueOf(amount));
-        message = message.replaceAll("<killer>", dead.getKiller().getName());
+        message = message.replace("<currency>", currency);
+        message = message.replace("<money>", String.valueOf(amount));
+        message = message.replace("<killer>", dead.getKiller().getName());
         return Utils.replaceChatColour(message);
     }
 

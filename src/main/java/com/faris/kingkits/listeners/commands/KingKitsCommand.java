@@ -160,7 +160,7 @@ public class KingKitsCommand extends KingCommand {
                                                 this.getPlugin().getKitsConfig().set(strTargetKit + ".Cooldown", cooldown);
                                                 this.getPlugin().saveKitsConfig();
 
-                                                sender.sendMessage(ChatColor.GOLD + "Changed the cooldown for '" + targetKit.getName() + "' to " + cooldown + " second(s).");
+                                                sender.sendMessage(ChatColor.GOLD + "Changed the cooldown for '" + targetKit.getRealName() + "' to " + cooldown + " second(s).");
                                             } else {
                                                 sender.sendMessage(ChatColor.RED + "Please enter a valid integer between 0 and " + Integer.MAX_VALUE + " (inclusive) for the kit cooldown.");
                                             }

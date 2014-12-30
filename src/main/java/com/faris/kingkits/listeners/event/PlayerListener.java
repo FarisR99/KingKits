@@ -5,7 +5,6 @@ import com.faris.kingkits.Kit;
 import com.faris.kingkits.guis.GuiKingKits;
 import com.faris.kingkits.guis.GuiKitMenu;
 import com.faris.kingkits.guis.GuiPreviewKit;
-import com.faris.kingkits.helpers.KitStack;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.SetKit;
@@ -88,32 +87,34 @@ public class PlayerListener implements Listener {
     private void listKitsOnJoin(final Player p) {
         p.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
             public void run() {
-                List<String> kitList = getPlugin().getKitList();
-                StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
-                if (kitList.isEmpty()) {
-                    sbKits.append(ChatColor.DARK_RED).append("No kits made.");
-                } else {
-                    for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
-                        String kit = kitList.get(kitPos);
-                        ChatColor col = ChatColor.GREEN;
-                        boolean ignoreKit = false;
-                        if (getPlugin().configValues.kitListPermissions) {
-                            if (!p.hasPermission("kingkits.kits." + kit.toLowerCase()))
-                                ignoreKit = true;
-                        }
-                        if (!ignoreKit) {
-                            if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
-                            else sbKits.append(col).append(kit).append(", ");
-                        } else {
-                            if (kitPos == kitList.size() - 1)
-                                sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
+                if (p != null && p.isOnline()) {
+                    List<String> kitList = getPlugin().getKitList();
+                    StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
+                    if (kitList.isEmpty()) {
+                        sbKits.append(ChatColor.DARK_RED).append("No kits made.");
+                    } else {
+                        for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
+                            String kit = kitList.get(kitPos);
+                            ChatColor col = ChatColor.GREEN;
+                            boolean ignoreKit = false;
+                            if (!p.hasPermission("kingkits.kits." + kit.toLowerCase())) {
+                                if (!getPlugin().configValues.kitListPermissionsJoin) ignoreKit = true;
+                                else col = ChatColor.DARK_RED;
+                            }
+                            if (!ignoreKit) {
+                                if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
+                                else sbKits.append(col).append(kit).append(", ");
+                            } else {
+                                if (kitPos == kitList.size() - 1)
+                                    sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
+                            }
                         }
                     }
+                    if (sbKits.toString() == ChatColor.GREEN + "") {
+                        sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
+                    }
+                    p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
                 }
-                if (sbKits.toString() == ChatColor.GREEN + "") {
-                    sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
-                }
-                p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
             }
         }, 30L);
     }
@@ -232,7 +233,7 @@ public class PlayerListener implements Listener {
                                                 if (player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
                                                     player.sendMessage(this.r("&6" + (kitPos + 1) + ". " + kitName));
                                                 } else {
-                                                    if (this.getPlugin().configValues.cmdKitListPermissions)
+                                                    if (this.getPlugin().configValues.kitListPermissions)
                                                         player.sendMessage(this.r("&4" + (kitPos + 1) + ". " + kitName));
                                                 }
                                             }
@@ -465,7 +466,7 @@ public class PlayerListener implements Listener {
                         this.getPlugin().getScoresConfig().set("Scores." + player.getUniqueId(), 0);
                         this.getPlugin().saveScoresConfig();
                     }
-                    event.setFormat(Utils.replaceChatColour(this.getPlugin().configValues.scoreFormat).replaceAll("<score>", String.valueOf(this.getPlugin().playerScores.get(player.getUniqueId()))) + ChatColor.WHITE + " " + event.getFormat());
+                    event.setFormat(Utils.replaceChatColour(this.getPlugin().configValues.scoreFormat).replace("<score>", String.valueOf(this.getPlugin().playerScores.get(player.getUniqueId()))) + ChatColor.WHITE + " " + event.getFormat());
                 }
             }
         } catch (Exception ex) {
@@ -870,7 +871,7 @@ public class PlayerListener implements Listener {
                     this.getPlugin().playerKits.remove(event.getPlayer().getName());
                 if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
                     this.getPlugin().usingKits.remove(event.getPlayer().getName());
-                    if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
+                    if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                         event.getPlayer().getInventory().clear();
                         event.getPlayer().getInventory().setArmorContents(null);
                         for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
@@ -878,14 +879,13 @@ public class PlayerListener implements Listener {
                     }
                 }
             } else if (this.getPlugin().configValues.pvpWorlds.contains("All") || (!this.getPlugin().configValues.pvpWorlds.contains(event.getFrom().getName()) && this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))) {
-                if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
+                if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                     event.getPlayer().getInventory().clear();
                     event.getPlayer().getInventory().setArmorContents(null);
                     for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
                         event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
                 }
-                if (this.getPlugin().configValues.listKitsOnJoin)
-                    this.listKitsOnJoin(event.getPlayer());
+                if (this.getPlugin().configValues.listKitsOnJoin) this.listKitsOnJoin(event.getPlayer());
             }
         } catch (Exception ex) {
         }
@@ -929,7 +929,7 @@ public class PlayerListener implements Listener {
                     if (this.getPlugin().getKillstreaksConfig().contains("Killstreak " + currentKillstreak)) {
                         List<String> killstreakCommands = this.getPlugin().getKillstreaksConfig().getStringList("Killstreak " + currentKillstreak);
                         for (String killstreakCommand : killstreakCommands)
-                            event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replaceAll("<player>", event.getPlayer().getName()).replaceAll("<killstreak>", "" + currentKillstreak));
+                            event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replace("<player>", event.getPlayer().getName()).replace("<displayname>", event.getPlayer().getDisplayName()).replace("<killstreak>", "" + currentKillstreak));
                     }
                     if (PvPKits.hasKit(event.getPlayer())) {
                         Kit playerKit = PvPKits.getKitByName(PvPKits.getKit(event.getPlayer()));
@@ -937,7 +937,7 @@ public class PlayerListener implements Listener {
                             if (playerKit.getKillstreaks().containsKey(currentKillstreak)) {
                                 List<String> killstreakCommands = playerKit.getKillstreaks().get(currentKillstreak);
                                 for (String killstreakCommand : killstreakCommands)
-                                    event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replaceAll("<player>", event.getPlayer().getName()).replaceAll("<killstreak>", "" + currentKillstreak));
+                                    event.getPlayer().getServer().dispatchCommand(event.getPlayer().getServer().getConsoleSender(), killstreakCommand.replace("<player>", event.getPlayer().getName()).replace("<displayname>", event.getPlayer().getDisplayName()).replace("<killstreak>", "" + currentKillstreak));
                             }
                         }
                     }
@@ -1114,14 +1114,7 @@ public class PlayerListener implements Listener {
                     public void run() {
                         if (player != null && player.isOnline()) {
                             if (!GuiKingKits.guiKitMenuMap.containsKey(player.getName()) && !GuiKingKits.guiPreviewKitMap.containsKey(player.getName())) {
-                                KitStack[] kitStacks = new KitStack[getPlugin().kitList.size()];
-                                List<Kit> kitValues = new ArrayList<Kit>(getPlugin().kitList.values());
-                                for (int index = 0; index < kitValues.size(); index++) {
-                                    Kit kit = kitValues.get(index);
-                                    kitStacks[index] = new KitStack(kit.getName(), kit.getGuiItem());
-                                }
-                                ChatColor menuColour = kitStacks.length > 0 ? ChatColor.DARK_BLUE : ChatColor.RED;
-                                new GuiKitMenu(player, menuColour + "PvP Kits", kitStacks).openMenu();
+                                PvPKits.showKitMenu(player, false);
                             }
                         }
                     }
