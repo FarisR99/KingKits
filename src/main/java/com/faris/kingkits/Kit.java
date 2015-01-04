@@ -5,7 +5,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.block.Skull;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
@@ -27,6 +26,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private List<String> kitCommands = new ArrayList<String>();
 
     private ItemStack guiItem = null;
+    private int guiPosition = -1;
+
     private Map<Integer, ItemStack> kitItems = new HashMap<Integer, ItemStack>();
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
@@ -124,6 +125,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this.guiItem;
     }
 
+    public int getGuiPosition() {
+        return this.guiPosition > 0 ? this.guiPosition : -1;
+    }
+
     public List<ItemStack> getItems() {
         return new ArrayList<ItemStack>(this.kitItems.values());
     }
@@ -195,6 +200,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this;
     }
 
+    public Kit setGuiPosition(int guiPosition) {
+        this.guiPosition = guiPosition > 0 ? guiPosition : -1;
+        return this;
+    }
+
     public Kit setItems(List<ItemStack> items) {
         if (items != null) {
             this.kitItems = new HashMap<Integer, ItemStack>();
@@ -243,6 +253,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Cooldown", this.kitCooldown);
         serializedKit.put("Commands", this.kitCommands);
         serializedKit.put("Item breaking", this.itemBreaking);
+        serializedKit.put("GUI Position", this.guiPosition);
 
         /** GUI Item **/
         if (this.guiItem != null) {
@@ -385,6 +396,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Item breaking") && kitSection.get("Item breaking") != null) {
                     kit.setBreakableItems(Boolean.valueOf(kitSection.get("Item breaking").toString()));
                 }
+                if (kitSection.containsKey("GUI Position")) kit.setGuiPosition(getObject(kitSection, "GUI Position", Integer.class));
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;

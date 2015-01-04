@@ -300,6 +300,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Clear items on kit creation", true);
             this.getConfig().addDefault("Kit particle effects", false);
             this.getConfig().addDefault("Show kit preview", false);
+            this.getConfig().addDefault("Replace items when selecting a kit", true);
             if (this.getConfig().contains("Scoreboards")) this.getConfig().set("Scoreboards", null);
             if (this.getConfig().contains("Scoreboard title")) this.getConfig().set("Scoreboard title", null);
             this.getConfig().options().copyDefaults(true);
@@ -356,6 +357,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.removeItemsOnCreateKit = this.getConfig().getBoolean("Clear items on kit creation");
             this.configValues.kitParticleEffects = this.getConfig().getBoolean("Kit particle effects");
             this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
+            this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
 
             this.configValues.scores = this.getConfig().getBoolean("Enable score");
             this.configValues.scoreIncrement = this.getConfig().getInt("Score per kill");

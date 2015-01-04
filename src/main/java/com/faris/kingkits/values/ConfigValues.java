@@ -55,6 +55,8 @@ public class ConfigValues {
 
 	public boolean showKitPreview = false;
 
+	public boolean replaceItems = true;
+
 	// Kit delay
 	public boolean kitCooldown = false;
 

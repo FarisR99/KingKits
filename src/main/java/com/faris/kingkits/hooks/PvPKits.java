@@ -98,7 +98,7 @@ public class PvPKits {
     public static Kit getKitByName(String kitName) {
         String strippedKitName = Utils.stripColour(kitName);
         for (Kit kit : KingKits.getInstance().kitList.values()) {
-            if (kit != null && (strippedKitName.equals(Utils.stripColour(kit.getRealName())) || strippedKitName.equals(Utils.stripColour(kit.getName())))) {
+            if (kit != null && (strippedKitName.equalsIgnoreCase(Utils.stripColour(kit.getRealName())) || strippedKitName.equals(Utils.stripColour(kit.getName())))) {
                 return kit;
             }
         }

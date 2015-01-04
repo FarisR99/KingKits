@@ -51,7 +51,9 @@ public class SetKit {
                     } catch (Exception ex2) {
                     }
                 }
-                if (player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
+                Kit newKit = plugin.kitList.get(Utils.stripColour(kitName));
+                if (newKit == null) return null;
+                if (player.hasPermission("kingkits.kits." + newKit.getRealName().toLowerCase())) {
                     if (plugin.configValues.oneKitPerLife) {
                         if (plugin.configValues.opBypass) {
                             if (!player.isOp()) {
@@ -68,8 +70,6 @@ public class SetKit {
                         }
                     }
                     String oldKit = plugin.playerKits.containsKey(player.getName()) ? plugin.playerKits.get(player.getName()) : "";
-                    Kit newKit = plugin.kitList.get(Utils.stripColour(kitName));
-                    if (newKit == null) return null;
                     PlayerKitEvent playerKitEvent = new PlayerKitEvent(player, kitName, oldKit, newKit.getItemsWithSlot(), newKit.getArmour(), newKit.getPotionEffects());
                     playerKitEvent.setCommands(newKit.getCommands());
                     player.getServer().getPluginManager().callEvent(playerKitEvent);
@@ -98,8 +98,10 @@ public class SetKit {
                             }
                         }
 
-                        player.getInventory().clear();
-                        player.getInventory().setArmorContents(null);
+                        if (plugin.configValues.replaceItems) {
+                            player.getInventory().clear();
+                            player.getInventory().setArmorContents(null);
+                        }
                         player.setGameMode(GameMode.SURVIVAL);
                         for (PotionEffect potionEffect : player.getActivePotionEffects())
                             player.removePotionEffect(potionEffect.getType());

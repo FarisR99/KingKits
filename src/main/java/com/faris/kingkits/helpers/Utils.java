@@ -13,7 +13,10 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 public class Utils {
 
@@ -312,6 +315,7 @@ public class Utils {
         }
         return romanInteger;
     }
+
 
     public static String stripColour(String kitName) {
         return kitName != null ? ChatColor.stripColor(kitName) : "";

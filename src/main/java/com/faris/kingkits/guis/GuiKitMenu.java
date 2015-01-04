@@ -14,6 +14,9 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GuiKitMenu extends GuiKingKits {
     private KitStack[] guiKitStacks = null;
 
@@ -56,22 +59,58 @@ public class GuiKitMenu extends GuiKingKits {
 
     @Override
     protected void fillInventory() {
-        for (int i = 0; i < this.guiKitStacks.length; i++) {
-            try {
-                ItemStack currentStack = this.guiKitStacks[i].getItemStack();
-                if (currentStack != null) {
-                    if (currentStack.getType() != Material.AIR) {
-                        if (currentStack.getItemMeta() != null) {
-                            ItemMeta itemMeta = currentStack.getItemMeta();
-                            ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + this.guiKitStacks[i].getKitName().toLowerCase()) ? ChatColor.GREEN : ChatColor.DARK_RED;
-                            itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
-                            currentStack.setItemMeta(itemMeta);
+        if (this.getPlugin().configValues.sortAlphabetically) {
+            for (int i = 0; i < this.guiKitStacks.length; i++) {
+                try {
+                    ItemStack currentStack = this.guiKitStacks[i].getItemStack();
+                    if (currentStack != null) {
+                        if (currentStack.getType() != Material.AIR) {
+                            if (currentStack.getItemMeta() != null) {
+                                ItemMeta itemMeta = currentStack.getItemMeta();
+                                Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName());
+                                ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utils.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
+                                itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
+                                currentStack.setItemMeta(itemMeta);
+                            }
+                            this.guiInventory.addItem(currentStack);
                         }
-                        this.guiInventory.addItem(currentStack);
                     }
+                } catch (Exception ex) {
+                    continue;
                 }
-            } catch (Exception ex) {
-                continue;
+            }
+        } else {
+            List<ItemStack> addItems = new ArrayList<ItemStack>();
+            for (int i = 0; i < this.guiKitStacks.length; i++) {
+                try {
+                    ItemStack currentStack = this.guiKitStacks[i].getItemStack();
+                    if (currentStack != null) {
+                        if (currentStack.getType() != Material.AIR) {
+                            Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName());
+                            if (currentStack.getItemMeta() != null) {
+                                ItemMeta itemMeta = currentStack.getItemMeta();
+                                ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utils.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
+                                itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
+                                currentStack.setItemMeta(itemMeta);
+                            }
+                            if (targetKit != null && targetKit.getGuiPosition() > 0 && targetKit.getGuiPosition() < this.guiInventory.getSize()) {
+                                try {
+                                    this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    addItems.add(currentStack);
+                                }
+                            } else {
+                                addItems.add(currentStack);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    continue;
+                }
+            }
+            for (int i = 0; i < addItems.size(); i++) {
+                this.guiInventory.addItem(addItems.get(i));
             }
         }
     }
@@ -106,8 +145,8 @@ public class GuiKitMenu extends GuiKingKits {
                                     if (this.guiKitStacks.length >= event.getSlot()) {
                                         final String kitName = Utils.stripColour(this.guiKitStacks[event.getSlot()].getKitName());
                                         if (kitName != null) {
-                                            if (event.getWhoClicked().hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-                                                final Kit kit = PvPKits.getKitByName(kitName);
+                                            final Kit kit = PvPKits.getKitByName(kitName);
+                                            if (event.getWhoClicked().hasPermission("kingkits.kits." + (kit != null ? kit.getRealName().toLowerCase() : kitName.toLowerCase()))) {
                                                 final Player player = (Player) event.getWhoClicked();
                                                 boolean validCooldown = true;
                                                 if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
