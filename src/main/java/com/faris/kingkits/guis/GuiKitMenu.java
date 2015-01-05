@@ -15,10 +15,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GuiKitMenu extends GuiKingKits {
     private KitStack[] guiKitStacks = null;
+    private Map<Integer, KitStack> kitStackSlots = new HashMap<Integer, KitStack>();
 
     /**
      * Create a new gui menu instance.
@@ -80,7 +83,7 @@ public class GuiKitMenu extends GuiKingKits {
                 }
             }
         } else {
-            List<ItemStack> addItems = new ArrayList<ItemStack>();
+            Map<KitStack, ItemStack> addItems = new HashMap<KitStack, ItemStack>();
             for (int i = 0; i < this.guiKitStacks.length; i++) {
                 try {
                     ItemStack currentStack = this.guiKitStacks[i].getItemStack();
@@ -96,12 +99,13 @@ public class GuiKitMenu extends GuiKingKits {
                             if (targetKit != null && targetKit.getGuiPosition() > 0 && targetKit.getGuiPosition() < this.guiInventory.getSize()) {
                                 try {
                                     this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
+                                    this.kitStackSlots.put(targetKit.getGuiPosition() - 1, this.guiKitStacks[i]);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
-                                    addItems.add(currentStack);
+                                    addItems.put(this.guiKitStacks[i], currentStack);
                                 }
                             } else {
-                                addItems.add(currentStack);
+                                addItems.put(this.guiKitStacks[i], currentStack);
                             }
                         }
                     }
@@ -109,8 +113,12 @@ public class GuiKitMenu extends GuiKingKits {
                     continue;
                 }
             }
-            for (int i = 0; i < addItems.size(); i++) {
-                this.guiInventory.addItem(addItems.get(i));
+            for (Map.Entry<KitStack, ItemStack> entrySet : addItems.entrySet()) {
+                int firstEmpty = this.guiInventory.firstEmpty();
+                Map<Integer, ItemStack> leftOver = this.guiInventory.addItem(entrySet.getValue());
+                if (leftOver.isEmpty()) {
+                    this.kitStackSlots.put(firstEmpty, entrySet.getKey());
+                }
             }
         }
     }
@@ -142,8 +150,8 @@ public class GuiKitMenu extends GuiKingKits {
                                     event.setCurrentItem(null);
                                     event.setCancelled(true);
                                     this.closeMenu(true, true);
-                                    if (this.guiKitStacks.length >= event.getSlot()) {
-                                        final String kitName = Utils.stripColour(this.guiKitStacks[event.getSlot()].getKitName());
+                                    if (this.kitStackSlots.containsKey(event.getSlot())) {
+                                        final String kitName = Utils.stripColour(this.kitStackSlots.get(event.getSlot()).getKitName());
                                         if (kitName != null) {
                                             final Kit kit = PvPKits.getKitByName(kitName);
                                             if (event.getWhoClicked().hasPermission("kingkits.kits." + (kit != null ? kit.getRealName().toLowerCase() : kitName.toLowerCase()))) {
