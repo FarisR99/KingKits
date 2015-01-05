@@ -14,14 +14,11 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GuiKitMenu extends GuiKingKits {
     private KitStack[] guiKitStacks = null;
-    private Map<Integer, KitStack> kitStackSlots = new HashMap<Integer, KitStack>();
 
     /**
      * Create a new gui menu instance.
@@ -99,7 +96,6 @@ public class GuiKitMenu extends GuiKingKits {
                             if (targetKit != null && targetKit.getGuiPosition() > 0 && targetKit.getGuiPosition() < this.guiInventory.getSize()) {
                                 try {
                                     this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
-                                    this.kitStackSlots.put(targetKit.getGuiPosition() - 1, this.guiKitStacks[i]);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                     addItems.put(this.guiKitStacks[i], currentStack);
@@ -114,11 +110,7 @@ public class GuiKitMenu extends GuiKingKits {
                 }
             }
             for (Map.Entry<KitStack, ItemStack> entrySet : addItems.entrySet()) {
-                int firstEmpty = this.guiInventory.firstEmpty();
-                Map<Integer, ItemStack> leftOver = this.guiInventory.addItem(entrySet.getValue());
-                if (leftOver.isEmpty()) {
-                    this.kitStackSlots.put(firstEmpty, entrySet.getKey());
-                }
+                this.guiInventory.addItem(entrySet.getValue());
             }
         }
     }
@@ -147,43 +139,46 @@ public class GuiKitMenu extends GuiKingKits {
                         if (event.getSlotType() == SlotType.CONTAINER) {
                             if (event.getWhoClicked().getName().equals(this.getPlayerName())) {
                                 if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+                                    ItemStack clickedItem = event.getCurrentItem();
                                     event.setCurrentItem(null);
                                     event.setCancelled(true);
                                     this.closeMenu(true, true);
-                                    if (this.kitStackSlots.containsKey(event.getSlot())) {
-                                        final String kitName = Utils.stripColour(this.kitStackSlots.get(event.getSlot()).getKitName());
+                                    if (clickedItem != null && clickedItem.getType() != Material.AIR && clickedItem.getItemMeta() != null) {
+                                        final String kitName = Utils.stripColour(clickedItem.getItemMeta().getDisplayName());
                                         if (kitName != null) {
                                             final Kit kit = PvPKits.getKitByName(kitName);
-                                            if (event.getWhoClicked().hasPermission("kingkits.kits." + (kit != null ? kit.getRealName().toLowerCase() : kitName.toLowerCase()))) {
-                                                final Player player = (Player) event.getWhoClicked();
-                                                boolean validCooldown = true;
-                                                if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
-                                                    if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
-                                                        long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
-                                                        if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
-                                                            this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
-                                                            this.getPlugin().saveCooldownConfig();
-                                                        } else {
-                                                            player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
-                                                            validCooldown = false;
-                                                        }
-                                                    }
-                                                }
-                                                if (validCooldown) {
-                                                    SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
-                                                }
-                                            } else if (this.getPlugin().configValues.showKitPreview) {
-                                                if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
+                                            if (kit != null) {
+                                                if (event.getWhoClicked().hasPermission("kingkits.kits." + (kit.getRealName().toLowerCase()))) {
                                                     final Player player = (Player) event.getWhoClicked();
-                                                    player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
-                                                        public void run() {
-                                                            if (player != null) {
-                                                                if (!guiPreviewKitMap.containsKey(player.getName())) {
-                                                                    new GuiPreviewKit(player, kitName).openMenu();
-                                                                }
+                                                    boolean validCooldown = true;
+                                                    if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+                                                        if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
+                                                            long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
+                                                            if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
+                                                                this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+                                                                this.getPlugin().saveCooldownConfig();
+                                                            } else {
+                                                                player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
+                                                                validCooldown = false;
                                                             }
                                                         }
-                                                    }, 3L);
+                                                    }
+                                                    if (validCooldown) {
+                                                        SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
+                                                    }
+                                                } else if (this.getPlugin().configValues.showKitPreview) {
+                                                    if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
+                                                        final Player player = (Player) event.getWhoClicked();
+                                                        player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
+                                                            public void run() {
+                                                                if (player != null) {
+                                                                    if (!guiPreviewKitMap.containsKey(player.getName())) {
+                                                                        new GuiPreviewKit(player, kitName).openMenu();
+                                                                    }
+                                                                }
+                                                            }
+                                                        }, 3L);
+                                                    }
                                                 }
                                             }
                                         }
