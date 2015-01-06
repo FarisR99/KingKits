@@ -1,10 +1,7 @@
 package com.faris.kingkits.helpers;
 
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -161,6 +158,10 @@ public class Utils {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public static boolean isItemNull(ItemStack item) {
+        return item == null || item.getType() == Material.AIR;
     }
 
     public static boolean isLong(String aString) {

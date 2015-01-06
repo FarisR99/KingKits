@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -105,34 +106,54 @@ public class SetKit {
                         player.setGameMode(GameMode.SURVIVAL);
                         for (PotionEffect potionEffect : player.getActivePotionEffects())
                             player.removePotionEffect(potionEffect.getType());
-                        Map<Integer, ItemStack> kitItems = playerKitEvent.getKitContentsWithSlots();
-                        for (Map.Entry<Integer, ItemStack> kitItem : kitItems.entrySet()) {
-                            try {
-                                if (kitItem.getValue() != null && kitItem.getValue().getType() != Material.AIR) {
-                                    int slot = kitItem.getKey();
-                                    if (slot >= 0 && slot < player.getInventory().getSize()) {
-                                        player.getInventory().setItem(slot, kitItem.getValue());
+                        if (plugin.configValues.replaceItems) {
+                            Map<Integer, ItemStack> kitItems = playerKitEvent.getKitContentsWithSlots();
+                            for (Map.Entry<Integer, ItemStack> kitItem : kitItems.entrySet()) {
+                                try {
+                                    if (kitItem.getValue() != null && kitItem.getValue().getType() != Material.AIR) {
+                                        int slot = kitItem.getKey();
+                                        if (slot >= 0 && slot < player.getInventory().getSize()) {
+                                            player.getInventory().setItem(slot, kitItem.getValue());
+                                        }
                                     }
+                                } catch (Exception ex) {
+                                    continue;
                                 }
-                            } catch (Exception ex) {
-                                continue;
+                            }
+                        } else {
+                            List<ItemStack> kitItems = playerKitEvent.getKitContents();
+                            for (int i = 0; i < kitItems.size(); i++) {
+                                try {
+                                    ItemStack kitItem = kitItems.get(i);
+                                    if (kitItem != null && kitItem.getType() != Material.AIR)
+                                        player.getInventory().addItem(kitItem);
+                                } catch (Exception ex) {
+                                    continue;
+                                }
                             }
                         }
                         List<ItemStack> armourItems = playerKitEvent.getKitArmour();
+                        List<ItemStack> leftOverArmour = new ArrayList<ItemStack>();
                         for (ItemStack armourItem : armourItems) {
                             if (armourItem != null) {
                                 String strArmourType = armourItem.getType().toString().toLowerCase();
-                                if (strArmourType.endsWith("helmet")) player.getInventory().setHelmet(armourItem);
-                                else if (strArmourType.endsWith("chestplate"))
-                                    player.getInventory().setChestplate(armourItem);
-                                else if (strArmourType.endsWith("leggings") || strArmourType.endsWith("pants"))
-                                    player.getInventory().setLeggings(armourItem);
-                                else if (strArmourType.endsWith("boots"))
-                                    player.getInventory().setBoots(armourItem);
-                                else if (player.getInventory().getHelmet() == null)
+                                if (strArmourType.endsWith("helmet") && (plugin.configValues.replaceItems ? true : Utils.isItemNull(player.getInventory().getHelmet())))
                                     player.getInventory().setHelmet(armourItem);
+                                else if (strArmourType.endsWith("chestplate") && (plugin.configValues.replaceItems ? true : Utils.isItemNull(player.getInventory().getChestplate())))
+                                    player.getInventory().setChestplate(armourItem);
+                                else if ((strArmourType.endsWith("leggings") || strArmourType.endsWith("pants")) && (plugin.configValues.replaceItems ? true : Utils.isItemNull(player.getInventory().getLeggings())))
+                                    player.getInventory().setLeggings(armourItem);
+                                else if (strArmourType.endsWith("boots") && (plugin.configValues.replaceItems ? true : Utils.isItemNull(player.getInventory().getBoots())))
+                                    player.getInventory().setBoots(armourItem);
+                                else if ((plugin.configValues.replaceItems || (!strArmourType.endsWith("helmet") && !strArmourType.endsWith("chestplate") && !strArmourType.endsWith("leggings") && !strArmourType.endsWith("pants") && !strArmourType.endsWith("boots"))) && player.getInventory().getHelmet() == null)
+                                    leftOverArmour.add(armourItem);
                                 else player.getInventory().addItem(armourItem);
                             }
+                        }
+                        if (!leftOverArmour.isEmpty()) {
+                            player.getInventory().setHelmet(leftOverArmour.get(0));
+                            for (int i = 1; i < leftOverArmour.size(); i++)
+                                player.getInventory().addItem(leftOverArmour.get(i));
                         }
                         player.updateInventory();
                         player.addPotionEffects(playerKitEvent.getPotionEffects());

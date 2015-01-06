@@ -14,8 +14,8 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiKitMenu extends GuiKingKits {
     private KitStack[] guiKitStacks = null;
@@ -80,7 +80,7 @@ public class GuiKitMenu extends GuiKingKits {
                 }
             }
         } else {
-            Map<KitStack, ItemStack> addItems = new HashMap<KitStack, ItemStack>();
+            List<ItemStack> addItems = new ArrayList<ItemStack>();
             for (int i = 0; i < this.guiKitStacks.length; i++) {
                 try {
                     ItemStack currentStack = this.guiKitStacks[i].getItemStack();
@@ -98,10 +98,10 @@ public class GuiKitMenu extends GuiKingKits {
                                     this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
-                                    addItems.put(this.guiKitStacks[i], currentStack);
+                                    addItems.add(currentStack);
                                 }
                             } else {
-                                addItems.put(this.guiKitStacks[i], currentStack);
+                                addItems.add(currentStack);
                             }
                         }
                     }
@@ -109,8 +109,8 @@ public class GuiKitMenu extends GuiKingKits {
                     continue;
                 }
             }
-            for (Map.Entry<KitStack, ItemStack> entrySet : addItems.entrySet()) {
-                this.guiInventory.addItem(entrySet.getValue());
+            for (ItemStack itemStack : addItems) {
+                this.guiInventory.addItem(itemStack);
             }
         }
     }
