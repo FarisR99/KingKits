@@ -25,3 +25,12 @@ commands:
       description: Refill bowl(s).
       usage: /<command> [<all>]
       aliases: soup
+    createukit:
+      description: Create a personal user PvP Kit ingame with all the items in your inventory!
+      usage: /<command> [<name>] [<guiitem>]
+    deleteukit:
+      description: Delete a user PvP kit.
+      usage: /<command> [<name>]
+    renameukit:
+      description: Rename a user PvP kit.
+      usage: /<command> [<name> <newname>]

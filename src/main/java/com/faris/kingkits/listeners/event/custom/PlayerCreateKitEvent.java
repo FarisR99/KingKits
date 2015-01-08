@@ -17,6 +17,7 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
     private List<ItemStack> armourContents = new ArrayList<ItemStack>();
 
     private boolean isCancelled = false;
+    private boolean isUserKit = false;
 
     /**
      * Create a new PlayerCreateKitEvent instance.
@@ -24,15 +25,16 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
      * @param player - The player.
      * @param kitName - The new kit.
      * @param newKitItems - The kit items.
+     * @param isUserKit - Whether the kit is a private user kit or not.
      */
-    public PlayerCreateKitEvent(Player player, String kitName, final List<ItemStack> newKitItems, List<ItemStack> armourContents) {
+    public PlayerCreateKitEvent(Player player, String kitName, final List<ItemStack> newKitItems, List<ItemStack> armourContents, boolean isUserKit) {
         this(player, kitName, new HashMap<Integer, ItemStack>() {
             {
                 for (int i = 0; i < newKitItems.size(); i++) {
                     this.put(i, newKitItems.get(i));
                 }
             }
-        }, armourContents);
+        }, armourContents, isUserKit);
 
     }
 
@@ -42,12 +44,14 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
      * @param player - The player.
      * @param kitName - The new kit.
      * @param newKitItems - The kit items.
+     * @param isUserKit - Whether the kit is a private user kit or not.
      */
-    public PlayerCreateKitEvent(Player player, String kitName, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourContents) {
+    public PlayerCreateKitEvent(Player player, String kitName, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourContents, boolean isUserKit) {
         super(player);
         this.kitName = kitName;
         this.kitContents = newKitItems;
         this.armourContents = armourContents;
+        this.isUserKit = isUserKit;
     }
 
     /**
@@ -73,6 +77,10 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 
     public Map<Integer, ItemStack> getKitContentsWithSlots() {
         return Collections.unmodifiableMap(this.kitContents);
+    }
+
+    public boolean isUserKit() {
+        return this.isUserKit;
     }
 
     /**

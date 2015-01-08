@@ -45,6 +45,7 @@ import java.util.logging.Level;
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
     private static KingKits pluginInstance = null;
+    // TODO: Create/finish rename user kit command.
 
     // Class Variables
     private PvPKits pvpKits = null;
@@ -69,8 +70,12 @@ public class KingKits extends JavaPlugin {
     private DeleteKitCommand cmdKitD = null;
     private RenameKitCommand cmdKitR = null;
     private RefillCommand cmdRefill = null;
+    private CreateUserKitCommand cmdKitUC = null;
+    private DeleteUserKitCommand cmdKitUD = null;
+    private RenameUserKitCommand cmdKitUR = null;
 
     public Map<String, Kit> kitList = new HashMap<String, Kit>();
+    public Map<String, List<Kit>> userKitList = new HashMap<String, List<Kit>>();
     private int cooldownTaskID = -1;
 
     public void onEnable() {
@@ -105,6 +110,9 @@ public class KingKits extends JavaPlugin {
         this.cmdKitD = new DeleteKitCommand(this);
         this.cmdRefill = new RefillCommand(this);
         this.cmdKitR = new RenameKitCommand(this);
+        this.cmdKitUC = new CreateUserKitCommand(this);
+        this.cmdKitUD = new DeleteUserKitCommand(this);
+        this.cmdKitUR = new RenameUserKitCommand(this);
 
         // Register commands
         this.getCommand("kingkits").setExecutor(this.cmdKingKits);
@@ -115,10 +123,20 @@ public class KingKits extends JavaPlugin {
         this.getCommand("refill").setExecutor(this.cmdRefill);
         this.getCommand("refill").setAliases(Arrays.asList("soup"));
         this.getCommand("renamekit").setExecutor(this.cmdKitR);
+        this.getCommand("createukit").setExecutor(this.cmdKitUC);
+        this.getCommand("deleteukit").setExecutor(this.cmdKitUD);
+        this.getCommand("renameukit").setExecutor(this.cmdKitUR);
 
         // Register permissions
         for (Permission registeredPerm : this.permissions.permissionsList)
             this.getServer().getPluginManager().addPermission(registeredPerm);
+        for (int i = 1; i <= 54; i++) {
+            try {
+                this.getServer().getPluginManager().addPermission(new Permission("kingkits.kit.limit." + i));
+            } catch (Exception ex) {
+                continue;
+            }
+        }
         this.getServer().getPluginManager().registerEvents(this.pListener, this);
 
         // Check for updates
@@ -201,22 +219,6 @@ public class KingKits extends JavaPlugin {
             }
         }
 
-        try {
-            for (Entry<String, GuiKitMenu> playerEntry : GuiKingKits.guiKitMenuMap.entrySet()) {
-                playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
-            }
-            GuiKingKits.guiKitMenuMap.clear();
-        } catch (Exception ex) {
-        }
-
-        try {
-            for (Entry<String, GuiPreviewKit> playerEntry : GuiKingKits.guiPreviewKitMap.entrySet()) {
-                playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
-            }
-            GuiKingKits.guiPreviewKitMap.clear();
-        } catch (Exception ex) {
-        }
-
         ConfigurationSerialization.unregisterClass(Kit.class);
 
         // Clear all lists
@@ -226,12 +228,39 @@ public class KingKits extends JavaPlugin {
         this.compassTargets.clear();
         this.playerKillstreaks.clear();
         this.kitList.clear();
+        this.userKitList.clear();
 
         // Unregister all permissions
         for (Permission registeredPerm : this.permissions.permissionsList)
             this.getServer().getPluginManager().removePermission(registeredPerm);
+        for (int i = 1; i <= 54; i++) {
+            try {
+                this.getServer().getPluginManager().removePermission(new Permission("kingkits.kit.limit." + i));
+            } catch (Exception ex) {
+                continue;
+            }
+        }
 
         this.permissions = null;
+
+        try {
+            for (Entry<String, GuiKitMenu> playerEntry : GuiKingKits.guiKitMenuMap.entrySet()) {
+                playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
+            }
+            GuiKingKits.guiKitMenuMap.clear();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        try {
+            for (Entry<String, GuiPreviewKit> playerEntry : GuiKingKits.guiPreviewKitMap.entrySet()) {
+                playerEntry.getValue().closeMenu(true, this.getServer().getPlayerExact(playerEntry.getKey()) != null);
+            }
+            GuiKingKits.guiPreviewKitMap.clear();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         pluginInstance = null;
     }
 
@@ -250,6 +279,8 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("MySQL.Password", "");
             this.getConfig().addDefault("MySQL.Database", "kingkits");
             this.getConfig().addDefault("MySQL.Table prefix", "kk_");
+            this.getConfig().addDefault("GUI.Title", "<menucolour>PvP Kits");
+            this.getConfig().addDefault("GUI.Size", 36);
             this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
             this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
             this.getConfig().addDefault("Multi-inventories", this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin")));
@@ -257,6 +288,9 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Enable create kits command", true);
             this.getConfig().addDefault("Enable delete kits command", true);
             this.getConfig().addDefault("Enable rename kits command", true);
+            this.getConfig().addDefault("Enable create user kits command", true);
+            this.getConfig().addDefault("Enable delete user kits command", true);
+            this.getConfig().addDefault("Enable rename user kits command", true);
             this.getConfig().addDefault("Enable refill command", true);
             this.getConfig().addDefault("Kit sign", "[Kit]");
             this.getConfig().addDefault("Kit list sign", "[KList]");
@@ -320,6 +354,9 @@ public class KingKits extends JavaPlugin {
             this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
             this.cmdValues.deleteKits = this.getConfig().getBoolean("Enable delete kits command");
             this.cmdValues.renameKits = this.getConfig().getBoolean("Enable rename kits command");
+            this.cmdValues.createUKits = this.getConfig().getBoolean("Enable create user kits command");
+            this.cmdValues.deleteUKits = this.getConfig().getBoolean("Enable delete user kits command");
+            this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
             this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
             this.configValues.strKitSign = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign"));
             this.configValues.strKitListSign = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit list sign"));
@@ -359,6 +396,11 @@ public class KingKits extends JavaPlugin {
             this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
             this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
 
+            this.configValues.guiTitle = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("GUI.Title"));
+            this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
+            if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54)
+                this.configValues.guiSize = 36;
+
             this.configValues.scores = this.getConfig().getBoolean("Enable score");
             this.configValues.scoreIncrement = this.getConfig().getInt("Score per kill");
             String scoreChatPrefix = this.getConfig().getString("Score chat prefix");
@@ -371,6 +413,7 @@ public class KingKits extends JavaPlugin {
 
             this.loadMySQL();
             this.loadPvPKits();
+            this.loadUserKits();
             this.loadScores();
             this.loadEconomy();
             this.loadKillstreaks();
@@ -475,7 +518,7 @@ public class KingKits extends JavaPlugin {
                         kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
                     else if (objKitConfigSection instanceof Map)
                         kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
-                    if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName));
+                    if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName).setUserKit(true));
                     else
                         this.getLogger().warning("Could not register the kit '" + kitName + "' it has been invalidly defined in the configuration.");
                 } catch (Exception ex) {
@@ -485,6 +528,41 @@ public class KingKits extends JavaPlugin {
             }
 
             this.setupPermissions(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void loadUserKits() {
+        try {
+            this.getUserKitsConfig().options().header("KingKits User Kits Configuration.");
+            this.getUserKitsConfig().options().copyHeader(true);
+            this.saveUserKitsConfig();
+
+            this.userKitList.clear();
+            List<String> userList = new ArrayList<String>(this.getUserKitsConfig().getKeys(false));
+            for (String userName : userList) {
+                List<Kit> userKits = new ArrayList<Kit>();
+                try {
+                    for (Map.Entry<String, Object> kitEntry : this.getUserKitsConfig().getConfigurationSection(userName).getValues(false).entrySet()) {
+                        try {
+                            String kitName = kitEntry.getKey();
+                            Object objKitConfigSection = kitEntry.getValue();
+                            Kit kit = null;
+                            if (objKitConfigSection instanceof ConfigurationSection)
+                                kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
+                            else if (objKitConfigSection instanceof Map)
+                                kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
+                            if (kit != null) userKits.add(kit.setRealName(kitName));
+                        } catch (Exception ex) {
+                            continue;
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                if (!userKits.isEmpty()) this.userKitList.put(userName, userKits);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -704,6 +782,17 @@ public class KingKits extends JavaPlugin {
         return new ArrayList<String>(this.kitList.keySet());
     }
 
+    public List<String> getKitList(String playerName) {
+        List<Kit> kitList = this.userKitList.get(playerName);
+        List<String> strKitList = new ArrayList<String>();
+        if (kitList != null) {
+            for (Kit kit : kitList) {
+                if (kit != null) strKitList.add(kit.getRealName());
+            }
+        }
+        return strKitList;
+    }
+
     public String getMPKMessage(Player killer, double amount) {
         this.reloadEconomyConfig();
         String message = this.getEconomyConfig().getString("Money per kill message");
@@ -748,9 +837,7 @@ public class KingKits extends JavaPlugin {
     private File customKitsConfig = null;
 
     public void reloadKitsConfig() {
-        if (this.customKitsConfig == null) {
-            this.customKitsConfig = new File(this.getDataFolder(), "kits.yml");
-        }
+        if (this.customKitsConfig == null) this.customKitsConfig = new File(this.getDataFolder(), "kits.yml");
         this.kitsConfig = YamlConfiguration.loadConfiguration(this.customKitsConfig);
 
         InputStream defConfigStream = this.getResource("kits.yml");
@@ -761,16 +848,12 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getKitsConfig() {
-        if (this.kitsConfig == null) {
-            this.reloadKitsConfig();
-        }
+        if (this.kitsConfig == null || this.customKitsConfig == null) this.reloadKitsConfig();
         return this.kitsConfig;
     }
 
     public void saveKitsConfig() {
-        if (this.kitsConfig == null || this.customKitsConfig == null) {
-            return;
-        }
+        if (this.kitsConfig == null || this.customKitsConfig == null) return;
         try {
             this.getKitsConfig().save(this.customKitsConfig);
         } catch (IOException ex) {
@@ -782,9 +865,7 @@ public class KingKits extends JavaPlugin {
     private File customScoresConfig = null;
 
     public void reloadScoresConfig() {
-        if (this.customScoresConfig == null) {
-            this.customScoresConfig = new File(this.getDataFolder(), "scores.yml");
-        }
+        if (this.customScoresConfig == null) this.customScoresConfig = new File(this.getDataFolder(), "scores.yml");
         this.scoresConfig = YamlConfiguration.loadConfiguration(this.customScoresConfig);
 
         InputStream defConfigStream = this.getResource("scores.yml");
@@ -795,16 +876,12 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getScoresConfig() {
-        if (this.scoresConfig == null) {
-            this.reloadScoresConfig();
-        }
+        if (this.scoresConfig == null || this.customScoresConfig == null) this.reloadScoresConfig();
         return this.scoresConfig;
     }
 
     public void saveScoresConfig() {
-        if (this.scoresConfig == null || this.customScoresConfig == null) {
-            return;
-        }
+        if (this.scoresConfig == null || this.customScoresConfig == null) return;
         try {
             this.getScoresConfig().save(this.customScoresConfig);
         } catch (IOException ex) {
@@ -816,9 +893,7 @@ public class KingKits extends JavaPlugin {
     private File customEconomyConfig = null;
 
     public void reloadEconomyConfig() {
-        if (this.customEconomyConfig == null) {
-            this.customEconomyConfig = new File(this.getDataFolder(), "economy.yml");
-        }
+        if (this.customEconomyConfig == null) this.customEconomyConfig = new File(this.getDataFolder(), "economy.yml");
         this.economyConfig = YamlConfiguration.loadConfiguration(this.customEconomyConfig);
 
         InputStream defConfigStream = this.getResource("economy.yml");
@@ -829,16 +904,12 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getEconomyConfig() {
-        if (this.economyConfig == null) {
-            this.reloadEconomyConfig();
-        }
+        if (this.economyConfig == null || this.customEconomyConfig == null) this.reloadEconomyConfig();
         return this.economyConfig;
     }
 
     public void saveEconomyConfig() {
-        if (this.economyConfig == null || this.customEconomyConfig == null) {
-            return;
-        }
+        if (this.economyConfig == null || this.customEconomyConfig == null) return;
         try {
             this.getEconomyConfig().save(this.customEconomyConfig);
         } catch (IOException ex) {
@@ -850,9 +921,8 @@ public class KingKits extends JavaPlugin {
     private File customKillstreaksConfig = null;
 
     public void reloadKillstreaksConfig() {
-        if (this.customKillstreaksConfig == null) {
+        if (this.customKillstreaksConfig == null)
             this.customKillstreaksConfig = new File(this.getDataFolder(), "killstreaks.yml");
-        }
         this.killstreaksConfig = YamlConfiguration.loadConfiguration(this.customKillstreaksConfig);
 
         InputStream defConfigStream = this.getResource("killstreaks.yml");
@@ -863,16 +933,12 @@ public class KingKits extends JavaPlugin {
     }
 
     public FileConfiguration getKillstreaksConfig() {
-        if (this.killstreaksConfig == null) {
-            this.reloadKillstreaksConfig();
-        }
+        if (this.killstreaksConfig == null || this.customKillstreaksConfig == null) this.reloadKillstreaksConfig();
         return this.killstreaksConfig;
     }
 
     public void saveKillstreaksConfig() {
-        if (this.killstreaksConfig == null || this.customKillstreaksConfig == null) {
-            return;
-        }
+        if (this.killstreaksConfig == null || this.customKillstreaksConfig == null) return;
         try {
             this.getKillstreaksConfig().save(this.customKillstreaksConfig);
         } catch (IOException ex) {
@@ -884,9 +950,8 @@ public class KingKits extends JavaPlugin {
     private File customCooldownConfig = null;
 
     public void reloadCooldownConfig() {
-        if (this.customCooldownConfig == null) {
+        if (this.customCooldownConfig == null)
             this.customCooldownConfig = new File(this.getDataFolder(), "cooldown.yml");
-        }
         this.cooldownConfig = YamlConfiguration.loadConfiguration(this.customCooldownConfig);
 
         InputStream defConfigStream = this.getResource("cooldown.yml");
@@ -902,13 +967,40 @@ public class KingKits extends JavaPlugin {
     }
 
     public void saveCooldownConfig() {
-        if (this.cooldownConfig == null || this.customCooldownConfig == null) {
-            return;
-        }
+        if (this.cooldownConfig == null || this.customCooldownConfig == null) return;
         try {
             this.cooldownConfig.save(this.customCooldownConfig);
         } catch (IOException ex) {
             this.getLogger().log(Level.SEVERE, "Could not save the cooldown config as " + this.customCooldownConfig.getName(), ex);
+        }
+    }
+
+    private FileConfiguration userKitsConfig = null;
+    private File customUserKitsConfig = null;
+
+    public void reloadUserKitsConfig() {
+        if (this.customUserKitsConfig == null)
+            this.customUserKitsConfig = new File(this.getDataFolder(), "userkits.yml");
+        this.userKitsConfig = YamlConfiguration.loadConfiguration(this.customUserKitsConfig);
+
+        InputStream defConfigStream = this.getResource("userkits.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            this.userKitsConfig.setDefaults(defConfig);
+        }
+    }
+
+    public FileConfiguration getUserKitsConfig() {
+        if (this.userKitsConfig == null || this.customUserKitsConfig == null) this.reloadUserKitsConfig();
+        return this.userKitsConfig;
+    }
+
+    public void saveUserKitsConfig() {
+        if (this.userKitsConfig == null || this.customUserKitsConfig == null) return;
+        try {
+            this.userKitsConfig.save(this.customUserKitsConfig);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save the user kits config as " + this.customUserKitsConfig.getName(), ex);
         }
     }
 
@@ -918,6 +1010,7 @@ public class KingKits extends JavaPlugin {
     public void reloadAllConfigs() {
         this.reloadConfig();
         this.reloadKitsConfig();
+        this.reloadUserKitsConfig();
 
         this.reloadScoresConfig();
         this.reloadEconomyConfig();

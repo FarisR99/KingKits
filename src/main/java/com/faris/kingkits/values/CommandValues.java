@@ -5,5 +5,8 @@ public class CommandValues {
 	public boolean createKits = true;
 	public boolean deleteKits = true;
 	public boolean renameKits = true;
+	public boolean createUKits = true;
+	public boolean deleteUKits = true;
+	public boolean renameUKits = true;
 	public boolean refillKits = true;
 }

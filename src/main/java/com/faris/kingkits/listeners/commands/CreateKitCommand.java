@@ -78,7 +78,7 @@ public class CreateKitCommand extends PlayerCommand {
                                 }
                                 for (ItemStack armour : p.getInventory().getArmorContents())
                                     if (armour != null && armour.getType() != Material.AIR) armourInInv.add(armour);
-                                PlayerCreateKitEvent createKitEvent = new PlayerCreateKitEvent(p, kitName, itemsInInv, armourInInv);
+                                PlayerCreateKitEvent createKitEvent = new PlayerCreateKitEvent(p, kitName, itemsInInv, armourInInv, false);
                                 p.getServer().getPluginManager().callEvent(createKitEvent);
 
                                 if (!createKitEvent.isCancelled()) {
@@ -92,7 +92,7 @@ public class CreateKitCommand extends PlayerCommand {
                                                 this.getPlugin().kitList.remove(kitName);
                                         }
 
-                                        final Kit kit = new Kit(kitName, itemsInInv).setName(kitName).setArmour(armourInInv);
+                                        final Kit kit = new Kit(kitName, itemsInInv).setRealName(kitName).setArmour(armourInInv);
                                         if (args.length == 2) {
                                             ItemStack guiItem = null;
                                             try {
@@ -113,6 +113,7 @@ public class CreateKitCommand extends PlayerCommand {
                                                 }
                                             }
                                         }
+
                                         this.getPlugin().getKitsConfig().set(kitName, kit.serialize());
                                         this.getPlugin().kitList.put(kitName, kit);
                                         this.getPlugin().saveKitsConfig();

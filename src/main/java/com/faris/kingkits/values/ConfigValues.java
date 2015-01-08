@@ -55,10 +55,13 @@ public class ConfigValues {
 
 	public boolean showKitPreview = false;
 
+	public boolean kitCooldown = false;
+
 	public boolean replaceItems = true;
 
-	// Kit delay
-	public boolean kitCooldown = false;
+	// GUI
+	public String guiTitle = "<menucolour>PvP Kits";
+	public int guiSize = 36;
 
 	// Scores
 	public boolean scores = false;

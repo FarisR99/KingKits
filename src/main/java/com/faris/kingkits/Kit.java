@@ -20,6 +20,7 @@ import java.util.*;
 public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private String kitName = "";
     private String realName = "";
+    private boolean userKit = false;
     private double kitCost = 0D;
     private long kitCooldown = 0;
 
@@ -54,6 +55,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notEmpty(kitName);
+        this.kitName = kitName;
         this.kitItems = kitItems;
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
     }
@@ -63,6 +65,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         Validate.notNull(kitItems);
         Validate.notNull(potionEffects);
         Validate.notEmpty(kitName);
+        this.kitName = kitName;
         this.kitItems = kitItems;
         this.potionEffects = potionEffects;
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
@@ -72,6 +75,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         Validate.notNull(kitName);
         Validate.notNull(kitItems);
         Validate.notEmpty(kitName);
+        this.kitName = kitName;
         this.kitItems = kitItems;
         this.kitCost = kitCost;
         this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
@@ -82,6 +86,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         Validate.notNull(kitItems);
         Validate.notNull(potionEffects);
         Validate.notEmpty(kitName);
+        this.kitName = kitName;
         this.kitItems = kitItems;
         this.kitCost = kitCost;
         this.potionEffects = potionEffects;
@@ -163,6 +168,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return KingKits.getInstance().configValues.kitCooldown && this.kitCooldown > 0;
     }
 
+    public boolean isUserKit() {
+        return this.userKit;
+    }
+
     public Kit removeItem(ItemStack itemStack) {
         Validate.notNull(itemStack);
         this.kitItems.remove(itemStack);
@@ -241,6 +250,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public Kit setRealName(String realName) {
         Validate.notNull(realName);
         this.realName = realName;
+        return this;
+    }
+
+    public Kit setUserKit(boolean userKit) {
+        this.userKit = userKit;
         return this;
     }
 

@@ -37,7 +37,9 @@ public class RenameKitCommand extends PlayerCommand {
                                     if (this.getPlugin().kitList.containsKey(strKit)) {
                                         final Kit kit = this.getPlugin().kitList.get(strKit);
                                         this.getPlugin().getKitsConfig().set(strKit, null);
-                                        this.getPlugin().getKitsConfig().set(strNewKit, kit.setName(strNewKit).serialize());
+                                        kit.setName(strNewKit);
+                                        kit.setRealName(strNewKit);
+                                        this.getPlugin().getKitsConfig().set(strNewKit, kit.serialize());
                                         this.getPlugin().saveKitsConfig();
 
                                         this.getPlugin().kitList.remove(strKit);
@@ -63,7 +65,7 @@ public class RenameKitCommand extends PlayerCommand {
                     this.sendNoAccess(p);
                 }
             } catch (Exception ex) {
-                p.sendMessage(ChatColor.RED + "An error occured.");
+                p.sendMessage(ChatColor.RED + "An error occurred.");
             }
             return true;
         }

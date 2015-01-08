@@ -1,5 +1,6 @@
 package com.faris.kingkits.guis;
 
+import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helpers.KitStack;
 import com.faris.kingkits.helpers.Utils;
@@ -28,7 +29,7 @@ public class GuiKitMenu extends GuiKingKits {
      * @param kitStacks - The kits in the menu
      */
     public GuiKitMenu(Player player, String title, KitStack[] kitStacks) {
-        super(player, player.getServer().createInventory(null, kitStacks.length > 32 ? 45 : 36, title));
+        super(player, player.getServer().createInventory(null, KingKits.getInstance() != null ? KingKits.getInstance().configValues.guiSize : 36, title));
         this.guiKitStacks = kitStacks;
     }
 
@@ -67,7 +68,7 @@ public class GuiKitMenu extends GuiKingKits {
                         if (currentStack.getType() != Material.AIR) {
                             if (currentStack.getItemMeta() != null) {
                                 ItemMeta itemMeta = currentStack.getItemMeta();
-                                Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName());
+                                Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName(), this.getPlayerName());
                                 ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utils.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
                                 itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
                                 currentStack.setItemMeta(itemMeta);
@@ -86,7 +87,7 @@ public class GuiKitMenu extends GuiKingKits {
                     ItemStack currentStack = this.guiKitStacks[i].getItemStack();
                     if (currentStack != null) {
                         if (currentStack.getType() != Material.AIR) {
-                            Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName());
+                            Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName(), this.getPlayerName());
                             if (currentStack.getItemMeta() != null) {
                                 ItemMeta itemMeta = currentStack.getItemMeta();
                                 ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utils.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
@@ -146,9 +147,9 @@ public class GuiKitMenu extends GuiKingKits {
                                     if (clickedItem != null && clickedItem.getType() != Material.AIR && clickedItem.getItemMeta() != null) {
                                         final String kitName = Utils.stripColour(clickedItem.getItemMeta().getDisplayName());
                                         if (kitName != null) {
-                                            final Kit kit = PvPKits.getKitByName(kitName);
+                                            final Kit kit = PvPKits.getKitByName(kitName, this.getPlayerName());
                                             if (kit != null) {
-                                                if (event.getWhoClicked().hasPermission("kingkits.kits." + (kit.getRealName().toLowerCase()))) {
+                                                if (PvPKits.isUserKit(event.getWhoClicked().getName(), kit.getRealName()) || event.getWhoClicked().hasPermission("kingkits.kits." + (kit.getRealName().toLowerCase()))) {
                                                     final Player player = (Player) event.getWhoClicked();
                                                     boolean validCooldown = true;
                                                     if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {

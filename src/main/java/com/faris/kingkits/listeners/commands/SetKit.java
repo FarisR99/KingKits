@@ -3,6 +3,7 @@ package com.faris.kingkits.listeners.commands;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helpers.Utils;
+import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.event.custom.PlayerKitEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
@@ -41,20 +42,10 @@ public class SetKit {
         if (player == null || kitName == null) return null;
         KingKits plugin = KingKits.getInstance();
         if (plugin.configValues.pvpWorlds.contains("All") || plugin.configValues.pvpWorlds.contains(player.getWorld().getName())) {
-            List<String> kitList = plugin.getConfigKitList();
-            List<String> kitListLC = Utils.toLowerCaseList(kitList);
-            if (kitListLC.contains(kitName.toLowerCase())) {
-                try {
-                    kitName = kitList.get(kitList.indexOf(kitName));
-                } catch (Exception ex) {
-                    try {
-                        kitName = kitName.substring(0, 0).toUpperCase() + kitName.substring(1);
-                    } catch (Exception ex2) {
-                    }
-                }
-                Kit newKit = plugin.kitList.get(Utils.stripColour(kitName));
-                if (newKit == null) return null;
-                if (player.hasPermission("kingkits.kits." + newKit.getRealName().toLowerCase())) {
+            Kit newKit = PvPKits.getKitByName(Utils.stripColour(kitName), player.getName());
+            if (newKit != null) {
+                kitName = newKit.getRealName();
+                if (newKit.isUserKit() || player.hasPermission("kingkits.kits." + newKit.getRealName().toLowerCase())) {
                     if (plugin.configValues.oneKitPerLife) {
                         if (plugin.configValues.opBypass) {
                             if (!player.isOp()) {
@@ -180,9 +171,8 @@ public class SetKit {
                         plugin.usingKits.put(player.getName(), newKit.getRealName());
                         if (plugin.configValues.customMessages != "" && plugin.configValues.customMessages != "''")
                             player.sendMessage(r(plugin.configValues.customMessages).replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName()).replace("<kit>", kitName));
-                        if (plugin.configValues.kitParticleEffects) {
+                        if (plugin.configValues.kitParticleEffects)
                             player.playEffect(player.getLocation().add(0, 1, 0), Effect.ENDER_SIGNAL, (byte) 0);
-                        }
                         return newKit;
                     } else {
                         for (PotionEffect potionEffect : player.getActivePotionEffects())

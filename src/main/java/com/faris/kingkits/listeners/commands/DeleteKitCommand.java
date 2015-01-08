@@ -25,7 +25,7 @@ public class DeleteKitCommand extends PlayerCommand {
                     if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(player.getWorld().getName())) {
                         if (args.length == 0) {
                             Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " <kit>");
-                            player.sendMessage(r("&cDescription: &Delete a PvP Kit."));
+                            player.sendMessage(r("&cDescription: &4Delete a PvP Kit."));
                         } else if (args.length == 1) {
                             String kitName = args[0];
                             List<String> listKits = this.getPlugin().getKitList();

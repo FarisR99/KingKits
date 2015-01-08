@@ -1,13 +1,17 @@
 package com.faris.kingkits.helpers;
 
 
+import com.faris.kingkits.KingKits;
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -108,6 +112,15 @@ public class Utils {
                 return Enchantment.WATER_WORKER.getName();
         }
         return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
+    }
+
+    public static FileConfiguration getKingKitsSpecialConfig() {
+        try {
+            File kkSpecialConfig = new File(KingKits.getInstance().getDataFolder().getAbsoluteFile().getParentFile(), "KingKitsSpecial/config.yml");
+            return kkSpecialConfig.exists() ? YamlConfiguration.loadConfiguration(kkSpecialConfig) : null;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public static List<Player> getOnlinePlayers() {
