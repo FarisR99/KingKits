@@ -22,8 +22,8 @@ public class RenameUserKitCommand extends PlayerCommand {
     protected boolean onCommand(Player p, String command, String[] args) {
         if (command.equalsIgnoreCase("renameukit")) {
             try {
-                if (p.hasPermission(this.getPlugin().permissions.kitRenameCommand)) {
-                    if (this.getPlugin().cmdValues.renameKits) {
+                if (p.hasPermission(this.getPlugin().permissions.kitURenameCommand)) {
+                    if (this.getPlugin().cmdValues.renameUKits) {
                         if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
                             if (args.length == 0) {
                                 Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<name> <newname>]");
