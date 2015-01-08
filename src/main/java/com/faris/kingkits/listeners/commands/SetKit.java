@@ -149,6 +149,14 @@ public class SetKit {
                         player.updateInventory();
                         player.addPotionEffects(playerKitEvent.getPotionEffects());
 
+                        plugin.playerKits.remove(player.getName());
+                        plugin.usingKits.remove(player.getName());
+                        if (plugin.configValues.opBypass) {
+                            if (!player.isOp()) plugin.playerKits.put(player.getName(), newKit.getRealName());
+                        } else {
+                            plugin.playerKits.put(player.getName(), newKit.getRealName());
+                        }
+                        plugin.usingKits.put(player.getName(), newKit.getRealName());
                         if (plugin.configValues.commandToRun.length() > 0) {
                             String cmdToRun = plugin.configValues.commandToRun;
                             cmdToRun = cmdToRun.replace("<kit>", kitName);
@@ -156,19 +164,10 @@ public class SetKit {
                             player.getServer().dispatchCommand(player.getServer().getConsoleSender(), cmdToRun);
                         }
                         for (String cmdToRun : playerKitEvent.getCommands()) {
+                            cmdToRun = cmdToRun.replace("<kit>", kitName);
                             cmdToRun = cmdToRun.replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName());
                             player.getServer().dispatchCommand(player.getServer().getConsoleSender(), cmdToRun);
                         }
-                        plugin.playerKits.remove(player.getName());
-                        plugin.usingKits.remove(player.getName());
-                        if (plugin.configValues.opBypass) {
-                            if (!player.isOp()) {
-                                plugin.playerKits.put(player.getName(), newKit.getRealName());
-                            }
-                        } else {
-                            plugin.playerKits.put(player.getName(), newKit.getRealName());
-                        }
-                        plugin.usingKits.put(player.getName(), newKit.getRealName());
                         if (plugin.configValues.customMessages != "" && plugin.configValues.customMessages != "''")
                             player.sendMessage(r(plugin.configValues.customMessages).replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName()).replace("<kit>", kitName));
                         if (plugin.configValues.kitParticleEffects)
