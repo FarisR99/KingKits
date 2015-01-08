@@ -45,7 +45,6 @@ import java.util.logging.Level;
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
     private static KingKits pluginInstance = null;
-    // TODO: Create/finish rename user kit command.
 
     // Class Variables
     private PvPKits pvpKits = null;
