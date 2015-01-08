@@ -517,7 +517,7 @@ public class KingKits extends JavaPlugin {
                         kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
                     else if (objKitConfigSection instanceof Map)
                         kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
-                    if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName).setUserKit(true));
+                    if (kit != null) this.kitList.put(kitName, kit.setRealName(kitName).setUserKit(false));
                     else
                         this.getLogger().warning("Could not register the kit '" + kitName + "' it has been invalidly defined in the configuration.");
                 } catch (Exception ex) {
@@ -552,7 +552,7 @@ public class KingKits extends JavaPlugin {
                                 kit = Kit.deserialize(((ConfigurationSection) objKitConfigSection).getValues(false));
                             else if (objKitConfigSection instanceof Map)
                                 kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
-                            if (kit != null) userKits.add(kit.setRealName(kitName));
+                            if (kit != null) userKits.add(kit.setRealName(kitName).setUserKit(true));
                         } catch (Exception ex) {
                             continue;
                         }
