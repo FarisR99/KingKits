@@ -212,6 +212,7 @@ public class KingKits extends JavaPlugin {
                 if (PvPKits.hasKit(target.getName(), false)) {
                     target.getInventory().clear();
                     target.getInventory().setArmorContents(null);
+                    target.setMaxHealth(20D);
                     for (PotionEffect potionEffect : target.getActivePotionEffects())
                         target.removePotionEffect(potionEffect.getType());
                 }
@@ -399,6 +400,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
             if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54)
                 this.configValues.guiSize = 36;
+
 
             this.configValues.scores = this.getConfig().getBoolean("Enable score");
             this.configValues.scoreIncrement = this.getConfig().getInt("Score per kill");

@@ -50,7 +50,7 @@ public class DeleteKitCommand extends PlayerCommand {
                                                         target.getInventory().setArmorContents(null);
                                                         for (PotionEffect potionEffect : target.getActivePotionEffects())
                                                             target.removePotionEffect(potionEffect.getType());
-
+                                                        target.setMaxHealth(20D);
                                                         target.sendMessage(ChatColor.DARK_RED + player.getName() + ChatColor.RED + " deleted the kit you were using!");
                                                     }
                                                 }

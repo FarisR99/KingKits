@@ -8,6 +8,7 @@ import com.faris.kingkits.listeners.PlayerCommand;
 import com.faris.kingkits.listeners.event.custom.PlayerCreateKitEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

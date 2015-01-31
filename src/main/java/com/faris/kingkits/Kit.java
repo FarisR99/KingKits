@@ -36,6 +36,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     private boolean itemBreaking = true;
 
+    private int maxHealth = 20;
+
     public Kit(String kitName) {
         Validate.notNull(kitName);
         Validate.notEmpty(kitName);
@@ -146,6 +148,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this.killstreakCommands;
     }
 
+    public int getMaxHealth() {
+        return this.maxHealth;
+    }
+
     public List<ItemStack> getMergedItems() {
         List<ItemStack> kitItems = new ArrayList<ItemStack>(this.kitItems.values());
         kitItems.addAll(this.kitArmour);
@@ -234,6 +240,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this;
     }
 
+    public Kit setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+        return this;
+    }
+
     public Kit setName(String name) {
         Validate.notNull(name);
         Validate.notEmpty(name);
@@ -267,6 +278,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Cooldown", this.kitCooldown);
         serializedKit.put("Commands", this.kitCommands);
         serializedKit.put("Item breaking", this.itemBreaking);
+        serializedKit.put("Max health", this.maxHealth);
         serializedKit.put("GUI Position", this.guiPosition);
 
         /** GUI Item **/
@@ -410,14 +422,17 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Item breaking") && kitSection.get("Item breaking") != null) {
                     kit.setBreakableItems(Boolean.valueOf(kitSection.get("Item breaking").toString()));
                 }
-                if (kitSection.containsKey("GUI Position")) kit.setGuiPosition(getObject(kitSection, "GUI Position", Integer.class));
+                if (kitSection.containsKey("Max health"))
+                    kit.setMaxHealth(getObject(kitSection, "Max health", Integer.class));
+                if (kitSection.containsKey("GUI Position"))
+                    kit.setGuiPosition(getObject(kitSection, "GUI Position", Integer.class));
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;
                     if (guiItemMap.containsKey("Type")) {
-                        String strType = getObject(guiItemMap, "Type", String.class);
-                        Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
-                        if (itemType == null) itemType = Material.DIAMOND_SWORD;
+                        String strType = (guiItemMap.get("Type") != null ? guiItemMap.get("Type") : "").toString();
+                        Material itemType = Utils.isInteger(strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType.toUpperCase());
+                        if (itemType == null || itemType == Material.AIR) itemType = Material.DIAMOND_SWORD;
                         int itemAmount = guiItemMap.containsKey("Amount") ? getObject(guiItemMap, "Amount", Integer.class) : 1;
                         short itemData = guiItemMap.containsKey("Data") ? getObject(guiItemMap, "Data", Short.class) : (short) 0;
                         guiItem = new ItemStack(itemType, itemAmount, itemData);

@@ -11,6 +11,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,6 +115,12 @@ public class CreateKitCommand extends PlayerCommand {
                                                 }
                                             }
                                         }
+
+                                        List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
+                                        for (PotionEffect potionEffect : p.getActivePotionEffects()) {
+                                            if (potionEffect != null) kitPotionEffects.add(potionEffect);
+                                        }
+                                        if (!kitPotionEffects.isEmpty()) kit.setPotionEffects(kitPotionEffects);
 
                                         this.getPlugin().getKitsConfig().set(kitName, kit.serialize());
                                         this.getPlugin().kitList.put(kitName, kit);

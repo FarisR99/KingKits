@@ -275,6 +275,7 @@ public class PlayerListener implements Listener {
                 hadKit = true;
             }
             if (hadKit) {
+                player.setMaxHealth(20D);
                 player.getInventory().clear();
                 player.getInventory().setArmorContents(null);
 
@@ -301,8 +302,10 @@ public class PlayerListener implements Listener {
             }
             if (this.getPlugin().playerKits.containsKey(player.getName()))
                 this.getPlugin().playerKits.remove(player.getName());
-            if (this.getPlugin().usingKits.containsKey(player.getName()))
+            if (this.getPlugin().usingKits.containsKey(player.getName())) {
                 this.getPlugin().usingKits.remove(player.getName());
+                player.setMaxHealth(20D);
+            }
             if (GuiKingKits.guiKitMenuMap.containsKey(event.getPlayer().getName())) {
                 GuiKitMenu guiKitMenu = GuiKingKits.guiKitMenuMap.get(event.getPlayer().getName());
                 guiKitMenu.closeMenu(true, true);
@@ -335,8 +338,10 @@ public class PlayerListener implements Listener {
             }
             if (this.getPlugin().playerKits.containsKey(player.getName()))
                 this.getPlugin().playerKits.remove(player.getName());
-            if (this.getPlugin().usingKits.containsKey(player.getName()))
+            if (this.getPlugin().usingKits.containsKey(player.getName())) {
                 this.getPlugin().usingKits.remove(player.getName());
+                player.setMaxHealth(20D);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -691,7 +696,7 @@ public class PlayerListener implements Listener {
                                         player.getInventory().setItemInHand(new ItemStack(Material.BOWL, 1));
                                         event.setCancelled(true);
                                     } else if (soupAmount > 0) {
-                                        if (player.getHealth() < 20) {
+                                        if (player.getHealth() < player.getMaxHealth()) {
                                             if (player.getHealth() + 5 > player.getMaxHealth())
                                                 player.setHealth(player.getMaxHealth());
                                             else player.setHealth(player.getHealth() + 5);
@@ -871,6 +876,7 @@ public class PlayerListener implements Listener {
                     this.getPlugin().playerKits.remove(event.getPlayer().getName());
                 if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
                     this.getPlugin().usingKits.remove(event.getPlayer().getName());
+                    event.getPlayer().setMaxHealth(20D);
                     if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                         event.getPlayer().getInventory().clear();
                         event.getPlayer().getInventory().setArmorContents(null);
@@ -882,6 +888,7 @@ public class PlayerListener implements Listener {
                 if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                     event.getPlayer().getInventory().clear();
                     event.getPlayer().getInventory().setArmorContents(null);
+                    event.getPlayer().setMaxHealth(20D);
                     for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
                         event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
                 }
@@ -1041,7 +1048,7 @@ public class PlayerListener implements Listener {
                         if (repair) {
                             ItemStack[] armour = player.getInventory().getArmorContents();
                             for (ItemStack i : armour)
-                                i.setDurability((short) 0);
+                                if (i != null && isArmour(i.getType())) i.setDurability((short) 0);
                             player.getInventory().setArmorContents(armour);
                             player.updateInventory();
                         }
@@ -1181,6 +1188,13 @@ public class PlayerListener implements Listener {
      */
     private KingKits getPlugin() {
         return this.plugin;
+    }
+
+    /**
+     * Returns if a material is an armour piece
+     */
+    private boolean isArmour(Material material) {
+        return material.name().endsWith("HELMET") || material.name().endsWith("CHESTPLATE") || material.name().endsWith("LEGGINGS") || material.name().endsWith("BOOTS");
     }
 
     /**

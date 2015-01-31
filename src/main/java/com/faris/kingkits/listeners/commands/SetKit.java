@@ -147,6 +147,7 @@ public class SetKit {
                                 player.getInventory().addItem(leftOverArmour.get(i));
                         }
                         player.updateInventory();
+                        player.setMaxHealth(newKit.getMaxHealth());
                         player.addPotionEffects(playerKitEvent.getPotionEffects());
 
                         plugin.playerKits.remove(player.getName());

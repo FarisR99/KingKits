@@ -8,7 +8,9 @@ import com.faris.kingkits.listeners.PlayerCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RenameKitCommand extends PlayerCommand {
 
@@ -41,6 +43,12 @@ public class RenameKitCommand extends PlayerCommand {
                                         kit.setRealName(strNewKit);
                                         this.getPlugin().getKitsConfig().set(strNewKit, kit.serialize());
                                         this.getPlugin().saveKitsConfig();
+
+                                        Map<String, String> newKits = new HashMap<String, String>();
+                                        for (Map.Entry<String, String> entrySet : this.getPlugin().usingKits.entrySet()) {
+                                            if (entrySet.getValue() != null && entrySet.getValue().equals(strKit)) newKits.put(entrySet.getKey(), strNewKit);
+                                        }
+                                        this.getPlugin().usingKits.putAll(newKits);
 
                                         this.getPlugin().kitList.remove(strKit);
                                         this.getPlugin().kitList.put(strNewKit, kit);
