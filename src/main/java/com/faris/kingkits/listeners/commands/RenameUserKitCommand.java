@@ -72,6 +72,8 @@ public class RenameUserKitCommand extends PlayerCommand {
                                         if (!kitList.contains(kit)) kitList.add(kit);
                                         this.getPlugin().userKitList.put(p.getName(), kitList);
 
+                                        if (this.getPlugin().usingKits.containsKey(p.getName()) && this.getPlugin().usingKits.get(p.getName()).equalsIgnoreCase(strKit)) this.getPlugin().usingKits.put(p.getName(), strNewKit);
+
                                         p.sendMessage(ChatColor.GOLD + "Successfully renamed " + strKit + " to " + strNewKit + ".");
                                     } else {
                                         p.sendMessage(ChatColor.RED + strKit + " doesn't exist.");

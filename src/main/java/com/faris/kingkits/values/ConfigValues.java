@@ -42,6 +42,7 @@ public class ConfigValues {
 	public boolean disableDeathMessages = false;
 
 	public boolean lockHunger = true;
+	public int hungerLock = 20;
 
 	public boolean disableGamemode = false;
 

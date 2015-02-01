@@ -8,9 +8,9 @@ import com.faris.kingkits.listeners.PlayerCommand;
 import com.faris.kingkits.listeners.event.custom.PlayerCreateKitEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,7 +116,7 @@ public class CreateUserKitCommand extends PlayerCommand {
                                                     }
                                                 }
 
-                                                final Kit kit = new Kit(kitName, itemsInInv).setRealName(kitName).setArmour(armourInInv);
+                                                final Kit kit = new Kit(kitName, itemsInInv).setRealName(kitName).setArmour(armourInInv).setUserKit(true);
                                                 if (args.length == 2) {
                                                     ItemStack guiItem = null;
                                                     try {
@@ -137,6 +137,13 @@ public class CreateUserKitCommand extends PlayerCommand {
                                                         }
                                                     }
                                                 }
+
+                                                List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
+                                                for (PotionEffect potionEffect : p.getActivePotionEffects()) {
+                                                    if (potionEffect != null) kitPotionEffects.add(potionEffect);
+                                                }
+                                                if (!kitPotionEffects.isEmpty()) kit.setPotionEffects(kitPotionEffects);
+                                                kit.setMaxHealth((int) p.getMaxHealth());
 
                                                 this.getPlugin().getUserKitsConfig().set(p.getName() + "." + kitName, kit.serialize());
                                                 if (playerKits == null) playerKits = new ArrayList<Kit>();

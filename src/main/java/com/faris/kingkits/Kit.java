@@ -25,6 +25,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private long kitCooldown = 0;
 
     private List<String> kitCommands = new ArrayList<String>();
+    private boolean commandAlias = false;
 
     private ItemStack guiItem = null;
     private int guiPosition = -1;
@@ -170,6 +171,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return this.realName;
     }
 
+    public boolean hasAlias() {
+        return this.commandAlias;
+    }
+
     public boolean hasCooldown() {
         return KingKits.getInstance().configValues.kitCooldown && this.kitCooldown > 0;
     }
@@ -181,6 +186,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public Kit removeItem(ItemStack itemStack) {
         Validate.notNull(itemStack);
         this.kitItems.remove(itemStack);
+        return this;
+    }
+
+    public Kit setAlias(boolean commandAlias) {
+        this.commandAlias = commandAlias;
         return this;
     }
 
@@ -276,6 +286,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Name", this.kitName != null ? this.kitName : "Kit" + new Random().nextInt());
         serializedKit.put("Cost", this.kitCost);
         serializedKit.put("Cooldown", this.kitCooldown);
+        if (!this.userKit) serializedKit.put("Command alias", false);
         serializedKit.put("Commands", this.kitCommands);
         serializedKit.put("Item breaking", this.itemBreaking);
         serializedKit.put("Max health", this.maxHealth);
@@ -418,8 +429,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                 if (kitSection.containsKey("Cost")) kit.setCost(getObject(kitSection, "Cost", Double.class));
                 if (kitSection.containsKey("Cooldown"))
                     kit.setCooldown(getObject(kitSection, "Cooldown", Long.class));
+                if (kitSection.get("Command alias") != null) {
+                    kit.setAlias(Boolean.valueOf(kitSection.get("Command alias").toString()));
+                }
                 if (kitSection.containsKey("Commands")) kit.setCommands(getObject(kitSection, "Commands", List.class));
-                if (kitSection.containsKey("Item breaking") && kitSection.get("Item breaking") != null) {
+                if (kitSection.get("Item breaking") != null) {
                     kit.setBreakableItems(Boolean.valueOf(kitSection.get("Item breaking").toString()));
                 }
                 if (kitSection.containsKey("Max health"))

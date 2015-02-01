@@ -187,6 +187,22 @@ public class PvPKits {
     }
 
     /**
+     * Get a kit by its name, ignoring cases for display name.
+     *
+     * @param kitName The kit's name.
+     * @return The kit.
+     */
+    public static Kit getKitByNameCaseInsensitive(String kitName) {
+        String strippedKitName = Utils.stripColour(kitName);
+        for (Kit kit : KingKits.getInstance().kitList.values()) {
+            if (kit != null && (strippedKitName.equalsIgnoreCase(Utils.stripColour(kit.getRealName())) || strippedKitName.equalsIgnoreCase(Utils.stripColour(kit.getName())))) {
+                return kit;
+            }
+        }
+        return strippedKitName != null ? KingKits.getInstance().kitList.get(strippedKitName) : null;
+    }
+
+    /**
      * Get a list of the register kits.
      *
      * @return A list of registered kits.

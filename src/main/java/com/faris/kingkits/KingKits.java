@@ -8,7 +8,7 @@ import com.faris.kingkits.helpers.UUIDFetcher;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.*;
-import com.faris.kingkits.listeners.event.PlayerListener;
+import com.faris.kingkits.listeners.event.EventListener;
 import com.faris.kingkits.sql.KingKitsSQL;
 import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
@@ -62,7 +62,7 @@ public class KingKits extends JavaPlugin {
     public Map<String, Long> playerKillstreaks = new HashMap<String, Long>();
 
     // Listeners
-    private PlayerListener pListener = null;
+    private EventListener pListener = null;
     private KingKitsCommand cmdKingKits = null;
     private KitCommand cmdKitL = null;
     private CreateKitCommand cmdKitC = null;
@@ -101,7 +101,7 @@ public class KingKits extends JavaPlugin {
             ex.printStackTrace();
         }
 
-        this.pListener = new PlayerListener(this);
+        this.pListener = new EventListener(this);
         // Update commands
         this.cmdKingKits = new KingKitsCommand(this);
         this.cmdKitL = new KitCommand(this);
@@ -326,6 +326,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Disable block placing and breaking", false);
             this.getConfig().addDefault("Disable death messages", false);
             this.getConfig().addDefault("Lock hunger level", true);
+            this.getConfig().addDefault("Hunger lock", 20);
             this.getConfig().addDefault("Custom message", "&6You have chosen the kit &c<kit>&6.");
             this.getConfig().addDefault("Disable gamemode while using a kit", false);
             this.getConfig().addDefault("Enable killstreaks", false);
@@ -385,6 +386,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.banBlockBreakingAndPlacing = this.getConfig().getBoolean("Disable block placing and breaking");
             this.configValues.disableDeathMessages = this.getConfig().getBoolean("Disable death messages");
             this.configValues.lockHunger = this.getConfig().getBoolean("Lock hunger level");
+            this.configValues.hungerLock = this.getConfig().getInt("Hunger lock");
             this.configValues.customMessages = this.getConfig().getString("Custom message");
             this.configValues.commandToRun = this.getConfig().getString("Command to run when changing kits");
             this.configValues.disableGamemode = this.getConfig().getBoolean("Disable gamemode while using a kit");

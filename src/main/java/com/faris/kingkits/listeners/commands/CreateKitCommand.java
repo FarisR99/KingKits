@@ -122,6 +122,8 @@ public class CreateKitCommand extends PlayerCommand {
                                         }
                                         if (!kitPotionEffects.isEmpty()) kit.setPotionEffects(kitPotionEffects);
 
+                                        kit.setMaxHealth((int) p.getMaxHealth());
+
                                         this.getPlugin().getKitsConfig().set(kitName, kit.serialize());
                                         this.getPlugin().kitList.put(kitName, kit);
                                         this.getPlugin().saveKitsConfig();
