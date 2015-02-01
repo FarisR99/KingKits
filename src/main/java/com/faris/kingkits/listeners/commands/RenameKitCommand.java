@@ -50,6 +50,12 @@ public class RenameKitCommand extends PlayerCommand {
                                         }
                                         this.getPlugin().usingKits.putAll(newKits);
 
+                                        newKits = new HashMap<String, String>();
+                                        for (Map.Entry<String, String> entrySet : this.getPlugin().playerKits.entrySet()) {
+                                            if (entrySet.getValue() != null && entrySet.getValue().equals(strKit)) newKits.put(entrySet.getKey(), strNewKit);
+                                        }
+                                        this.getPlugin().playerKits.putAll(newKits);
+
                                         this.getPlugin().kitList.remove(strKit);
                                         this.getPlugin().kitList.put(strNewKit, kit);
 

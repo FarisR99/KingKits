@@ -73,6 +73,7 @@ public class RenameUserKitCommand extends PlayerCommand {
                                         this.getPlugin().userKitList.put(p.getName(), kitList);
 
                                         if (this.getPlugin().usingKits.containsKey(p.getName()) && this.getPlugin().usingKits.get(p.getName()).equalsIgnoreCase(strKit)) this.getPlugin().usingKits.put(p.getName(), strNewKit);
+                                        if (this.getPlugin().playerKits.containsKey(p.getName()) && this.getPlugin().playerKits.get(p.getName()).equalsIgnoreCase(strKit)) this.getPlugin().playerKits.put(p.getName(), strNewKit);
 
                                         p.sendMessage(ChatColor.GOLD + "Successfully renamed " + strKit + " to " + strNewKit + ".");
                                     } else {
