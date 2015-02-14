@@ -3,7 +3,6 @@ package com.faris.kingkits.listeners.commands;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.listeners.PlayerCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,7 +22,7 @@ public class RefillCommand extends PlayerCommand {
                         if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
                             if (this.getPlugin().configValues.quickSoupKitOnly) {
                                 if (!this.getPlugin().usingKits.containsKey(p.getName())) {
-                                    p.sendMessage(ChatColor.RED + "You have not chosen a kit.");
+                                    Lang.sendMessage(p, Lang.GEN_NO_KIT_SELECTED);
                                     return true;
                                 }
                             }
@@ -58,24 +57,24 @@ public class RefillCommand extends PlayerCommand {
                                                                 if (cost != 0)
                                                                     p.sendMessage(this.getPlugin().getEconomyMessage(cost));
                                                             } else {
-                                                                p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill your bowl.");
+                                                                Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                                 return true;
                                                             }
                                                         } else {
-                                                            p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill your bowl.");
+                                                            Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                             return true;
                                                         }
                                                     } catch (Exception ex) {
                                                     }
                                                 }
                                             } else {
-                                                p.sendMessage(ChatColor.RED + "You have a full inventory.");
+                                                Lang.sendMessage(p, Lang.COMMAND_REFILL_FULL_INV);
                                             }
                                         } else {
-                                            p.sendMessage(ChatColor.RED + "You must have a bowl in your hand.");
+                                            Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
                                         }
                                     } else {
-                                        p.sendMessage(ChatColor.RED + "You must have a bowl in your hand.");
+                                        Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
                                     }
                                 } else {
                                     this.sendNoAccess(p);
@@ -86,8 +85,8 @@ public class RefillCommand extends PlayerCommand {
                                         if (p.getInventory().getItemInHand() != null) {
                                             if (p.getInventory().getItemInHand().getType() == Material.BOWL) {
                                                 int invContentsSize = 0;
-                                                ItemStack[] itemContentz = p.getInventory().getContents();
-                                                for (ItemStack itemContent : itemContentz) {
+                                                ItemStack[] inventoryContents = p.getInventory().getContents();
+                                                for (ItemStack itemContent : inventoryContents) {
                                                     if (itemContent != null) {
                                                         if (itemContent.getType() != Material.AIR) invContentsSize++;
                                                     }
@@ -119,11 +118,11 @@ public class RefillCommand extends PlayerCommand {
                                                                     if (cost != 0)
                                                                         p.sendMessage(this.getPlugin().getEconomyMessage(cost));
                                                                 } else {
-                                                                    p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill all your bowls.");
+                                                                    Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                                     return true;
                                                                 }
                                                             } else {
-                                                                p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill all your bowls.");
+                                                                Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                                 return true;
                                                             }
                                                         } catch (Exception ex) {
@@ -147,11 +146,11 @@ public class RefillCommand extends PlayerCommand {
                                                                         if (cost != 0)
                                                                             p.sendMessage(this.getPlugin().getEconomyMessage(cost));
                                                                     } else {
-                                                                        p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill your bowl.");
+                                                                        Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                                         return true;
                                                                     }
                                                                 } else {
-                                                                    p.sendMessage(ChatColor.GREEN + "You do not have enough money to refill your bowl.");
+                                                                    Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
                                                                     return true;
                                                                 }
                                                             } catch (Exception ex) {
@@ -161,10 +160,10 @@ public class RefillCommand extends PlayerCommand {
                                                     }
                                                 }
                                             } else {
-                                                p.sendMessage(ChatColor.RED + "You must have a bowl in your hand.");
+                                                Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
                                             }
                                         } else {
-                                            p.sendMessage(ChatColor.RED + "You must have a bowl in your hand.");
+                                            Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
                                         }
                                     } else {
                                         this.sendNoAccess(p);
@@ -176,16 +175,17 @@ public class RefillCommand extends PlayerCommand {
                                 Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<all>]");
                             }
                         } else {
-                            p.sendMessage(ChatColor.RED + "You cannot use this command in this world.");
+                            Lang.sendMessage(p, Lang.COMMAND_GEN_WORLD);
                         }
                     } else {
-                        p.sendMessage(ChatColor.RED + "This command is disabled in the configuration.");
+                        Lang.sendMessage(p, Lang.COMMAND_GEN_DISABLED);
                     }
                 } else {
                     this.sendNoAccess(p);
                 }
             } catch (Exception ex) {
-                p.sendMessage(ChatColor.RED + "An unexpected error occured.");
+                ex.printStackTrace();
+                Lang.sendMessage(p, Lang.COMMAND_GEN_ERROR);
             }
             return true;
         }

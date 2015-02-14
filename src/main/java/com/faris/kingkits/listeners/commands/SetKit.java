@@ -2,6 +2,7 @@ package com.faris.kingkits.listeners.commands;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.event.custom.PlayerKitEvent;
@@ -50,13 +51,13 @@ public class SetKit {
                         if (plugin.configValues.opBypass) {
                             if (!player.isOp()) {
                                 if (plugin.playerKits.containsKey(player.getName())) {
-                                    if (sendMessages) player.sendMessage(r("&6You have already chosen a kit!"));
+                                    if (sendMessages) Lang.sendMessage(player, Lang.KIT_ALREADY_CHOSEN);
                                     return null;
                                 }
                             }
                         } else {
                             if (plugin.usingKits.containsKey(player.getName())) {
-                                if (sendMessages) player.sendMessage(r("&6You have already chosen a kit!"));
+                                if (sendMessages) Lang.sendMessage(player, Lang.KIT_ALREADY_CHOSEN);
                                 return null;
                             }
                         }
@@ -77,13 +78,11 @@ public class SetKit {
                                         if (kitCost != 0)
                                             player.sendMessage(ChatColor.GREEN + plugin.getEconomyMessage(kitCost));
                                     } else {
-                                        if (sendMessages)
-                                            player.sendMessage(ChatColor.GREEN + "You do not have enough money to change kits.");
+                                        if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
                                         return null;
                                     }
                                 } else {
-                                    if (sendMessages)
-                                        player.sendMessage(ChatColor.GREEN + "You do not have enough money to change kits.");
+                                    if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
                                     return null;
                                 }
                             } catch (Exception ex) {
@@ -146,7 +145,6 @@ public class SetKit {
                             for (int i = 1; i < leftOverArmour.size(); i++)
                                 player.getInventory().addItem(leftOverArmour.get(i));
                         }
-                        player.updateInventory();
                         player.setMaxHealth(newKit.getMaxHealth());
                         player.addPotionEffects(playerKitEvent.getPotionEffects());
 
@@ -173,17 +171,18 @@ public class SetKit {
                             player.sendMessage(r(plugin.configValues.customMessages).replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName()).replace("<kit>", kitName));
                         if (plugin.configValues.kitParticleEffects)
                             player.playEffect(player.getLocation().add(0, 1, 0), Effect.ENDER_SIGNAL, (byte) 0);
+
+                        player.updateInventory();
                         return newKit;
                     } else {
                         for (PotionEffect potionEffect : player.getActivePotionEffects())
                             player.removePotionEffect(potionEffect.getType());
                     }
                 } else {
-                    if (sendMessages)
-                        player.sendMessage(r("&cYou do not have permission to use the kit &4" + kitName + "&c."));
+                    if (sendMessages) Lang.sendMessage(player, Lang.KIT_NO_PERMISSION, kitName);
                 }
             } else {
-                if (sendMessages) player.sendMessage(r("&4" + kitName + " &6does not exist."));
+                if (sendMessages) Lang.sendMessage(player, Lang.KIT_NONEXISTENT, kitName);
             }
         }
         return null;

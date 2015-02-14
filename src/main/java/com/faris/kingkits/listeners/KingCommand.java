@@ -35,6 +35,16 @@ public abstract class KingCommand implements CommandExecutor {
     }
 
     /**
+     * Returns whether or not a String contains illegal characters. (i.e. Non-alphanumerical)
+     *
+     * @param strMessage - The String.
+     * @return Whether or not a String contains illegal characters.
+     */
+    protected boolean containsIllegalCharacters(String strMessage) {
+        return !strMessage.matches("[a-zA-Z0-9_ ]*");
+    }
+
+    /**
      * Returns if a sender is not a player *
      */
     protected boolean isConsole(CommandSender sender) {
@@ -67,7 +77,7 @@ public abstract class KingCommand implements CommandExecutor {
     /**
      * Returns if a string is numeric *
      */
-    protected boolean isNumeric(String numericString) {
+    protected boolean isInteger(String numericString) {
         try {
             double d = Double.parseDouble(numericString);
             return Math.floor(d) == d;

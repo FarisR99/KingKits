@@ -11,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -90,7 +89,8 @@ public class Utils {
                 return Enchantment.LOOT_BONUS_BLOCKS.getName();
             else if (friendlyName.equalsIgnoreCase("Looting") || friendlyName.equalsIgnoreCase("Loot"))
                 return Enchantment.LOOT_BONUS_MOBS.getName();
-            else if (friendlyName.equalsIgnoreCase("Luck")) return Enchantment.LUCK.getName();
+            else if (friendlyName.equalsIgnoreCase("Luck") || friendlyName.equalsIgnoreCase("Luck of the Sea"))
+                return Enchantment.LUCK.getName();
             else if (friendlyName.equalsIgnoreCase("Lure")) return Enchantment.LURE.getName();
             else if (friendlyName.equalsIgnoreCase("Oxygen") || friendlyName.equalsIgnoreCase("Breathing") || friendlyName.equalsIgnoreCase("Respiration"))
                 return Enchantment.OXYGEN.getName();
@@ -110,6 +110,8 @@ public class Utils {
                 return Enchantment.THORNS.getName();
             else if (friendlyName.equalsIgnoreCase("Water Worker") || friendlyName.equalsIgnoreCase("Aqua Affinity"))
                 return Enchantment.WATER_WORKER.getName();
+            else if (friendlyName.equalsIgnoreCase("Depth Strider"))
+                return Enchantment.DEPTH_STRIDER.getName();
         }
         return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
     }
@@ -330,11 +332,9 @@ public class Utils {
         return romanInteger;
     }
 
-
     public static String stripColour(String kitName) {
         return kitName != null ? ChatColor.stripColor(kitName) : "";
     }
-
 
     public static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
         public int compare(String str1, String str2) {

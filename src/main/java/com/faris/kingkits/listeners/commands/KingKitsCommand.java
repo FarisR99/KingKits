@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +29,13 @@ public class KingKitsCommand extends KingCommand {
         super(pluginInstance);
 
         for (Map.Entry<String, Object> entrySet : this.getPlugin().getConfig().getValues(false).entrySet()) {
-            if (!(entrySet.getValue() instanceof List) && !(entrySet.getValue() instanceof ConfigurationSection) && !(entrySet.getValue() instanceof Map)) {
-                this.configCommands.add(new ConfigCommand(WordUtils.capitalizeFully(entrySet.getKey().toLowerCase()).replace(" ", ""), entrySet.getKey()));
+            if (!(entrySet.getValue() instanceof Collection) && !(entrySet.getValue() instanceof ConfigurationSection) && !(entrySet.getValue() instanceof Map)) {
+                this.configCommands.add(new ConfigCommand(WordUtils.capitalizeFully(entrySet.getKey().toLowerCase()).replace(" ", ""), entrySet.getKey(), "Config"));
+            }
+        }
+        for (Map.Entry<String, Object> entrySet : this.getPlugin().getEconomyConfig().getValues(false).entrySet()) {
+            if (!(entrySet.getValue() instanceof Collection) && !(entrySet.getValue() instanceof ConfigurationSection) && !(entrySet.getValue() instanceof Map)) {
+                this.configCommands.add(new ConfigCommand(WordUtils.capitalizeFully(entrySet.getKey().toLowerCase()).replace(" ", ""), entrySet.getKey(), "Economy"));
             }
         }
     }
@@ -51,6 +57,7 @@ public class KingKitsCommand extends KingCommand {
                                     try {
                                         this.getPlugin().reloadAllConfigs();
                                         this.getPlugin().loadConfiguration();
+                                        Lang.init(this.getPlugin());
                                         try {
                                             if (sender.getServer().getPluginManager().isPluginEnabled("KingKitsSpecial") && sender.getServer().getPluginCommand("kkspecial") != null) {
                                                 sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "kkspecial reload");
@@ -78,16 +85,7 @@ public class KingKitsCommand extends KingCommand {
                         }
                     } else if (strCommand.equalsIgnoreCase("config")) {
                         if (sender.hasPermission(this.getPlugin().permissions.cmdConfigManagement)) {
-                            if (args.length == 3) {
-                                String configKey = args[1];
-                                String configValue = args[2];
-                                if (this.containsCommand(this.configCommands, configKey)) {
-                                    sender.sendMessage(this.updateConfig("Config", configKey, configValue));
-                                } else {
-                                    sender.sendMessage(ChatColor.RED + "Invalid config property: " + ChatColor.DARK_RED + configKey);
-                                    sender.sendMessage(ChatColor.RED + "To list all the config properties you can edit, type: " + ChatColor.DARK_RED + "/" + command.toLowerCase() + " " + strCommand.toLowerCase() + " list");
-                                }
-                            } else if (args.length == 2) {
+                            if (args.length == 2) {
                                 String configProperty = args[1];
                                 if (configProperty.equalsIgnoreCase("list")) {
                                     sender.sendMessage(ChatColor.GREEN + "KingKits config command property list (" + this.configCommands.size() + "): ");
@@ -99,7 +97,16 @@ public class KingKitsCommand extends KingCommand {
                                     }
                                     sender.sendMessage(ChatColor.GOLD + configListBuilder.toString().trim());
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "Usage: " + ChatColor.DARK_RED + "/" + command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>");
+                                    Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>");
+                                }
+                            } else if (args.length == 3) {
+                                String configKey = args[1];
+                                String configValue = args[2];
+                                if (this.containsCommand(this.configCommands, configKey)) {
+                                    sender.sendMessage(this.updateConfig(configKey, configValue));
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "Invalid config property: " + ChatColor.DARK_RED + configKey);
+                                    sender.sendMessage(ChatColor.RED + "To list all the config properties you can edit, type: " + ChatColor.DARK_RED + "/" + command.toLowerCase() + " " + strCommand.toLowerCase() + " list");
                                 }
                             } else {
                                 Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase() + " <property> <value>");
@@ -168,10 +175,10 @@ public class KingKitsCommand extends KingCommand {
                                             sender.sendMessage(ChatColor.RED + "Please enter a valid integer between 0 and " + Integer.MAX_VALUE + " (inclusive) for the kit cooldown.");
                                         }
                                     } else {
-                                        sender.sendMessage(ChatColor.RED + "That kit does not exist.");
+                                        Lang.sendMessage(sender, Lang.KIT_NONEXISTENT);
                                     }
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "That kit does not exist.");
+                                    Lang.sendMessage(sender, Lang.KIT_NONEXISTENT);
                                 }
                             } else {
                                 Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " " + strCommand.toLowerCase() + " <kit> <cooldown>");
@@ -192,13 +199,6 @@ public class KingKitsCommand extends KingCommand {
     }
 
     /**
-     * Returns a new ConfigCommand object *
-     */
-    private static ConfigCommand cc(String name, String description) {
-        return new ConfigCommand(name, description);
-    }
-
-    /**
      * Returns if a list of config commands contains a command (as a string) *
      */
     private boolean containsCommand(List<ConfigCommand> configCmds, String command) {
@@ -211,13 +211,17 @@ public class KingKitsCommand extends KingCommand {
     /**
      * Updates the config with the property key and value *
      */
-    public String updateConfig(String config, String propertyKey, Object propertyValue) {
+    public String updateConfig(String propertyKey, Object propertyValue) {
         try {
             String key = "";
+            String config = "";
             if (this.containsCommand(this.configCommands, propertyKey)) {
                 for (int i = 0; i < this.configCommands.size(); i++) {
-                    if (this.configCommands.get(i).getCommand().equalsIgnoreCase(propertyKey))
-                        key = this.configCommands.get(i).getDescription();
+                    if (this.configCommands.get(i).getCommand().equalsIgnoreCase(propertyKey)) {
+                        ConfigCommand configCommand = this.configCommands.get(i);
+                        key = configCommand.getDescription();
+                        config = configCommand.getConfig();
+                    }
                 }
                 if (key == "") return ChatColor.RED + "Failed to find the key '" + propertyKey + "' in the config.";
             } else return ChatColor.RED + "Failed to find the key '" + propertyKey + "' in the config.";
@@ -227,7 +231,7 @@ public class KingKitsCommand extends KingCommand {
                     this.getPlugin().getConfig().set(key, Boolean.parseBoolean(value));
                 } else if (this.isDouble(value)) {
                     this.getPlugin().getConfig().set(key, Double.parseDouble(value));
-                } else if (this.isNumeric(value)) {
+                } else if (this.isInteger(value)) {
                     this.getPlugin().getConfig().set(key, Integer.parseInt(value));
                 } else {
                     this.getPlugin().getConfig().set(key, propertyValue);
@@ -239,7 +243,7 @@ public class KingKitsCommand extends KingCommand {
                     this.getPlugin().getEconomyConfig().set(key, Boolean.parseBoolean(value));
                 } else if (this.isDouble(value)) {
                     this.getPlugin().getEconomyConfig().set(key, Double.parseDouble(value));
-                } else if (this.isNumeric(value)) {
+                } else if (this.isInteger(value)) {
                     this.getPlugin().getEconomyConfig().set(key, Integer.parseInt(value));
                 } else {
                     this.getPlugin().getEconomyConfig().set(key, propertyValue);

@@ -5,12 +5,12 @@ import com.faris.kingkits.Kit;
 import com.faris.kingkits.guis.GuiKingKits;
 import com.faris.kingkits.guis.GuiKitMenu;
 import com.faris.kingkits.guis.GuiPreviewKit;
+import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.SetKit;
 import com.faris.kingkits.listeners.event.custom.PlayerKilledEvent;
 import com.faris.kingkits.sql.KingKitsSQL;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -36,7 +36,6 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -107,8 +106,8 @@ public class EventListener implements Listener {
                     Objective scoreboardObj = event.getPlayer().getScoreboard().getObjective("KingKits");
                     if (scoreboardObj != null) {
                         Scoreboard playerBoard = event.getPlayer().getScoreboard();
-                        playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Score:"));
-                        playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Killstreak:"));
+                        playerBoard.resetScores(ChatColor.GREEN + "Score:");
+                        playerBoard.resetScores(ChatColor.GREEN + "Killstreak:");
                         event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Score:");
                         event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Killstreak:");
                         playerBoard.clearSlot(DisplaySlot.SIDEBAR);
@@ -132,8 +131,8 @@ public class EventListener implements Listener {
                 if (pScoreboard != null) {
                     if (pScoreboard.getObjective("KingKits") != null) {
                         Scoreboard playerBoard = event.getPlayer().getScoreboard();
-                        playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Score:"));
-                        playerBoard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Killstreak:"));
+                        playerBoard.resetScores(ChatColor.GREEN + "Score:");
+                        playerBoard.resetScores(ChatColor.GREEN + "Killstreak:");
                         event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Score:");
                         event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Killstreak:");
                         playerBoard.clearSlot(DisplaySlot.SIDEBAR);
@@ -167,6 +166,7 @@ public class EventListener implements Listener {
                     GuiPreviewKit guiPreviewKit = GuiKingKits.guiPreviewKitMap.get(event.getPlayer().getName());
                     guiPreviewKit.closeMenu(true, true);
                 }
+                event.getPlayer().updateInventory();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -273,52 +273,46 @@ public class EventListener implements Listener {
                                             if (!line1.equalsIgnoreCase("")) {
                                                 List<String> kitList = this.getPlugin().getKitList();
                                                 List<String> kitListLC = Utils.toLowerCaseList(kitList);
-                                                if (kitListLC.contains(line1.toLowerCase())) {
-                                                    String kitName = kitList.get(kitListLC.indexOf(line1.toLowerCase()));
-                                                    try {
-                                                        final Kit kit = PvPKits.getKitByName(kitName);
-                                                        boolean validCooldown = true;
-                                                        if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
-                                                            if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
-                                                                long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
-                                                                if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
-                                                                    this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
-                                                                    this.getPlugin().saveCooldownConfig();
-                                                                } else {
-                                                                    player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
-                                                                    validCooldown = false;
-                                                                }
+                                                String kitName = kitList.get(kitListLC.indexOf(line1.toLowerCase()));
+                                                try {
+                                                    final Kit kit = PvPKits.getKitByName(kitName);
+                                                    boolean validCooldown = true;
+                                                    if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+                                                        if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
+                                                            long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
+                                                            if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
+                                                                this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+                                                                this.getPlugin().saveCooldownConfig();
+                                                            } else {
+                                                                Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf((kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000))));
+                                                                validCooldown = false;
                                                             }
                                                         }
-                                                        if (validCooldown)
-                                                            SetKit.setKingKit(player, kitName, true);
-                                                    } catch (Exception e) {
-                                                        player.sendMessage(ChatColor.RED + "Error while trying to set your kit. If it does not work after trying again, try using /pvpkit.");
                                                     }
-                                                } else {
-                                                    player.sendMessage(ChatColor.RED + "Unknown kit " + ChatColor.DARK_RED + line1 + ChatColor.RED + ".");
-                                                    sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
-                                                    sign.update(true);
+                                                    if (validCooldown) SetKit.setKingKit(player, kitName, true);
+                                                } catch (Exception ex) {
+                                                    ex.printStackTrace();
+                                                    Lang.sendMessage(player, Lang.COMMAND_GEN_ERROR);
                                                 }
                                             } else {
-                                                player.sendMessage(ChatColor.RED + "Sign incorrectly set up.");
+                                                Lang.sendMessage(player, Lang.SIGN_GENERAL_INCORRECTLY_SETUP);
                                                 sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
                                                 sign.update(true);
                                             }
                                         } else {
-                                            player.sendMessage(ChatColor.RED + "Sign incorrectly set up.");
+                                            Lang.sendMessage(player, Lang.SIGN_GENERAL_INCORRECTLY_SETUP);
                                             sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
                                             sign.update(true);
                                         }
                                     } else {
-                                        player.sendMessage(ChatColor.RED + "You do not have permission to use this sign.");
+                                        Lang.sendMessage(player, Lang.SIGN_USE_NO_PERMISSION);
                                     }
                                     event.setCancelled(true);
                                 } else if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitListSignValid.startsWith("&0") ? this.getPlugin().configValues.strKitListSignValid.replaceFirst("&0", "") : this.getPlugin().configValues.strKitListSignValid)) {
                                     if (player.hasPermission(this.getPlugin().permissions.kitListSign)) {
                                         if (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
                                             List<String> kitList = this.getPlugin().getKitList();
-                                            player.sendMessage(this.r("&aKits List (" + kitList.size() + "):"));
+                                            Lang.sendMessage(player, Lang.GEN_KIT_LIST_TITLE, String.valueOf(kitList.size()));
                                             if (!kitList.isEmpty()) {
                                                 for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
                                                     String kitName = kitList.get(kitPos).split(" ")[0];
@@ -330,13 +324,13 @@ public class EventListener implements Listener {
                                                     }
                                                 }
                                             } else {
-                                                player.sendMessage(r("&4There are no kits."));
+                                                Lang.sendMessage(player, Lang.GEN_NO_KITS);
                                             }
                                         } else {
                                             PvPKits.showKitMenu(player);
                                         }
                                     } else {
-                                        player.sendMessage(ChatColor.RED + "You do not have permission to use this sign.");
+                                        Lang.sendMessage(player, Lang.SIGN_USE_NO_PERMISSION);
                                     }
                                     event.setCancelled(true);
                                 }
@@ -422,10 +416,10 @@ public class EventListener implements Listener {
                                 event.setLine(0, this.getPlugin().configValues.strKitSignValid);
                             } else {
                                 event.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
-                                p.sendMessage(ChatColor.RED + "Please enter a kit name on the second line.");
+                                Lang.sendMessage(p, Lang.SIGN_CREATE_SECOND_LINE);
                             }
                         } else {
-                            p.sendMessage(ChatColor.DARK_RED + "You do not have access to create a KingKits sign.");
+                            Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "create");
                             event.setLine(0, "");
                             event.setLine(1, "");
                             event.setLine(2, "");
@@ -435,7 +429,7 @@ public class EventListener implements Listener {
                         if (p.hasPermission(this.getPlugin().permissions.kitListSign)) {
                             event.setLine(0, this.getPlugin().configValues.strKitListSignValid);
                         } else {
-                            p.sendMessage(ChatColor.DARK_RED + "You do not have access to create a KingKits list sign.");
+                            Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "list");
                             event.setLine(0, "");
                             event.setLine(1, "");
                             event.setLine(2, "");
@@ -505,6 +499,7 @@ public class EventListener implements Listener {
                     player.setMaxHealth(20D);
                     player.getInventory().clear();
                     player.getInventory().setArmorContents(null);
+                    player.updateInventory();
 
                     for (PotionEffect activeEffect : player.getActivePotionEffects())
                         player.removePotionEffect(activeEffect.getType());
@@ -562,7 +557,7 @@ public class EventListener implements Listener {
                                             if (this.getPlugin().configValues.dropAnimations.contains(event.getItemDrop().getItemStack().getType().getId())) {
                                                 event.getItemDrop().remove();
                                             } else {
-                                                event.getPlayer().sendMessage(ChatColor.RED + "You cannot drop this item whilst using a kit.");
+                                                Lang.sendMessage(event.getPlayer(), Lang.GEN_ITEM_DROP);
                                                 event.setCancelled(true);
                                             }
                                         }
@@ -572,7 +567,7 @@ public class EventListener implements Listener {
                                         if (this.getPlugin().configValues.dropAnimations.contains(event.getItemDrop().getItemStack().getType().getId())) {
                                             event.getItemDrop().remove();
                                         } else {
-                                            event.getPlayer().sendMessage(ChatColor.RED + "You cannot drop this item whilst using a kit.");
+                                            Lang.sendMessage(event.getPlayer(), Lang.GEN_ITEM_DROP);
                                             event.setCancelled(true);
                                         }
                                     }
@@ -670,13 +665,13 @@ public class EventListener implements Listener {
                                     }
                                     if (nearestPlayer != null) {
                                         event.getPlayer().setCompassTarget(nearestPlayer.getLocation());
-                                        event.getPlayer().sendMessage(ChatColor.YELLOW + "Your compass is pointing at " + nearestPlayer.getName() + ".");
+                                        Lang.sendMessage(event.getPlayer(), Lang.COMPASS_POINTING_PLAYER, nearestPlayer.getName());
                                         if (this.getPlugin().compassTargets.containsKey(event.getPlayer()))
                                             this.getPlugin().compassTargets.remove(event.getPlayer());
                                         this.getPlugin().compassTargets.put(event.getPlayer().getPlayer(), nearestPlayer.getPlayer());
                                     } else {
                                         event.getPlayer().setCompassTarget(event.getPlayer().getWorld().getSpawnLocation());
-                                        event.getPlayer().sendMessage(ChatColor.YELLOW + "Your compass is pointing at spawn.");
+                                        Lang.sendMessage(event.getPlayer(), Lang.COMPASS_POINTING_SPAWN);
                                     }
                                 }
                             }
@@ -888,18 +883,19 @@ public class EventListener implements Listener {
                         if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                             event.getPlayer().getInventory().clear();
                             event.getPlayer().getInventory().setArmorContents(null);
-                            for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
-                                event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
+                            event.getPlayer().updateInventory();
                         }
+                        for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
+                            event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
                     }
                 } else if (this.getPlugin().configValues.pvpWorlds.contains("All") || (!this.getPlugin().configValues.pvpWorlds.contains(event.getFrom().getName()) && this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))) {
                     if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
                         event.getPlayer().getInventory().clear();
                         event.getPlayer().getInventory().setArmorContents(null);
-                        event.getPlayer().setMaxHealth(20D);
-                        for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
-                            event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
+                        event.getPlayer().updateInventory();
                     }
+                    for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
+                        event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
                     if (this.getPlugin().configValues.listKitsOnJoin) this.listKitsOnJoin(event.getPlayer());
                 }
             } catch (Exception ex) {
@@ -998,21 +994,26 @@ public class EventListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBowShoot(EntityShootBowEvent event) {
         try {
-            if (event.getEntity() instanceof Player) {
-                Player player = (Player) event.getEntity();
-                if (this.getPlugin().usingKits.containsKey(player.getName())) {
-                    boolean repair = false;
-                    if (this.getPlugin().configValues.disableItemBreaking) {
-                        repair = true;
-                    } else {
-                        Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(player.getName()));
-                        if (kit != null && !kit.canItemsBreak()) {
+            // Unbreakable bow
+            try {
+                if (event.getEntity() instanceof Player) {
+                    Player player = (Player) event.getEntity();
+                    if (this.getPlugin().usingKits.containsKey(player.getName())) {
+                        boolean repair = false;
+                        if (this.getPlugin().configValues.disableItemBreaking) {
                             repair = true;
+                        } else {
+                            Kit kit = PvPKits.getKitByName(this.getPlugin().usingKits.get(player.getName()));
+                            if (kit != null && !kit.canItemsBreak()) {
+                                repair = true;
+                            }
                         }
+                        if (repair)
+                            event.getBow().setDurability((short) 0);
                     }
-                    if (repair)
-                        event.getBow().setDurability((short) 0);
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         } catch (Exception ex) {
         }
@@ -1050,34 +1051,29 @@ public class EventListener implements Listener {
             public void run() {
                 if (p != null && p.isOnline()) {
                     List<String> kitList = getPlugin().getKitList();
-                    StringBuilder sbKits = new StringBuilder().append(ChatColor.GREEN);
-                    if (kitList.isEmpty()) {
-                        sbKits.append(ChatColor.DARK_RED).append("No kits made.");
-                    } else {
-                        for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
-                            String kit = kitList.get(kitPos);
-                            ChatColor col = ChatColor.GREEN;
-                            boolean ignoreKit = false;
-                            if (!p.hasPermission("kingkits.kits." + kit.toLowerCase())) {
-                                if (!getPlugin().configValues.kitListPermissionsJoin) ignoreKit = true;
-                                else col = ChatColor.DARK_RED;
-                            }
-                            if (!ignoreKit) {
-                                if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
-                                else sbKits.append(col).append(kit).append(", ");
-                            } else {
-                                if (kitPos == kitList.size() - 1)
-                                    sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
-                            }
+                    StringBuilder sbKits = new StringBuilder();
+                    for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
+                        String kit = kitList.get(kitPos);
+                        ChatColor col = ChatColor.GREEN;
+                        boolean ignoreKit = false;
+                        if (!p.hasPermission("kingkits.kits." + kit.toLowerCase())) {
+                            if (!getPlugin().configValues.kitListPermissionsJoin) ignoreKit = true;
+                            else col = ChatColor.DARK_RED;
+                        }
+                        if (!ignoreKit) {
+                            if (kitPos == kitList.size() - 1) sbKits.append(col).append(kit);
+                            else sbKits.append(col).append(kit).append(", ");
+                        } else {
+                            if (kitPos == kitList.size() - 1)
+                                sbKits = new StringBuilder().append(replaceLast(sbKits.toString(), ",", ""));
                         }
                     }
-                    if (sbKits.toString() == ChatColor.GREEN + "") {
-                        sbKits = new StringBuilder().append(ChatColor.RED).append("No kits available");
-                    }
-                    p.sendMessage(ChatColor.GOLD + "PvP Kits: " + sbKits.toString());
+                    if (sbKits.toString().trim().isEmpty())
+                        sbKits = new StringBuilder().append(Lang.GEN_NO_KITS_AVAILABLE.getMessage());
+                    Lang.sendMessage(p, Lang.GEN_KIT_LIST, sbKits.toString());
                 }
             }
-        }, 30L);
+        }, 25L);
     }
 
     /**
@@ -1092,16 +1088,6 @@ public class EventListener implements Listener {
      */
     private boolean isTool(Material material) {
         return material.name().endsWith("SWORD") || material.name().endsWith("PICKAXE") || material.name().endsWith("AXE") || material.name().endsWith("SPADE") || material.name().endsWith("SHOVEL") || material.name().endsWith("HOE");
-    }
-
-    /**
-     * Returns a list of lower case strings *
-     */
-    public static List<String> listToLowerCase(List<String> originalMap) {
-        List<String> newMap = new ArrayList<String>();
-        for (String s : originalMap)
-            newMap.add(s.toLowerCase());
-        return newMap;
     }
 
     /**

@@ -8,7 +8,6 @@ import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.KingCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -33,9 +32,10 @@ public class KitCommand extends KingCommand {
                             if (sender.hasPermission(this.getPlugin().permissions.kitList)) {
                                 if (this.isConsole(sender) || (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
                                     List<String> kitList = new ArrayList<String>(this.getPlugin().kitList.keySet());
-                                    sender.sendMessage(r("&aKits List (" + kitList.size() + "):"));
+                                    Lang.sendMessage(sender, Lang.GEN_KIT_LIST_TITLE, String.valueOf(kitList.size()));
                                     if (!kitList.isEmpty()) {
-                                        if (this.getPlugin().configValues.sortAlphabetically) Collections.sort(kitList, Utils.ALPHABETICAL_ORDER);
+                                        if (this.getPlugin().configValues.sortAlphabetically)
+                                            Collections.sort(kitList, Utils.ALPHABETICAL_ORDER);
                                         for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
                                             String kitName = kitList.get(kitPos).split(" ")[0];
                                             if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
@@ -46,13 +46,13 @@ public class KitCommand extends KingCommand {
                                             }
                                         }
                                     } else {
-                                        sender.sendMessage(r("&4There are no kits."));
+                                        Lang.sendMessage(sender, Lang.GEN_NO_KITS);
                                     }
                                 } else {
                                     PvPKits.showKitMenu((Player) sender);
                                 }
                             } else {
-                                sender.sendMessage(ChatColor.DARK_RED + "You do not have permission to list the kits.");
+                                Lang.sendMessage(sender, Lang.COMMAND_KIT_LIST_NO_PERMISSION);
                             }
                         } else if (args.length == 1) {
                             if (!this.isConsole(sender)) {
@@ -71,7 +71,7 @@ public class KitCommand extends KingCommand {
                                                 this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
                                                 this.getPlugin().saveCooldownConfig();
                                             } else {
-                                                player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
+                                                Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf((kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000))));
                                                 return true;
                                             }
                                         }
@@ -94,7 +94,7 @@ public class KitCommand extends KingCommand {
                                     ex.printStackTrace();
                                 }
                             } else {
-                                sender.sendMessage(ChatColor.RED + "You must be a player to use this command.");
+                                Lang.sendMessage(sender, Lang.COMMAND_GEN_IN_GAME);
                             }
                         } else if (args.length == 2) {
                             if (sender.hasPermission(this.getPlugin().permissions.kitUseOtherCommand)) {
@@ -110,12 +110,12 @@ public class KitCommand extends KingCommand {
                                         SetKit.setKit(target, kitName, false);
                                     } catch (Exception ex) {
                                         ex.printStackTrace();
-                                        sender.sendMessage(ChatColor.RED + "An error occurred.");
+                                        Lang.sendMessage(sender, Lang.COMMAND_GEN_ERROR);
                                         return true;
                                     }
-                                    sender.sendMessage(ChatColor.GOLD + "You set " + target.getName() + "'s kit. This may not have been successful if you typed an invalid kit name, or if they already have a kit, or if they do not have permission to use that kit or they do not have enough money.");
+                                    Lang.sendMessage(sender, Lang.COMMAND_KIT_OTHER_PLAYER, target.getName());
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "That player does not exist or is not online.");
+                                    Lang.sendMessage(sender, Lang.COMMAND_GEN_NOT_ONLINE, strTarget);
                                 }
                             } else {
                                 this.sendNoAccess(sender);
@@ -124,10 +124,10 @@ public class KitCommand extends KingCommand {
                             Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <player>]");
                         }
                     } else {
-                        sender.sendMessage(ChatColor.RED + "You cannot use this command in this world.");
+                        Lang.sendMessage(sender, Lang.COMMAND_GEN_WORLD);
                     }
                 } else {
-                    sender.sendMessage(ChatColor.RED + "This command is disabled in the configuration.");
+                    Lang.sendMessage(sender, Lang.COMMAND_GEN_DISABLED);
                 }
             } else {
                 this.sendNoAccess(sender);

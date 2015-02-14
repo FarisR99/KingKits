@@ -298,8 +298,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
             this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
             this.getConfig().addDefault("Kit cooldown enabled", false);
-            if (this.getConfig().contains("Kit cooldown.Enabled")) this.getConfig().set("Kit cooldown.Enabled", null);
-            if (this.getConfig().contains("Kit cooldown.Time")) this.getConfig().set("Kit cooldown.Time", null);
+            if (this.getConfig().contains("Kit cooldown")) this.getConfig().set("Kit cooldown", null);
             this.getConfig().addDefault("List kits on join", true);
             this.getConfig().addDefault("Use permissions on join", true);
             this.getConfig().addDefault("Use permissions for kit list", true);
@@ -483,7 +482,6 @@ public class KingKits extends JavaPlugin {
         try {
             this.getKitsConfig().options().header("KingKits Kits Configuration.");
             this.convertOldConfig();
-            this.convertSecondOldConfig();
 
             this.getKitsConfig().addDefault("First run", true);
             if (this.getKitsConfig().getBoolean("First run")) {
@@ -1181,29 +1179,6 @@ public class KingKits extends JavaPlugin {
                     this.getLogger().log(Level.SEVERE, "Could not rename or delete the 'kits' folder in /plugins/KingKits. You must manually delete the folder and then reload KingKits to prevent configuration events.");
             }
         }
-    }
-
-    private void convertSecondOldConfig() {
-        boolean hasModified = false;
-        for (String kitName : this.getConfigKitList()) {
-            if (this.getKitsConfig().contains(kitName + ".Items")) {
-                Map<String, Object> itemsMap = Kit.getValues(this.getKitsConfig().get(kitName + ".Items"));
-                if (itemsMap != null) {
-                    int currentIndex = 0;
-                    for (Entry<String, Object> itemsEntry : itemsMap.entrySet()) {
-                        if (Utils.isInteger(itemsEntry.getKey()) ? Material.getMaterial(Integer.parseInt(itemsEntry.getKey())) != null : Material.getMaterial(itemsEntry.getKey()) != null) {
-                            Map<String, Object> itemMap = Kit.getValues(itemsEntry);
-                            itemMap.put("Type", itemsEntry.getKey());
-                            this.getKitsConfig().set(kitName + ".Items." + itemsEntry.getKey(), null);
-                            this.getKitsConfig().set(kitName + ".Items.Slot " + currentIndex, itemMap);
-                            currentIndex++;
-                            hasModified = true;
-                        }
-                    }
-                }
-            }
-        }
-        if (hasModified) this.saveKitsConfig();
     }
 
     public static KingKits getInstance() {

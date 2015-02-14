@@ -1,6 +1,7 @@
 package com.faris.kingkits.guis;
 
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.hooks.PvPKits;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -25,7 +26,7 @@ public class GuiPreviewKit extends GuiKingKits {
      * @param kitName - The kit name
      */
     public GuiPreviewKit(Player player, String kitName) {
-        super(player, player.getServer().createInventory(player, 45, ChatColor.RED + kitName + ChatColor.DARK_GRAY + " kit preview"));
+        super(player, player.getServer().createInventory(player, 45, Lang.GUI_PREVIEW_TITLE.getMessage(kitName)));
         Kit kit = PvPKits.getKitByName(kitName);
         this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
     }
@@ -65,7 +66,7 @@ public class GuiPreviewKit extends GuiKingKits {
         ItemStack backItem = new ItemStack(Material.STONE_BUTTON);
         ItemMeta backItemMeta = backItem.getItemMeta();
         if (backItemMeta != null) {
-            backItemMeta.setDisplayName(ChatColor.AQUA + "Back");
+            backItemMeta.setDisplayName(Lang.GUI_PREVIEW_BACK.getMessage());
             backItem.setItemMeta(backItemMeta);
         }
         this.guiInventory.setItem(this.guiInventory.getSize() - 1, backItem);

@@ -5,7 +5,6 @@ import com.faris.kingkits.Kit;
 import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.listeners.PlayerCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public class DeleteUserKitCommand extends PlayerCommand {
                     if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(player.getWorld().getName())) {
                         if (args.length == 0) {
                             Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " <kit>");
-                            player.sendMessage(r("&cDescription: &4Delete a personal PvP Kit."));
+                            Lang.sendMessage(player, Lang.COMMAND_DELETE_UKIT_DESCRIPTION);
                         } else if (args.length == 1) {
                             String kitName = args[0];
                             List<String> listKits = this.getPlugin().getKitList(player.getName());
@@ -56,25 +55,26 @@ public class DeleteUserKitCommand extends PlayerCommand {
                                         }
                                     }
 
-                                    player.sendMessage(r("&4" + kitName + " &6was successfully deleted."));
+                                    Lang.sendMessage(player, Lang.COMMAND_DELETE_DELETED, kitName);
                                     if (this.getPlugin().usingKits.containsKey(player.getName()) && this.getPlugin().usingKits.get(player.getName()).equalsIgnoreCase(kitName)) {
                                         this.getPlugin().usingKits.remove(player.getName());
                                         this.getPlugin().playerKits.remove(player.getName());
                                     }
                                 } catch (Exception ex) {
-                                    player.sendMessage(r("&4" + kitName + "&6's deletion was unsuccessful."));
+                                    ex.printStackTrace();
+                                    Lang.sendMessage(player, Lang.COMMAND_DELETE_ERROR, kitName);
                                 }
                             } else {
-                                player.sendMessage(ChatColor.DARK_RED + "That user kit doesn't exist.");
+                                Lang.sendMessage(player, Lang.COMMAND_DELETE_UKIT_NONEXISTENT);
                             }
                         } else {
                             Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " <kit>");
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED + "You cannot use that command in this world.");
+                        Lang.sendMessage(player, Lang.COMMAND_GEN_WORLD);
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "This command is disabled in the configuration.");
+                    Lang.sendMessage(player, Lang.COMMAND_GEN_DISABLED);
                 }
             } else {
                 this.sendNoAccess(player);

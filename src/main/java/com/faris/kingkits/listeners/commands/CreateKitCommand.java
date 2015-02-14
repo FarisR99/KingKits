@@ -6,13 +6,11 @@ import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.listeners.PlayerCommand;
 import com.faris.kingkits.listeners.event.custom.PlayerCreateKitEvent;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +32,7 @@ public class CreateKitCommand extends PlayerCommand {
                     if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
                         if (args.length == 0) {
                             Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
-                            p.sendMessage(this.r("&cDescription: &4Create your own PvP kit with every item in your inventory."));
+                            Lang.sendMessage(p, Lang.COMMAND_CREATE_KIT_DESCRIPTION);
                         } else if (args.length > 0 && args.length < 3) {
                             String kitName = args[0];
 
@@ -47,24 +45,24 @@ public class CreateKitCommand extends PlayerCommand {
                                 containsKit = this.getPlugin().getKitsConfig().contains(kitName);
                             }
 
-                            if (!this.containsIllegalChars(kitName)) {
+                            if (!this.containsIllegalCharacters(kitName)) {
                                 if (args.length == 2) {
                                     if (args[1].contains(":")) {
                                         String[] guiSplit = args[1].split(":");
                                         if (guiSplit.length == 2) {
-                                            if (!this.isNumeric(guiSplit[0]) || !this.isNumeric(guiSplit[1])) {
-                                                p.sendMessage(this.r("&cUsage: &4/" + command.toLowerCase() + " [<kit>|<kit> <guiitem>]"));
+                                            if (!this.isInteger(guiSplit[0]) || !this.isInteger(guiSplit[1])) {
+                                                Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
                                                 return true;
                                             }
                                         } else {
-                                            if (!this.isNumeric(args[1])) {
-                                                p.sendMessage(this.r("&cUsage: &4/" + command.toLowerCase() + " [<kit>|<kit> <guiitem>]"));
+                                            if (!this.isInteger(args[1])) {
+                                                Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
                                                 return true;
                                             }
                                         }
                                     } else {
-                                        if (!this.isNumeric(args[1])) {
-                                            p.sendMessage(this.r("&cUsage: &4/" + command.toLowerCase() + " [<kit>|<kit> <guiitem>]"));
+                                        if (!this.isInteger(args[1])) {
+                                            Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
                                             return true;
                                         }
                                     }
@@ -132,31 +130,29 @@ public class CreateKitCommand extends PlayerCommand {
                                             p.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
                                         } catch (Exception ex) {
                                         }
-                                        if (containsKit)
-                                            p.sendMessage(this.r("&4" + kitName + "&6 has been overwritten."));
-                                        else p.sendMessage(this.r("&4" + kitName + "&6 has been created."));
+                                        Lang.sendMessage(p, containsKit ? Lang.COMMAND_CREATE_OVERWRITTEN : Lang.COMMAND_CREATE_CREATED, kitName);
 
                                         if (this.getPlugin().configValues.removeItemsOnCreateKit) {
                                             p.getInventory().clear();
                                             p.getInventory().setArmorContents(null);
                                         }
                                     } else {
-                                        p.sendMessage(ChatColor.RED + "You have nothing in your inventory!");
+                                        Lang.sendMessage(p, Lang.COMMAND_CREATE_EMPTY_INV);
                                     }
                                 } else {
-                                    p.sendMessage(ChatColor.RED + "A plugin has not allowed you to create this kit.");
+                                    Lang.sendMessage(p, Lang.COMMAND_CREATE_DENIED);
                                 }
                             } else {
-                                p.sendMessage(this.r("&6The kit name must only consist of letters, numbers or underscores."));
+                                Lang.sendMessage(p, Lang.COMMAND_CREATE_ILLEGAL_CHARACTERS);
                             }
                         } else {
-                            p.sendMessage(this.r("&cUsage: &4/" + command.toLowerCase() + " [<kit>|<kit> <guiitem>]"));
+                            Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
                         }
                     } else {
-                        p.sendMessage(ChatColor.RED + "You cannot use this command in this world.");
+                        Lang.sendMessage(p, Lang.COMMAND_GEN_WORLD);
                     }
                 } else {
-                    p.sendMessage(ChatColor.RED + "This command is disabled in the configuration.");
+                    Lang.sendMessage(p, Lang.COMMAND_GEN_DISABLED);
                 }
             } else {
                 this.sendNoAccess(p);
@@ -164,10 +160,6 @@ public class CreateKitCommand extends PlayerCommand {
             return true;
         }
         return false;
-    }
-
-    private boolean containsIllegalChars(String strMessage) {
-        return !strMessage.matches("[a-zA-Z0-9_ ]*");
     }
 
 }

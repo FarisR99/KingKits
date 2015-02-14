@@ -3,6 +3,7 @@ package com.faris.kingkits.guis;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helpers.KitStack;
+import com.faris.kingkits.helpers.Lang;
 import com.faris.kingkits.helpers.Utils;
 import com.faris.kingkits.hooks.PvPKits;
 import com.faris.kingkits.listeners.commands.SetKit;
@@ -159,7 +160,7 @@ public class GuiKitMenu extends GuiKingKits {
                                                                 this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
                                                                 this.getPlugin().saveCooldownConfig();
                                                             } else {
-                                                                player.sendMessage(ChatColor.RED + "You must wait " + (kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)) + " second(s) before using this kit again.");
+                                                                Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf(kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000)));
                                                                 validCooldown = false;
                                                             }
                                                         }
