@@ -14,6 +14,7 @@ import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
 import com.faris.kingkits.values.CommandValues;
 import com.faris.kingkits.values.ConfigValues;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -33,11 +34,15 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.util.FileUtil;
 import org.mcstats.Metrics;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -480,8 +485,8 @@ public class KingKits extends JavaPlugin {
 
     private void loadPvPKits() {
         try {
-            this.getKitsConfig().options().header("KingKits Kits Configuration.");
             this.convertOldConfig();
+            this.getKitsConfig().options().header("KingKits Kits Configuration.");
 
             this.getKitsConfig().addDefault("First run", true);
             if (this.getKitsConfig().getBoolean("First run")) {
@@ -839,12 +844,29 @@ public class KingKits extends JavaPlugin {
 
     public void reloadKitsConfig() {
         if (this.customKitsConfig == null) this.customKitsConfig = new File(this.getDataFolder(), "kits.yml");
-        this.kitsConfig = YamlConfiguration.loadConfiguration(this.customKitsConfig);
-
-        InputStream defConfigStream = this.getResource("kits.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.kitsConfig.setDefaults(defConfig);
+        try {
+            this.kitsConfig = this.loadConfigSafely(this.customKitsConfig);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (this.customKitsConfig.exists()) {
+                File kitDestination = new File(this.getDataFolder(), "kits.broken.yml");
+                if (kitDestination.exists()) {
+                    try {
+                        kitDestination.delete();
+                    } catch (Exception ex2) {
+                    }
+                }
+                FileUtil.copy(this.customKitsConfig, kitDestination);
+                try {
+                    this.customKitsConfig.delete();
+                } catch (Exception ex2) {
+                }
+            }
+            try {
+                this.customKitsConfig.createNewFile();
+                this.kitsConfig = this.loadConfigSafely(this.customKitsConfig);
+            } catch (Exception ex2) {
+            }
         }
     }
 
@@ -867,13 +889,7 @@ public class KingKits extends JavaPlugin {
 
     public void reloadScoresConfig() {
         if (this.customScoresConfig == null) this.customScoresConfig = new File(this.getDataFolder(), "scores.yml");
-        this.scoresConfig = YamlConfiguration.loadConfiguration(this.customScoresConfig);
-
-        InputStream defConfigStream = this.getResource("scores.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.scoresConfig.setDefaults(defConfig);
-        }
+        this.scoresConfig = this.loadConfigSafely(this.customScoresConfig);
     }
 
     public FileConfiguration getScoresConfig() {
@@ -895,13 +911,7 @@ public class KingKits extends JavaPlugin {
 
     public void reloadEconomyConfig() {
         if (this.customEconomyConfig == null) this.customEconomyConfig = new File(this.getDataFolder(), "economy.yml");
-        this.economyConfig = YamlConfiguration.loadConfiguration(this.customEconomyConfig);
-
-        InputStream defConfigStream = this.getResource("economy.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.economyConfig.setDefaults(defConfig);
-        }
+        this.economyConfig = this.loadConfigSafely(this.customEconomyConfig);
     }
 
     public FileConfiguration getEconomyConfig() {
@@ -924,13 +934,7 @@ public class KingKits extends JavaPlugin {
     public void reloadKillstreaksConfig() {
         if (this.customKillstreaksConfig == null)
             this.customKillstreaksConfig = new File(this.getDataFolder(), "killstreaks.yml");
-        this.killstreaksConfig = YamlConfiguration.loadConfiguration(this.customKillstreaksConfig);
-
-        InputStream defConfigStream = this.getResource("killstreaks.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.killstreaksConfig.setDefaults(defConfig);
-        }
+        this.killstreaksConfig = this.loadConfigSafely(this.customKillstreaksConfig);
     }
 
     public FileConfiguration getKillstreaksConfig() {
@@ -953,13 +957,7 @@ public class KingKits extends JavaPlugin {
     public void reloadCooldownConfig() {
         if (this.customCooldownConfig == null)
             this.customCooldownConfig = new File(this.getDataFolder(), "cooldown.yml");
-        this.cooldownConfig = YamlConfiguration.loadConfiguration(this.customCooldownConfig);
-
-        InputStream defConfigStream = this.getResource("cooldown.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.cooldownConfig.setDefaults(defConfig);
-        }
+        this.cooldownConfig = this.loadConfigSafely(this.customCooldownConfig);
     }
 
     public FileConfiguration getCooldownConfig() {
@@ -982,13 +980,7 @@ public class KingKits extends JavaPlugin {
     public void reloadUserKitsConfig() {
         if (this.customUserKitsConfig == null)
             this.customUserKitsConfig = new File(this.getDataFolder(), "userkits.yml");
-        this.userKitsConfig = YamlConfiguration.loadConfiguration(this.customUserKitsConfig);
-
-        InputStream defConfigStream = this.getResource("userkits.yml");
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            this.userKitsConfig.setDefaults(defConfig);
-        }
+        this.userKitsConfig = this.loadConfigSafely(this.customUserKitsConfig);
     }
 
     public FileConfiguration getUserKitsConfig() {
@@ -1003,6 +995,34 @@ public class KingKits extends JavaPlugin {
         } catch (IOException ex) {
             this.getLogger().log(Level.SEVERE, "Could not save the user kits config as " + this.customUserKitsConfig.getName(), ex);
         }
+    }
+
+    private FileConfiguration loadConfigSafely(File configFile) {
+        try {
+            return customLoadConfiguration(configFile);
+        } catch (Exception ex) {
+            if (ex.getClass() != FileNotFoundException.class)
+                this.getServer().getLogger().log(Level.SEVERE, "Cannot load " + configFile, ex);
+            if (configFile.exists()) {
+                String filePath = configFile.getAbsolutePath();
+                String brokenFilePath = filePath.substring(0, filePath.indexOf(".yml")) + "-" + System.currentTimeMillis() + ".yml.broken";
+                File configDestination = new File(brokenFilePath);
+                try {
+                    FileInputStream configFileInputStream = new FileInputStream(configFile);
+                    Files.copy(configFileInputStream, configDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    configFileInputStream.close();
+                    configFile.delete();
+                } catch (Exception ex2) {
+                }
+            } else {
+            }
+            try {
+                configFile.createNewFile();
+                return customLoadConfiguration(configFile);
+            } catch (Exception ex2) {
+            }
+        }
+        return YamlConfiguration.loadConfiguration(new File(this.getDataFolder(), "temp" + System.currentTimeMillis() + ".yml"));
     }
 
     /**
@@ -1183,6 +1203,13 @@ public class KingKits extends JavaPlugin {
 
     public static KingKits getInstance() {
         return pluginInstance;
+    }
+
+    private static YamlConfiguration customLoadConfiguration(File file) throws Exception {
+        Validate.notNull(file, "File cannot be null");
+        YamlConfiguration config = new YamlConfiguration();
+        config.load(file);
+        return config;
     }
 
 }
