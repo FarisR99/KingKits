@@ -71,19 +71,19 @@ public class SetKit {
                             try {
                                 net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) plugin.vault.getEconomy();
                                 double kitCost = newKit.getCost();
-                                if (kitCost < 0) kitCost *= -1;
-                                if (economy.hasAccount(player.getName())) {
-                                    if (economy.getBalance(player.getName()) >= kitCost) {
-                                        economy.withdrawPlayer(player.getName(), kitCost);
-                                        if (kitCost != 0)
+                                if (kitCost > 0D) {
+                                    if (economy.hasAccount(player.getName())) {
+                                        if (economy.getBalance(player.getName()) >= kitCost) {
+                                            economy.withdrawPlayer(player.getName(), kitCost);
                                             player.sendMessage(ChatColor.GREEN + plugin.getEconomyMessage(kitCost));
+                                        } else {
+                                            if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
+                                            return null;
+                                        }
                                     } else {
                                         if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
                                         return null;
                                     }
-                                } else {
-                                    if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
-                                    return null;
                                 }
                             } catch (Exception ex) {
                             }

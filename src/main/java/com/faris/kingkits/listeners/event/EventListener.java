@@ -221,18 +221,75 @@ public class EventListener implements Listener {
 
             // Remove killstreak
             try {
-                if (this.getPlugin().configValues.killstreaks) {
-                    if (event.getPlayer() != null)
-                        this.getPlugin().playerKillstreaks.remove(event.getPlayer().getName());
-                }
+                this.getPlugin().playerKillstreaks.remove(event.getPlayer().getName());
             } catch (Exception ex) {
             }
         } catch (Exception ex) {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        // Quicksoup
+        try {
+            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if (event.getItem() != null) {
+                    if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
+                        if (this.getPlugin().configValues.quickSoup) {
+                            if (event.getPlayer().hasPermission(this.getPlugin().permissions.quickSoup) || (this.getPlugin().configValues.opBypass && event.getPlayer().isOp())) {
+                                if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+                                    Player player = event.getPlayer();
+                                    int soupAmount = player.getInventory().getItemInHand().getAmount();
+                                    if (soupAmount == 1) {
+                                        boolean valid = true;
+                                        if (player.getHealth() < player.getMaxHealth()) {
+                                            if (player.getHealth() + 5 > player.getMaxHealth())
+                                                player.setHealth(player.getMaxHealth());
+                                            else player.setHealth(player.getHealth() + 5);
+                                        } else if (player.getFoodLevel() < 20) {
+                                            if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
+                                            else player.setFoodLevel(player.getFoodLevel() + 4);
+                                        } else {
+                                            valid = false;
+                                        }
+                                        if (valid) {
+                                            player.getInventory().setItemInHand(new ItemStack(Material.BOWL, 1));
+                                            event.setCancelled(true);
+                                        }
+                                    } else if (soupAmount > 0) {
+                                        boolean valid = true;
+                                        if (player.getHealth() < player.getMaxHealth()) {
+                                            if (player.getHealth() + 5 > player.getMaxHealth())
+                                                player.setHealth(player.getMaxHealth());
+                                            else player.setHealth(player.getHealth() + 5);
+                                        } else if (player.getFoodLevel() < 20) {
+                                            if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
+                                            else player.setFoodLevel(player.getFoodLevel() + 4);
+                                        } else {
+                                            valid = false;
+                                        }
+                                        if (valid) {
+                                            int newAmount = soupAmount - 1;
+                                            ItemStack newItem = player.getInventory().getItemInHand();
+                                            newItem.setAmount(newAmount);
+                                            player.getInventory().setItemInHand(newItem);
+                                            player.getInventory().addItem(new ItemStack(Material.BOWL));
+                                            event.setCancelled(true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerInteractIgnoreCancelled(PlayerInteractEvent event) {
         try {
             // No tool damage
             try {
@@ -341,63 +398,6 @@ public class EventListener implements Listener {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
-            // Quicksoup
-            try {
-                if (event.getItem() != null) {
-                    if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                        if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
-                            if (this.getPlugin().configValues.quickSoup) {
-                                if (event.getPlayer().hasPermission(this.getPlugin().permissions.quickSoup) || (this.getPlugin().configValues.opBypass && event.getPlayer().isOp())) {
-                                    if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
-                                        Player player = event.getPlayer();
-                                        int soupAmount = player.getInventory().getItemInHand().getAmount();
-                                        if (soupAmount == 1) {
-                                            boolean valid = true;
-                                            if (player.getHealth() < player.getMaxHealth()) {
-                                                if (player.getHealth() + 5 > player.getMaxHealth())
-                                                    player.setHealth(player.getMaxHealth());
-                                                else player.setHealth(player.getHealth() + 5);
-                                            } else if (player.getFoodLevel() < 20) {
-                                                if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
-                                                else player.setFoodLevel(player.getFoodLevel() + 4);
-                                            } else {
-                                                valid = false;
-                                            }
-                                            if (valid) {
-                                                player.getInventory().setItemInHand(new ItemStack(Material.BOWL, 1));
-                                                event.setCancelled(true);
-                                            }
-                                        } else if (soupAmount > 0) {
-                                            boolean valid = true;
-                                            if (player.getHealth() < player.getMaxHealth()) {
-                                                if (player.getHealth() + 5 > player.getMaxHealth())
-                                                    player.setHealth(player.getMaxHealth());
-                                                else player.setHealth(player.getHealth() + 5);
-                                            } else if (player.getFoodLevel() < 20) {
-                                                if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
-                                                else player.setFoodLevel(player.getFoodLevel() + 4);
-                                            } else {
-                                                valid = false;
-                                            }
-                                            if (valid) {
-                                                int newAmount = soupAmount - 1;
-                                                ItemStack newItem = player.getInventory().getItemInHand();
-                                                newItem.setAmount(newAmount);
-                                                player.getInventory().setItemInHand(newItem);
-                                                player.getInventory().addItem(new ItemStack(Material.BOWL));
-                                                event.setCancelled(true);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                if (Math.random() < 0.5D) ex.printStackTrace();
-            }
         } catch (Exception ex) {
         }
     }
@@ -447,10 +447,12 @@ public class EventListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         try {
+            boolean inPvPWorld = this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getWorld().getName());
+
             // Scores
             try {
                 if (this.getPlugin().configValues.scores) {
-                    if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getWorld().getName())) {
+                    if (inPvPWorld) {
                         final Player killer = event.getEntity().getKiller();
                         if (killer != null && !event.getEntity().getName().equals(killer.getName())) {
                             try {
@@ -492,9 +494,10 @@ public class EventListener implements Listener {
                 }
                 if (this.getPlugin().usingKits.containsKey(player.getName())) {
                     this.getPlugin().usingKits.remove(player.getName());
-                    if (!this.getPlugin().configValues.dropItemsOnDeath) event.getDrops().clear();
                     hadKit = true;
                 }
+                if (inPvPWorld && !this.getPlugin().configValues.dropItemsOnDeath)
+                    event.getDrops().clear();
                 if (hadKit) {
                     player.setMaxHealth(20D);
                     player.getInventory().clear();
@@ -511,8 +514,7 @@ public class EventListener implements Listener {
             // Disable death messages
             try {
                 if (this.getPlugin().configValues.disableDeathMessages) {
-                    if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getWorld().getName()))
-                        event.setDeathMessage("");
+                    if (inPvPWorld) event.setDeathMessage("");
                 }
             } catch (Exception ex) {
             }
@@ -535,7 +537,7 @@ public class EventListener implements Listener {
             }
 
             // Killstreaks
-            if (this.getPlugin().configValues.killstreaks)
+            if (this.getPlugin().configValues.killstreaks && this.getPlugin().playerKillstreaks.containsKey(event.getEntity().getName()))
                 this.getPlugin().playerKillstreaks.remove(event.getEntity().getName());
         } catch (Exception ex) {
         }
