@@ -70,8 +70,24 @@ public class GuiKitMenu extends GuiKingKits {
                             if (currentStack.getItemMeta() != null) {
                                 ItemMeta itemMeta = currentStack.getItemMeta();
                                 Kit targetKit = PvPKits.getKitByName(this.guiKitStacks[i].getKitName(), this.getPlayerName());
+
                                 ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utils.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
                                 itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
+
+                                if (targetKit != null && targetKit.hasDescription()) {
+                                    List<String> kitDescription = new ArrayList<String>();
+                                    for (String descriptionLine : targetKit.getDescription()) {
+                                        descriptionLine = Utils.replaceChatColour(descriptionLine);
+                                        descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
+                                        descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+                                        descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+                                        descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+                                        descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+                                        kitDescription.add(descriptionLine);
+                                    }
+                                    itemMeta.setLore(kitDescription);
+                                }
+
                                 currentStack.setItemMeta(itemMeta);
                             }
                             this.guiInventory.addItem(currentStack);

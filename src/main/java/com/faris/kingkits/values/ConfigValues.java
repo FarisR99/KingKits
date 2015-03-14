@@ -36,6 +36,7 @@ public class ConfigValues {
 
     public boolean quickSoup = true;
     public boolean quickSoupKitOnly = true;
+    public double quickSoupHeal = 2.5;
 
     public boolean banBlockBreakingAndPlacing = false;
 

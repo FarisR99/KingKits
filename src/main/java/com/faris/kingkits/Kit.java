@@ -34,6 +34,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     private List<ItemStack> kitArmour = new ArrayList<ItemStack>();
     private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
     private Map<Long, List<String>> killstreakCommands = new HashMap<Long, List<String>>();
+    private List<String> kitDescription = new ArrayList<String>();
 
     private boolean itemBreaking = true;
 
@@ -98,7 +99,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     public Kit addItem(ItemStack itemStack) {
         Validate.notNull(itemStack);
-        this.kitItems.put(this.getFreeSlot(), itemStack);
+        int freeSlot = this.getFreeSlot();
+        if (freeSlot >= 0 && freeSlot < 36) this.kitItems.put(freeSlot, itemStack);
         return this;
     }
 
@@ -120,6 +122,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     public double getCost() {
         return this.kitCost;
+    }
+
+    public List<String> getDescription() {
+        return this.kitDescription;
     }
 
     private int getFreeSlot() {
@@ -179,6 +185,10 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         return KingKits.getInstance().configValues.kitCooldown && this.kitCooldown > 0;
     }
 
+    public boolean hasDescription() {
+        return !this.kitDescription.isEmpty();
+    }
+
     public boolean isUserKit() {
         return this.userKit;
     }
@@ -217,6 +227,11 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 
     public Kit setCost(double cost) {
         this.kitCost = cost;
+        return this;
+    }
+
+    public Kit setDescription(List<String> description) {
+        if (description != null) this.kitDescription = description;
         return this;
     }
 
@@ -291,6 +306,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
         serializedKit.put("Item breaking", this.itemBreaking);
         serializedKit.put("Max health", this.maxHealth);
         serializedKit.put("GUI Position", this.guiPosition);
+        serializedKit.put("Description", this.kitDescription);
 
         /** GUI Item **/
         if (this.guiItem != null) {
@@ -440,6 +456,8 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
                     kit.setMaxHealth(getObject(kitSection, "Max health", Integer.class));
                 if (kitSection.containsKey("GUI Position"))
                     kit.setGuiPosition(getObject(kitSection, "GUI Position", Integer.class));
+                if (kitSection.containsKey("Description"))
+                    kit.setDescription(getObject(kitSection, "Description", List.class));
                 if (kitSection.containsKey("GUI Item")) {
                     Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
                     ItemStack guiItem = null;
@@ -664,7 +682,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
     public static <T> T getObject(Map<String, Object> map, String key, Class<T> unused) throws ClassCastException {
         try {
             T value = map.containsKey(key) ? (T) map.get(key) : null;
-            return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : value))) : null;
+            return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : (unused == Double.class ? (T) ((Double) Double.parseDouble(value.toString())) : value)))) : null;
         } catch (ClassCastException ex) {
             throw ex;
         }

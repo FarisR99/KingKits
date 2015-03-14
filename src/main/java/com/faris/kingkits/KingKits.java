@@ -325,6 +325,7 @@ public class KingKits extends JavaPlugin {
             this.getConfig().addDefault("Remove potion effects on leave", true);
             this.getConfig().addDefault("Set compass target to nearest player", true);
             this.getConfig().addDefault("Quick soup", true);
+            this.getConfig().addDefault("Quick soup heal", 2.5D);
             this.getConfig().addDefault("Requires kit to use refill", true);
             this.getConfig().addDefault("Command to run when changing kits", "");
             this.getConfig().addDefault("Disable block placing and breaking", false);
@@ -363,11 +364,11 @@ public class KingKits extends JavaPlugin {
             this.cmdValues.deleteUKits = this.getConfig().getBoolean("Enable delete user kits command");
             this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
             this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
-            this.configValues.strKitSign = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign"));
-            this.configValues.strKitListSign = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit list sign"));
-            this.configValues.strKitSignValid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign valid"));
-            this.configValues.strKitSignInvalid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit sign invalid"));
-            this.configValues.strKitListSignValid = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("Kit list sign valid"));
+            this.configValues.strKitSign = Utils.replaceChatColour(this.getConfig().getString("Kit sign"));
+            this.configValues.strKitListSign = Utils.replaceChatColour(this.getConfig().getString("Kit list sign"));
+            this.configValues.strKitSignValid = Utils.replaceChatColour(this.getConfig().getString("Kit sign valid"));
+            this.configValues.strKitSignInvalid = Utils.replaceChatColour(this.getConfig().getString("Kit sign invalid"));
+            this.configValues.strKitListSignValid = Utils.replaceChatColour(this.getConfig().getString("Kit list sign valid"));
             this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
             this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
             this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
@@ -386,6 +387,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.removePotionEffectsOnLeave = this.getConfig().getBoolean("Remove potion effects on leave");
             this.configValues.rightClickCompass = this.getConfig().getBoolean("Set compass target to nearest player");
             this.configValues.quickSoup = this.getConfig().getBoolean("Quick soup");
+            this.configValues.quickSoupHeal = (float) (Math.ceil(this.getConfig().getDouble("Quick soup heal") * 2) / 2);
             this.configValues.quickSoupKitOnly = this.getConfig().getBoolean("Requires kit to use refill");
             this.configValues.banBlockBreakingAndPlacing = this.getConfig().getBoolean("Disable block placing and breaking");
             this.configValues.disableDeathMessages = this.getConfig().getBoolean("Disable death messages");
@@ -402,7 +404,7 @@ public class KingKits extends JavaPlugin {
             this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
             this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
 
-            this.configValues.guiTitle = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("GUI.Title"));
+            this.configValues.guiTitle = Utils.replaceChatColour(this.getConfig().getString("GUI.Title"));
             this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
             if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54)
                 this.configValues.guiSize = 36;

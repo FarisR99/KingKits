@@ -240,40 +240,28 @@ public class EventListener implements Listener {
                                 if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
                                     Player player = event.getPlayer();
                                     int soupAmount = player.getInventory().getItemInHand().getAmount();
-                                    if (soupAmount == 1) {
+                                    if (soupAmount > 0) {
                                         boolean valid = true;
                                         if (player.getHealth() < player.getMaxHealth()) {
-                                            if (player.getHealth() + 5 > player.getMaxHealth())
+                                            if (player.getHealth() + (this.getPlugin().configValues.quickSoupHeal * 2) > player.getMaxHealth())
                                                 player.setHealth(player.getMaxHealth());
-                                            else player.setHealth(player.getHealth() + 5);
+                                            else player.setHealth(player.getHealth() + (this.getPlugin().configValues.quickSoupHeal * 2));
                                         } else if (player.getFoodLevel() < 20) {
-                                            if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
-                                            else player.setFoodLevel(player.getFoodLevel() + 4);
+                                            if (player.getFoodLevel() + 6 > 20) player.setFoodLevel(20);
+                                            else player.setFoodLevel(player.getFoodLevel() + 6);
                                         } else {
                                             valid = false;
                                         }
                                         if (valid) {
-                                            player.getInventory().setItemInHand(new ItemStack(Material.BOWL, 1));
-                                            event.setCancelled(true);
-                                        }
-                                    } else if (soupAmount > 0) {
-                                        boolean valid = true;
-                                        if (player.getHealth() < player.getMaxHealth()) {
-                                            if (player.getHealth() + 5 > player.getMaxHealth())
-                                                player.setHealth(player.getMaxHealth());
-                                            else player.setHealth(player.getHealth() + 5);
-                                        } else if (player.getFoodLevel() < 20) {
-                                            if (player.getFoodLevel() + 4 > 20) player.setFoodLevel(20);
-                                            else player.setFoodLevel(player.getFoodLevel() + 4);
-                                        } else {
-                                            valid = false;
-                                        }
-                                        if (valid) {
-                                            int newAmount = soupAmount - 1;
-                                            ItemStack newItem = player.getInventory().getItemInHand();
-                                            newItem.setAmount(newAmount);
-                                            player.getInventory().setItemInHand(newItem);
-                                            player.getInventory().addItem(new ItemStack(Material.BOWL));
+                                            if (soupAmount == 1) {
+                                                player.getInventory().setItemInHand(new ItemStack(Material.BOWL, 1));
+                                            } else {
+                                                int newAmount = soupAmount - 1;
+                                                ItemStack newItem = player.getInventory().getItemInHand();
+                                                newItem.setAmount(newAmount);
+                                                player.getInventory().setItemInHand(newItem);
+                                                player.getInventory().addItem(new ItemStack(Material.BOWL, 1));
+                                            }
                                             event.setCancelled(true);
                                         }
                                     }
