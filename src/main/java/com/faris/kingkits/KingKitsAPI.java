@@ -438,9 +438,9 @@ public class KingKitsAPI {
 			if (playerKit != null) {
 				if (!allowUserKits) {
 					Kit kit = getKitByName(playerKit, player.getUniqueId());
-					return kit != null && !kit.isUserKit() && playerKit.equalsIgnoreCase(kitName);
+					return kit != null && !kit.isUserKit() && kit.getName().equalsIgnoreCase(kitName);
 				} else {
-					return playerKit.equalsIgnoreCase(kitName);
+					return kitName.equalsIgnoreCase(playerKit);
 				}
 			}
 		}

@@ -14,6 +14,7 @@ import org.bukkit.potion.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class SetKit {
 
@@ -22,9 +23,9 @@ public class SetKit {
 		if (kit != null) {
 			KingKits pl = KingKits.getInstance();
 			if (kit.hasCooldown() && !player.hasPermission(pl.permissions.kitBypassCooldown)) {
-				final String playerName = player.getName();
+				final UUID playerUUID = player.getUniqueId();
 				final String newKitName = kit.getRealName();
-				pl.getCooldownConfig().set(playerName + "." + newKitName, System.currentTimeMillis());
+				pl.getCooldownConfig().set(playerUUID.toString() + "." + newKitName, System.currentTimeMillis());
 				pl.saveCooldownConfig();
 			}
 		}

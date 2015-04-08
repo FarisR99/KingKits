@@ -23,7 +23,6 @@ import org.bukkit.inventory.*;
 import org.bukkit.permissions.*;
 import org.bukkit.plugin.java.*;
 import org.bukkit.potion.*;
-import org.bukkit.scoreboard.*;
 import org.bukkit.util.*;
 import org.mcstats.Metrics;
 
@@ -301,7 +300,7 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
 			this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
 			this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
-			this.getConfig().addDefault("Kit cooldown enabled", false);
+			this.getConfig().addDefault("Kit cooldown enabled", true);
 			if (this.getConfig().contains("Kit cooldown")) this.getConfig().set("Kit cooldown", null);
 			this.getConfig().addDefault("List kits on join", true);
 			this.getConfig().addDefault("Use permissions on join", true);
@@ -426,20 +425,6 @@ public class KingKits extends JavaPlugin {
 			this.loadEconomy();
 			this.loadKillstreaks();
 
-			for (Player onlinePlayer : Utilities.getOnlinePlayers()) {
-				Scoreboard playerScoreboard = onlinePlayer.getScoreboard();
-				if (playerScoreboard != null) {
-					if (playerScoreboard.getObjective("KingKits") != null) {
-						playerScoreboard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Score:"));
-						playerScoreboard.resetScores(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Killstreak:"));
-						playerScoreboard.clearSlot(DisplaySlot.SIDEBAR);
-						if (playerScoreboard.getObjectives().isEmpty())
-							onlinePlayer.setScoreboard(this.getServer().getScoreboardManager().getNewScoreboard());
-						else onlinePlayer.setScoreboard(playerScoreboard);
-					}
-				}
-			}
-
 			if (this.configValues.kitCooldown) {
 				this.cooldownTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
 					public void run() {
@@ -473,6 +458,7 @@ public class KingKits extends JavaPlugin {
 					}
 				}, 1200L, 1200L).getTaskId();
 			}
+			this.convertOldConfigCooldowns();
 		} catch (Exception ex) {
 			throw ex;
 		}
@@ -748,14 +734,14 @@ public class KingKits extends JavaPlugin {
 		return configKeys;
 	}
 
-	public long getCooldown(String playerName, String kitName) {
-		if (playerName != null && kitName != null && this.kitList.containsKey(kitName) && this.getCooldownConfig().contains(playerName)) {
-			Object objCooldownPlayer = this.getCooldownConfig().get(playerName);
+	public long getCooldown(UUID playerUUID, String kitName) {
+		if (playerUUID != null && kitName != null && this.kitList.containsKey(kitName) && this.getCooldownConfig().contains(playerUUID.toString())) {
+			Object objCooldownPlayer = this.getCooldownConfig().get(playerUUID.toString());
 			Map<String, Object> playerKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
 			if (playerKitCooldowns.containsKey(kitName)) {
 				String strPlayerCooldown = playerKitCooldowns.get(kitName) != null ? playerKitCooldowns.get(kitName).toString() : null;
 				if (!Utilities.isLong(strPlayerCooldown)) {
-					this.getCooldownConfig().set(playerName + "." + kitName, null);
+					this.getCooldownConfig().set(playerUUID.toString() + "." + kitName, null);
 					this.saveCooldownConfig();
 				} else {
 					return Long.parseLong(strPlayerCooldown);
@@ -765,15 +751,15 @@ public class KingKits extends JavaPlugin {
 		return System.currentTimeMillis();
 	}
 
-	public Map<String, Long> getCooldowns(String playerName) {
+	public Map<String, Long> getCooldowns(UUID playerUUID) {
 		Map<String, Long> kitCooldowns = new HashMap<String, Long>();
-		if (playerName != null && this.getCooldownConfig().contains(playerName)) {
-			Object objCooldownPlayer = this.getCooldownConfig().get(playerName);
+		if (playerUUID != null && this.getCooldownConfig().contains(playerUUID.toString())) {
+			Object objCooldownPlayer = this.getCooldownConfig().get(playerUUID.toString());
 			Map<String, Object> configKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
 			for (Entry<String, Object> kitEntry : configKitCooldowns.entrySet()) {
 				String strPlayerCooldown = kitEntry.getValue().toString();
 				if (!Utilities.isLong(strPlayerCooldown)) {
-					this.getCooldownConfig().set(playerName + "." + strPlayerCooldown, null);
+					this.getCooldownConfig().set(playerUUID.toString() + "." + strPlayerCooldown, null);
 					this.saveCooldownConfig();
 				} else {
 					kitCooldowns.put(kitEntry.getKey(), Long.parseLong(strPlayerCooldown));
@@ -1032,6 +1018,34 @@ public class KingKits extends JavaPlugin {
 			}
 			addMap.clear();
 			this.saveUserKitsConfig();
+		}
+	}
+
+	private void convertOldConfigCooldowns() {
+		List<String> keyList = new ArrayList<String>(this.getCooldownConfig().getKeys(false));
+		Map<String, UUID> addMap = new HashMap<String, UUID>();
+		List<String> checkList = new ArrayList<String>();
+
+		for (int i = 0; i < keyList.size(); i++) {
+			String strPlayerName = keyList.get(i);
+			if (strPlayerName != null && !Utilities.isUUID(strPlayerName)) checkList.add(strPlayerName);
+		}
+		try {
+			Map<String, UUID> resultMap = UUIDFetcher.lookupNames(checkList);
+			addMap.putAll(resultMap);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		if (!addMap.isEmpty()) {
+			for (Map.Entry<String, UUID> addEntry : addMap.entrySet()) {
+				if (addEntry.getValue() != null)
+					this.getCooldownConfig().set(addEntry.getValue().toString(), this.getCooldownConfig().get(addEntry.getKey()));
+				else continue;
+				this.getCooldownConfig().set(addEntry.getKey(), null);
+			}
+			addMap.clear();
+			this.saveCooldownConfig();
 		}
 	}
 

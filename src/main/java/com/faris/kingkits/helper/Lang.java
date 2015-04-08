@@ -66,7 +66,7 @@ public enum Lang {
 	GUI_PREVIEW_BACK("GUI.Preview.Back", "&bBack"),
 
 	KIT_NO_PERMISSION("Kit.No permission", "&cYou do not have permission to use the kit &4%s&c."),
-	KIT_DELAY("Kit.Delay", "&cYou must wait %s second(s) before using this kit again."),
+	KIT_DELAY("Kit.Delay", "&cYou must wait %s %s before using this kit again."),
 	KIT_ALREADY_CHOSEN("Kit.Already chosen", "&6You have already chosen a kit!"),
 	KIT_NONEXISTENT("Kit.Non-existent", "&4%s &6does not exist."),
 	KIT_NOT_ENOUGH_MONEY("Kit.Not enough money", "&aYou do not have enough money to change kits."),
@@ -76,7 +76,14 @@ public enum Lang {
 
 	SIGN_GENERAL_INCORRECTLY_SETUP("Sign.General.Incorrectly set up", "&cThat sign has incorrectly been set up."),
 
-	SIGN_USE_NO_PERMISSION("Sign.Use.No permission", "&cYou do not have permission to use this sign.");
+	SIGN_USE_NO_PERMISSION("Sign.Use.No permission", "&cYou do not have permission to use this sign."),
+
+	TIME_SECOND_SINGULAR("Time.Second", "second"),
+	TIME_SECOND_PLURAL("Time.Seconds", "seconds"),
+	TIME_MINUTE_SINGULAR("Time.Minute", "minute"),
+	TIME_MINUTE_PLURAL("Time.Minutes", "minutes"),
+	TIME_HOUR_SINGULAR("Time.Hour", "hour"),
+	TIME_HOUR_PLURAL("Time.Hours", "hours");
 
 	private static YamlConfiguration config = null;
 	private static File configFile = null;

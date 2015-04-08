@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>3.3.5</version>
+    <version>3.3.6</version>
 
     <packaging>jar</packaging>
 
@@ -65,6 +65,19 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.3</version>
+                <configuration>
+                    <artifactSet>
+                        <includes>
+                            <include>org.mcstats.*:*</include>
+                        </includes>
+                    </artifactSet>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.mcstats</pattern>
+                            <shadedPattern>com.faris.mcstats</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -74,9 +87,8 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.bukkit</exclude>
                                     <exclude>org.spigotmc</exclude>
-                                    <exclude>net.milkbowl.vault</exclude>
+                                    <exclude>org.bukkit</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
@@ -121,12 +133,16 @@
             <id>vault-repo</id>
             <url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
         </repository>
+        <repository>
+            <id>Plugin Metrics</id>
+            <url>http://repo.mcstats.org/content/repositories/public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
             <version>LATEST</version>
         </dependency>
         <dependency>
@@ -134,6 +150,17 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.5</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mcstats.bukkit</groupId>
+            <artifactId>metrics</artifactId>
+            <version>LATEST</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

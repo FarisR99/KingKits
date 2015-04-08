@@ -2,6 +2,7 @@ package com.faris.kingkits.helper;
 
 
 import com.faris.kingkits.KingKits;
+import com.faris.kingkits.Kit;
 import org.bukkit.*;
 import org.bukkit.configuration.file.*;
 import org.bukkit.enchantments.*;
@@ -328,6 +329,37 @@ public class Utilities {
 			}
 		}
 		return romanInteger;
+	}
+
+	public static void sendDelayMessage(Player player, Kit kit, long playerCooldown) {
+		if (player != null && kit != null) {
+			long cooldownSeconds = kit.getCooldown() - ((System.currentTimeMillis() - playerCooldown) / 1000);
+			String rawMessage = Lang.KIT_DELAY.getRawMessage();
+			int numberOfReplacements = 0;
+			while (rawMessage.contains("%s")) {
+				numberOfReplacements++;
+				rawMessage = rawMessage.replaceFirst("%s", "");
+			}
+			if (numberOfReplacements >= 2) {
+				Time delay = new Time(cooldownSeconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cooldownSeconds);
+				int intDelay = 0;
+				String strUnit = "";
+				if (delay.getHours() > 0) {
+					intDelay = delay.getHours();
+					strUnit = intDelay != 1 ? Lang.TIME_HOUR_PLURAL.getMessage() : Lang.TIME_HOUR_SINGULAR.getMessage();
+				} else if (delay.getMinutes() > 0) {
+					intDelay = delay.getMinutes();
+					strUnit = intDelay != 1 ? Lang.TIME_MINUTE_PLURAL.getMessage() : Lang.TIME_MINUTE_SINGULAR.getMessage();
+				} else {
+					intDelay = delay.getSeconds();
+					strUnit = intDelay != 1 ? Lang.TIME_SECOND_PLURAL.getMessage() : Lang.TIME_SECOND_SINGULAR.getMessage();
+				}
+
+				Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf(intDelay), strUnit);
+			} else {
+				Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf(cooldownSeconds));
+			}
+		}
 	}
 
 	public static String stripColour(String kitName) {

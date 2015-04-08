@@ -271,13 +271,13 @@ public class EventListener implements Listener {
 														final Kit kit = KingKitsAPI.getKitByName(kitName, false);
 														boolean validCooldown = true;
 														if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
-															if (this.getPlugin().getCooldownConfig().contains(player.getName() + "." + kit.getRealName())) {
-																long currentCooldown = this.getPlugin().getCooldown(player.getName(), kit.getRealName());
+															if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
+																long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
 																if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
-																	this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+																	this.getPlugin().getCooldownConfig().set(player.getUniqueId().toString() + "." + kit.getRealName(), null);
 																	this.getPlugin().saveCooldownConfig();
 																} else {
-																	Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf((kit.getCooldown() - ((System.currentTimeMillis() - currentCooldown) / 1000))));
+																	Utilities.sendDelayMessage(player, kit, currentCooldown);
 																	validCooldown = false;
 																}
 															}
