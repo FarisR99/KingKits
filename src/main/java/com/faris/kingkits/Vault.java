@@ -1,26 +1,29 @@
 package com.faris.kingkits;
 
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.*;
+import org.bukkit.plugin.*;
 
 public class Vault {
-    private KingKits plugin = null;
-    private boolean printed = false;
 
-    public Vault(KingKits pluginInstance) {
-        this.plugin = pluginInstance;
-        this.printed = false;
-    }
+	private boolean printed = false;
 
-    public Object getEconomy() {
-        if (this.plugin.configValues.vaultValues.useEconomy) {
-            RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = this.plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-            if (economyProvider != null) return economyProvider.getProvider();
-        }
-        if (!this.printed) {
-            System.out.println("Vault could not be found.");
-            this.printed = true;
-        }
-        return null;
-    }
+	public Vault() {
+		this.printed = false;
+	}
+
+	public Object getEconomy() {
+		if (KingKits.getInstance() != null && KingKits.getInstance().configValues.vaultValues.useEconomy) {
+			try {
+				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+				if (economyProvider != null) return economyProvider.getProvider();
+			} catch (Exception ex) {
+				if (!this.printed) {
+					System.out.println("Vault could not be found.");
+					this.printed = true;
+				}
+			}
+		}
+		return null;
+	}
 
 }
