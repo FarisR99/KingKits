@@ -437,7 +437,7 @@ public class KingKitsAPI {
 			String playerKit = getKit(player);
 			if (playerKit != null) {
 				if (!allowUserKits) {
-					Kit kit = getKitByName(playerKit, true);
+					Kit kit = getKitByName(playerKit, player.getUniqueId());
 					return kit != null && !kit.isUserKit() && playerKit.equalsIgnoreCase(kitName);
 				} else {
 					return playerKit.equalsIgnoreCase(kitName);

@@ -1072,5 +1072,4 @@ public class KingKits extends JavaPlugin {
 		config.load(file);
 		return config;
 	}
-
 }
