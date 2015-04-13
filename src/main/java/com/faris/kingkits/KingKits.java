@@ -571,7 +571,7 @@ public class KingKits extends JavaPlugin {
 		try {
 			this.getScoresConfig().options().header("KingKits Score Configuration");
 			if (!this.getScoresConfig().contains("Scores"))
-				this.getScoresConfig().createSection("Scores", Collections.singletonMap(UUID.fromString("f9843dd6-0a5f-4009-b451-847291bda6b3"), 0D));
+				this.getScoresConfig().createSection("Scores", Collections.singletonMap(UUID.fromString("f9843dd6-0a5f-4009-b451-847291bda6b3"), 0));
 			this.getScoresConfig().options().copyDefaults(true);
 			this.getScoresConfig().options().copyHeader(true);
 			this.saveScoresConfig();
