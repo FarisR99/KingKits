@@ -65,6 +65,7 @@ public class KingKits extends JavaPlugin {
 	private CreateUserKitCommand cmdKitUC = null;
 	private DeleteUserKitCommand cmdKitUD = null;
 	private RenameUserKitCommand cmdKitUR = null;
+	private PreviewKitCommand cmdKitPreview = null;
 
 	public Map<String, Kit> kitList = null;
 	public Map<UUID, List<Kit>> userKitList = null;
@@ -105,6 +106,7 @@ public class KingKits extends JavaPlugin {
 		this.cmdKitUC = new CreateUserKitCommand(this);
 		this.cmdKitUD = new DeleteUserKitCommand(this);
 		this.cmdKitUR = new RenameUserKitCommand(this);
+		this.cmdKitPreview = new PreviewKitCommand(this);
 
 		// Register commands
 		this.getCommand("kingkits").setExecutor(this.cmdKingKits);
@@ -118,6 +120,7 @@ public class KingKits extends JavaPlugin {
 		this.getCommand("createukit").setExecutor(this.cmdKitUC);
 		this.getCommand("deleteukit").setExecutor(this.cmdKitUD);
 		this.getCommand("renameukit").setExecutor(this.cmdKitUR);
+		this.getCommand("previewkit").setExecutor(this.cmdKitPreview);
 
 		// Register permissions
 		for (Permission registeredPerm : this.permissions.permissionsList)
@@ -295,6 +298,7 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Enable delete user kits command", true);
 			this.getConfig().addDefault("Enable rename user kits command", true);
 			this.getConfig().addDefault("Enable refill command", true);
+			this.getConfig().addDefault("Enable preview kit command", true);
 			this.getConfig().addDefault("Kit sign", "[Kit]");
 			this.getConfig().addDefault("Kit list sign", "[KList]");
 			this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
@@ -362,6 +366,7 @@ public class KingKits extends JavaPlugin {
 			this.cmdValues.deleteUKits = this.getConfig().getBoolean("Enable delete user kits command");
 			this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
 			this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
+			this.cmdValues.previewKit = this.getConfig().getBoolean("Enable preview kit command");
 			this.configValues.strKitSign = Utilities.replaceChatColour(this.getConfig().getString("Kit sign"));
 			this.configValues.strKitListSign = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign"));
 			this.configValues.strKitSignValid = Utilities.replaceChatColour(this.getConfig().getString("Kit sign valid"));
@@ -566,7 +571,7 @@ public class KingKits extends JavaPlugin {
 		try {
 			this.getScoresConfig().options().header("KingKits Score Configuration");
 			if (!this.getScoresConfig().contains("Scores"))
-				this.getScoresConfig().createSection("Scores", Collections.singletonMap(UUID.fromString("f9843dd6-0a5f-4009-b451-847291bda6b3"), 0));
+				this.getScoresConfig().createSection("Scores", Collections.singletonMap(UUID.fromString("f9843dd6-0a5f-4009-b451-847291bda6b3"), 0D));
 			this.getScoresConfig().options().copyDefaults(true);
 			this.getScoresConfig().options().copyHeader(true);
 			this.saveScoresConfig();

@@ -766,9 +766,11 @@ public class EventListener implements Listener {
 				if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useMoneyPerKill) {
 					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(killer.getWorld().getName())) {
 						net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-						if (!economy.hasAccount(killer)) economy.createPlayerAccount(killer);
-						economy.depositPlayer(killer, this.getPlugin().configValues.vaultValues.moneyPerKill);
-						killer.sendMessage(this.getPlugin().getMPKMessage(event.getDead(), this.getPlugin().configValues.vaultValues.moneyPerKill));
+						if (economy != null) {
+							if (!economy.hasAccount(killer)) economy.createPlayerAccount(killer);
+							economy.depositPlayer(killer, this.getPlugin().configValues.vaultValues.moneyPerKill);
+							killer.sendMessage(this.getPlugin().getMPKMessage(event.getDead(), this.getPlugin().configValues.vaultValues.moneyPerKill));
+						}
 					}
 				}
 			} catch (Exception ex) {

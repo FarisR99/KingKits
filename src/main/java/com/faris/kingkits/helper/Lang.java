@@ -41,6 +41,8 @@ public enum Lang {
 	COMMAND_KIT_LIST_NO_PERMISSION("Command.Kit.List.No permission", "&4You do not have permission to list the kits."),
 	COMMAND_KIT_OTHER_PLAYER("Command.Kit.Other player", "&6You set %s's kit. This may not have been successful if you typed an invalid kit name, if they already have a kit, if they do not have permission to use that kit or they do not have enough money."),
 
+	COMMAND_PREVIEW_OPEN_OTHER("Command.Preview.Open other", "&6You made &4%s &6open a kit preview for &c%s&6."),
+
 	COMMAND_REFILL_BOWL("Command.Refill.Bowl", "&cYou must have a bowl in your hand."),
 	COMMAND_REFILL_NOT_ENOUGH_MONEY("Command.Refill.Not enough money", "&aYou do not have enough money to refill your bowl(s)."),
 	COMMAND_REFILL_FULL_INV("Command.Refill.Full inventory", "&cYou have a full inventory!"),
@@ -83,7 +85,9 @@ public enum Lang {
 	TIME_MINUTE_SINGULAR("Time.Minute", "minute"),
 	TIME_MINUTE_PLURAL("Time.Minutes", "minutes"),
 	TIME_HOUR_SINGULAR("Time.Hour", "hour"),
-	TIME_HOUR_PLURAL("Time.Hours", "hours");
+	TIME_HOUR_PLURAL("Time.Hours", "hours"),
+	TIME_DAY_SINGULAR("Time.Day", "day"),
+	TIME_DAY_PLURAL("Time.Days", "days");
 
 	private static YamlConfiguration config = null;
 	private static File configFile = null;

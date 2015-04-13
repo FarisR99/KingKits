@@ -115,7 +115,7 @@ public class KingKitsAPI {
 			KingKits.getInstance().getUserKitsConfig().set(playerUUID.toString() + "." + kitName, kit.serialize());
 			KingKits.getInstance().saveUserKitsConfig();
 			List<Kit> currentUserKits = KingKits.getInstance().userKitList.get(playerUUID);
-			if (currentUserKits == null) currentUserKits = new ArrayList<Kit>();
+			if (currentUserKits == null) currentUserKits = new ArrayList<>();
 			currentUserKits.add(kit);
 			KingKits.getInstance().userKitList.put(playerUUID, currentUserKits);
 			return true;

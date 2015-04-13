@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiKitMenu extends GuiKingKits {
+
 	private KitStack[] guiKitStacks = null;
 
 	/**
@@ -85,7 +86,6 @@ public class GuiKitMenu extends GuiKingKits {
 									}
 									itemMeta.setLore(kitDescription);
 								}
-
 								currentStack.setItemMeta(itemMeta);
 							}
 							this.guiInventory.addItem(currentStack);
@@ -216,4 +216,19 @@ public class GuiKitMenu extends GuiKingKits {
 			ex.printStackTrace();
 		}
 	}
+
+	@EventHandler(priority = EventPriority.LOW)
+	protected void onPlayerCloseInventory(InventoryCloseEvent event) {
+		try {
+			if (this.guiInventory != null && event.getInventory() != null) {
+				if (event.getPlayer() instanceof Player) {
+					if (this.getPlayerName().equals(event.getPlayer().getName())) {
+						this.closeMenu(true, false);
+					}
+				}
+			}
+		} catch (Exception ex) {
+		}
+	}
+
 }

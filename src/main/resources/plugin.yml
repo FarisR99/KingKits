@@ -34,3 +34,6 @@ commands:
     renameukit:
       description: Rename a user PvP kit.
       usage: /<command> [<name> <newname>]
+    previewkit:
+      description: Preview a kit, or make another player preview a kit.
+      usage: /<command> <kit> [<player>]

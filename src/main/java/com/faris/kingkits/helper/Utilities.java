@@ -1,17 +1,14 @@
 package com.faris.kingkits.helper;
 
 
-import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import org.bukkit.*;
-import org.bukkit.configuration.file.*;
 import org.bukkit.enchantments.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,23 +16,13 @@ import java.util.UUID;
 
 public class Utilities {
 
-	public static boolean deleteDirectory(File directory, boolean ignoreErrors) {
-		try {
-			if (directory.exists() && directory.isDirectory()) {
-				File files[] = directory.listFiles();
-				for (int i = 0; i < files.length; i++) {
-					if (files[i].isDirectory()) {
-						deleteDirectory(files[i], true);
-					} else {
-						files[i].delete();
-					}
-				}
-			}
-		} catch (Exception ex) {
-			if (!ignoreErrors) ex.printStackTrace();
+	public static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
+		public int compare(String str1, String str2) {
+			int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+			if (res == 0) res = str1.compareTo(str2);
+			return res;
 		}
-		return (directory.delete());
-	}
+	};
 
 	public static int getDye(String friendlyName) {
 		if (friendlyName != null) {
@@ -113,15 +100,6 @@ public class Utilities {
 				return Enchantment.DEPTH_STRIDER.getName();
 		}
 		return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
-	}
-
-	public static FileConfiguration getKingKitsSpecialConfig() {
-		try {
-			File kkSpecialConfig = new File(KingKits.getInstance().getDataFolder().getAbsoluteFile().getParentFile(), "KingKitsSpecial/config.yml");
-			return kkSpecialConfig.exists() ? YamlConfiguration.loadConfiguration(kkSpecialConfig) : null;
-		} catch (Exception ex) {
-			return null;
-		}
 	}
 
 	public static List<Player> getOnlinePlayers() {
@@ -205,50 +183,6 @@ public class Utilities {
 		}
 	}
 
-	public static int processDecimal(int decimal, int lastNumber, int lastDecimal) {
-		if (lastNumber > decimal) {
-			return lastDecimal - decimal;
-		} else {
-			return lastDecimal + decimal;
-		}
-	}
-
-	public static boolean renameDirectory(File directory, File newDirectory) {
-		try {
-			if (directory.isDirectory()) {
-				directory.renameTo(newDirectory);
-			} else {
-				directory.mkdir();
-				directory.renameTo(newDirectory);
-			}
-			return true;
-		} catch (Exception ex) {
-			return false;
-		}
-	}
-
-	public static String replaceColours(String aString) {
-		char[] b = aString.toCharArray();
-		for (int i = 0; i < b.length - 1; i++) {
-			if (b[i] == '&' && "0123456789AaBbCcDdEeFf".indexOf(b[i + 1]) > -1) {
-				b[i] = ChatColor.COLOR_CHAR;
-				b[i + 1] = Character.toLowerCase(b[i + 1]);
-			}
-		}
-		return new String(b);
-	}
-
-	public static String replaceFormat(String aString) {
-		char[] b = aString.toCharArray();
-		for (int i = 0; i < b.length - 1; i++) {
-			if (b[i] == '&' && "KkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
-				b[i] = ChatColor.COLOR_CHAR;
-				b[i + 1] = Character.toLowerCase(b[i + 1]);
-			}
-		}
-		return new String(b);
-	}
-
 	public static String replaceBukkitColour(String aString) {
 		if (aString == null) return "";
 		String newString = aString;
@@ -285,52 +219,6 @@ public class Utilities {
 		return stringList;
 	}
 
-	public static int romanNumeralToInteger(String romanNumber) {
-		int romanInteger = 0;
-		int lastNumber = 0;
-		String romanNumeral = romanNumber.toUpperCase();
-		for (int x = romanNumeral.length() - 1; x >= 0; x--) {
-			char convertToDecimal = romanNumeral.charAt(x);
-			switch (convertToDecimal) {
-				case 'M':
-					romanInteger = processDecimal(1000, lastNumber, romanInteger);
-					lastNumber = 1000;
-					break;
-
-				case 'D':
-					romanInteger = processDecimal(500, lastNumber, romanInteger);
-					lastNumber = 500;
-					break;
-
-				case 'C':
-					romanInteger = processDecimal(100, lastNumber, romanInteger);
-					lastNumber = 100;
-					break;
-
-				case 'L':
-					romanInteger = processDecimal(50, lastNumber, romanInteger);
-					lastNumber = 50;
-					break;
-
-				case 'X':
-					romanInteger = processDecimal(10, lastNumber, romanInteger);
-					lastNumber = 10;
-					break;
-
-				case 'V':
-					romanInteger = processDecimal(5, lastNumber, romanInteger);
-					lastNumber = 5;
-					break;
-
-				case 'I':
-					romanInteger = processDecimal(1, lastNumber, romanInteger);
-					lastNumber = 1;
-					break;
-			}
-		}
-		return romanInteger;
-	}
-
 	public static void sendDelayMessage(Player player, Kit kit, long playerCooldown) {
 		if (player != null && kit != null) {
 			long cooldownSeconds = kit.getCooldown() - ((System.currentTimeMillis() - playerCooldown) / 1000);
@@ -344,7 +232,10 @@ public class Utilities {
 				Time delay = new Time(cooldownSeconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) cooldownSeconds);
 				int intDelay = 0;
 				String strUnit = "";
-				if (delay.getHours() > 0) {
+				if (delay.getDays() > 0) {
+					intDelay = delay.getDays();
+					strUnit = intDelay != 1 ? Lang.TIME_DAY_PLURAL.getMessage() : Lang.TIME_DAY_SINGULAR.getMessage();
+				} else if (delay.getHours() > 0) {
 					intDelay = delay.getHours();
 					strUnit = intDelay != 1 ? Lang.TIME_HOUR_PLURAL.getMessage() : Lang.TIME_HOUR_SINGULAR.getMessage();
 				} else if (delay.getMinutes() > 0) {
@@ -354,7 +245,6 @@ public class Utilities {
 					intDelay = delay.getSeconds();
 					strUnit = intDelay != 1 ? Lang.TIME_SECOND_PLURAL.getMessage() : Lang.TIME_SECOND_SINGULAR.getMessage();
 				}
-
 				Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf(intDelay), strUnit);
 			} else {
 				Lang.sendMessage(player, Lang.KIT_DELAY, String.valueOf(cooldownSeconds));
@@ -365,16 +255,6 @@ public class Utilities {
 	public static String stripColour(String kitName) {
 		return kitName != null ? ChatColor.stripColor(kitName) : "";
 	}
-
-	public static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
-		public int compare(String str1, String str2) {
-			int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-			if (res == 0) {
-				res = str1.compareTo(str2);
-			}
-			return res;
-		}
-	};
 
 	public static List<String> toLowerCaseList(List<String> normalList) {
 		List<String> list = new ArrayList<String>();

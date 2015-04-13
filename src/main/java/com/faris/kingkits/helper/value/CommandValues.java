@@ -9,4 +9,5 @@ public class CommandValues {
 	public boolean deleteUKits = true;
 	public boolean renameUKits = true;
 	public boolean refillKits = true;
+	public boolean previewKit = true;
 }

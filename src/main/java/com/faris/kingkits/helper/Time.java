@@ -1,22 +1,23 @@
 package com.faris.kingkits.helper;
 
+import java.util.concurrent.TimeUnit;
+
 public class Time {
+
+	private int days;
 	private int hours, minutes, seconds;
 	private int total;
 
-	public Time(int hours, int minutes, int seconds) {
-		this.total = seconds + (minutes * 60) + (hours * 3600);
-		this.hours = hours;
-		this.minutes = minutes;
-		this.seconds = seconds;
-	}
-
 	public Time(int inputSeconds) {
 		this.total = inputSeconds;
-		this.hours = inputSeconds / 3600;
-		int remainder = inputSeconds % 3600;
-		this.minutes = remainder / 60;
-		this.seconds = remainder % 60;
+		this.days = (int) TimeUnit.SECONDS.toDays(inputSeconds);
+		this.hours = (int) (TimeUnit.SECONDS.toHours(inputSeconds) - (this.days * 24));
+		this.minutes = (int) (TimeUnit.SECONDS.toMinutes(inputSeconds) - (TimeUnit.SECONDS.toHours(inputSeconds) * 60));
+		this.seconds = (int) (TimeUnit.SECONDS.toSeconds(inputSeconds) - (TimeUnit.SECONDS.toMinutes(inputSeconds) * 60));
+	}
+
+	public int getDays() {
+		return this.days;
 	}
 
 	public int getHours() {
@@ -34,4 +35,5 @@ public class Time {
 	public int getTotal() {
 		return this.total;
 	}
+
 }

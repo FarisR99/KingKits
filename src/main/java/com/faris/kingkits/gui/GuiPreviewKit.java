@@ -28,6 +28,17 @@ public class GuiPreviewKit extends GuiKingKits {
 		this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
 	}
 
+	/**
+	 * Create a new Kit GUI preview instance.
+	 *
+	 * @param player - The player that is using the menu
+	 * @param kit - The kit
+	 */
+	public GuiPreviewKit(Player player, Kit kit) {
+		super(player, player.getServer().createInventory(player, 45, Lang.GUI_PREVIEW_TITLE.getMessage(kit != null ? kit.getRealName() : "Empty")));
+		this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
+	}
+
 	@Override
 	public boolean openMenu() {
 		try {
@@ -62,13 +73,15 @@ public class GuiPreviewKit extends GuiKingKits {
 				}
 			}
 		}
-		ItemStack backItem = new ItemStack(Material.STONE_BUTTON);
-		ItemMeta backItemMeta = backItem.getItemMeta();
-		if (backItemMeta != null) {
-			backItemMeta.setDisplayName(Lang.GUI_PREVIEW_BACK.getMessage());
-			backItem.setItemMeta(backItemMeta);
+		if (this.getPlugin().configValues.kitListMode.equalsIgnoreCase("GUI") || this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
+			ItemStack backItem = new ItemStack(Material.STONE_BUTTON);
+			ItemMeta backItemMeta = backItem.getItemMeta();
+			if (backItemMeta != null) {
+				backItemMeta.setDisplayName(Lang.GUI_PREVIEW_BACK.getMessage());
+				backItem.setItemMeta(backItemMeta);
+			}
+			this.guiInventory.setItem(this.guiInventory.getSize() - 1, backItem);
 		}
-		this.guiInventory.setItem(this.guiInventory.getSize() - 1, backItem);
 	}
 
 	@EventHandler

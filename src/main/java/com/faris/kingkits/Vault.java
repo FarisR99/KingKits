@@ -12,7 +12,7 @@ public class Vault {
 	}
 
 	public Object getEconomy() {
-		if (KingKits.getInstance() != null && KingKits.getInstance().configValues.vaultValues.useEconomy) {
+		if (KingKits.getInstance() != null && Bukkit.getServer().getPluginManager().isPluginEnabled("Vault") && KingKits.getInstance().configValues.vaultValues.useEconomy) {
 			try {
 				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				if (economyProvider != null) return economyProvider.getProvider();
