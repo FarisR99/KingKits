@@ -11,6 +11,7 @@ import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.command.SetKit;
 import com.faris.kingkits.listener.event.custom.PlayerKilledEvent;
+import mkremins.fanciful.FancyMessage;
 import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.entity.*;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.potion.*;
 import org.bukkit.scoreboard.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,7 +33,7 @@ public class EventListener implements Listener {
 	/**
 	 * Register custom kill event *
 	 */
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void registerKillEvent(PlayerDeathEvent event) {
 		try {
 			if (event.getEntity().getKiller() != null) {
@@ -257,8 +259,8 @@ public class EventListener implements Listener {
 							BlockState block = event.getClickedBlock().getState();
 							if ((block instanceof Sign)) {
 								Sign sign = (Sign) block;
-								String signLine0 = sign.getLine(0);
-								if (signLine0.equalsIgnoreCase((this.getPlugin().configValues.strKitSignValid.startsWith("&0") ? this.getPlugin().configValues.strKitSignValid.replaceFirst("&0", "") : this.getPlugin().configValues.strKitSignValid))) {
+								String firstLine = sign.getLine(0);
+								if (firstLine.equals((this.getPlugin().configValues.strSignValidKit.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignValidKit.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignValidKit))) {
 									if (player.hasPermission(this.getPlugin().permissions.kitUseSign)) {
 										String line1 = sign.getLine(1);
 										if (line1 != null) {
@@ -289,24 +291,24 @@ public class EventListener implements Listener {
 													}
 												} else {
 													Lang.sendMessage(player, Lang.KIT_NONEXISTENT, line1);
-													sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
+													sign.setLine(0, this.getPlugin().configValues.strSignInvalidKit);
 													sign.update(true);
 												}
 											} else {
 												Lang.sendMessage(player, Lang.SIGN_GENERAL_INCORRECTLY_SETUP);
-												sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
+												sign.setLine(0, this.getPlugin().configValues.strSignInvalidKit);
 												sign.update(true);
 											}
 										} else {
 											Lang.sendMessage(player, Lang.SIGN_GENERAL_INCORRECTLY_SETUP);
-											sign.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
+											sign.setLine(0, this.getPlugin().configValues.strSignInvalidKit);
 											sign.update(true);
 										}
 									} else {
 										Lang.sendMessage(player, Lang.SIGN_USE_NO_PERMISSION);
 									}
 									event.setCancelled(true);
-								} else if (signLine0.equalsIgnoreCase(this.getPlugin().configValues.strKitListSignValid.startsWith("&0") ? this.getPlugin().configValues.strKitListSignValid.replaceFirst("&0", "") : this.getPlugin().configValues.strKitListSignValid)) {
+								} else if (firstLine.equals(this.getPlugin().configValues.strSignValidKitList.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignValidKitList.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignValidKitList)) {
 									if (player.hasPermission(this.getPlugin().permissions.kitListSign)) {
 										if (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
 											List<String> kitList = this.getPlugin().getKitList();
@@ -315,10 +317,51 @@ public class EventListener implements Listener {
 												for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 													String kitName = kitList.get(kitPos).split(" ")[0];
 													if (player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-														player.sendMessage(this.r("&6" + (kitPos + 1) + ". " + kitName));
+														if (player.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+															FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.RED);
+															Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
+															if (targetKit != null && targetKit.hasDescription()) {
+																final List<String> kitDescription = new ArrayList<String>();
+																for (String descriptionLine : targetKit.getDescription()) {
+																	descriptionLine = Utilities.replaceChatColour(descriptionLine);
+																	descriptionLine = descriptionLine.replace("<player>", player.getName());
+																	descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+																	descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+																	descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+																	descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+																	kitDescription.add(descriptionLine);
+																}
+																if (!kitDescription.isEmpty())
+																	listMessage.tooltip(kitDescription);
+															}
+															listMessage.command("/pvpkit " + kitName).send(player);
+														} else {
+															player.sendMessage(Utilities.replaceChatColour("&6" + (kitPos + 1) + ". &c" + kitName));
+														}
 													} else {
-														if (this.getPlugin().configValues.kitListPermissions)
-															player.sendMessage(this.r("&4" + (kitPos + 1) + ". " + kitName));
+														if (this.getPlugin().configValues.kitListPermissions) {
+															if (player.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+																FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.DARK_RED);
+																Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
+																if (targetKit != null && targetKit.hasDescription()) {
+																	final List<String> kitDescription = new ArrayList<String>();
+																	for (String descriptionLine : targetKit.getDescription()) {
+																		descriptionLine = Utilities.replaceChatColour(descriptionLine);
+																		descriptionLine = descriptionLine.replace("<player>", player.getName());
+																		descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+																		descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+																		descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+																		descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+																		kitDescription.add(descriptionLine);
+																	}
+																	if (!kitDescription.isEmpty())
+																		listMessage.tooltip(kitDescription);
+																}
+																listMessage.command("/pvpkit " + kitName).send(player);
+															} else {
+																player.sendMessage(Utilities.replaceChatColour("&4" + (kitPos + 1) + ". &4" + kitName));
+															}
+														}
 													}
 												}
 											} else {
@@ -326,6 +369,18 @@ public class EventListener implements Listener {
 											}
 										} else {
 											KingKitsAPI.showKitMenu(player);
+										}
+									} else {
+										Lang.sendMessage(player, Lang.SIGN_USE_NO_PERMISSION);
+									}
+									event.setCancelled(true);
+								} else if (firstLine.equals(this.getPlugin().configValues.strSignRefillValid.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignRefillValid.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignRefillValid)) {
+									if (player.hasPermission(this.getPlugin().permissions.kitRefillSign)) {
+										String strLine1 = sign.getLine(1);
+										if (strLine1 != null && strLine1.equalsIgnoreCase("All")) {
+											player.performCommand("refill all");
+										} else {
+											player.performCommand("refill");
 										}
 									} else {
 										Lang.sendMessage(player, Lang.SIGN_USE_NO_PERMISSION);
@@ -351,12 +406,12 @@ public class EventListener implements Listener {
 				if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
 					Player p = event.getPlayer();
 					String signType = event.getLine(0);
-					if (signType.equalsIgnoreCase(this.getPlugin().configValues.strKitSign)) {
+					if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignKit)) {
 						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
 							if (!event.getLine(1).isEmpty()) {
-								event.setLine(0, this.getPlugin().configValues.strKitSignValid);
+								event.setLine(0, this.getPlugin().configValues.strSignValidKit);
 							} else {
-								event.setLine(0, this.getPlugin().configValues.strKitSignInvalid);
+								event.setLine(0, this.getPlugin().configValues.strSignInvalidKit);
 								Lang.sendMessage(p, Lang.SIGN_CREATE_SECOND_LINE);
 							}
 						} else {
@@ -366,11 +421,21 @@ public class EventListener implements Listener {
 							event.setLine(2, "");
 							event.setLine(3, "");
 						}
-					} else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strKitListSign)) {
-						if (p.hasPermission(this.getPlugin().permissions.kitListSign)) {
-							event.setLine(0, this.getPlugin().configValues.strKitListSignValid);
+					} else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignKitList)) {
+						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
+							event.setLine(0, this.getPlugin().configValues.strSignValidKitList);
 						} else {
 							Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "list");
+							event.setLine(0, "");
+							event.setLine(1, "");
+							event.setLine(2, "");
+							event.setLine(3, "");
+						}
+					} else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignRefill)) {
+						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
+							event.setLine(0, this.getPlugin().configValues.strSignRefillValid);
+						} else {
+							Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "refill");
 							event.setLine(0, "");
 							event.setLine(1, "");
 							event.setLine(2, "");

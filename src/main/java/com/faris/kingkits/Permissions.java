@@ -20,10 +20,12 @@ public class Permissions {
 	public Permission kitPreviewCommand = this.registerPermission(new Permission("kingkits.kit.preview"));
 	public Permission kitPreviewOtherCommand = this.registerPermission(new Permission("kingkits.kit.preview.other"));
 	public Permission kitList = this.registerPermission(new Permission("kingkits.kit.list"));
+	public Permission kitListTooltip = this.registerPermission(new Permission("kingkits.kit.list.tooltip"));
 	public Permission kitBypassCooldown = this.registerPermission(new Permission("kingkits.kit.cooldown.bypass"));
 	public Permission kitUseSign = this.registerPermission(new Permission("kingkits.kit.sign.use"));
 	public Permission kitCreateSign = this.registerPermission(new Permission("kingkits.kit.sign.create"));
 	public Permission kitListSign = this.registerPermission(new Permission("kingkits.kit.sign.list"));
+	public Permission kitRefillSign = this.registerPermission(new Permission("kingkits.kit.sign.refill"));
 	public Permission rightClickCompass = this.registerPermission(new Permission("kingkits.compass"));
 	public Permission quickSoup = this.registerPermission(new Permission("kingkits.quicksoup"));
 	public Permission refillSoupSingle = this.registerPermission(new Permission("kingkits.refill.single"));

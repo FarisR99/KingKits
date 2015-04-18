@@ -87,14 +87,14 @@ public class SetKit {
 							}
 						}
 
-						if (plugin.configValues.replaceItems) {
-							player.getInventory().clear();
-							player.getInventory().setArmorContents(null);
-						}
 						player.setGameMode(GameMode.SURVIVAL);
 						for (PotionEffect potionEffect : player.getActivePotionEffects())
 							player.removePotionEffect(potionEffect.getType());
+
+						List<ItemStack> droppedItems = new ArrayList<ItemStack>();
 						if (plugin.configValues.replaceItems) {
+							player.getInventory().clear();
+							player.getInventory().setArmorContents(null);
 							Map<Integer, ItemStack> kitItems = playerKitEvent.getKitContentsWithSlots();
 							for (Map.Entry<Integer, ItemStack> kitItem : kitItems.entrySet()) {
 								try {
@@ -102,6 +102,8 @@ public class SetKit {
 										int slot = kitItem.getKey();
 										if (slot >= 0 && slot < player.getInventory().getSize()) {
 											player.getInventory().setItem(slot, kitItem.getValue());
+										} else {
+											droppedItems.add(kitItem.getValue());
 										}
 									}
 								} catch (Exception ex) {
@@ -113,13 +115,15 @@ public class SetKit {
 							for (int i = 0; i < kitItems.size(); i++) {
 								try {
 									ItemStack kitItem = kitItems.get(i);
-									if (kitItem != null && kitItem.getType() != Material.AIR)
-										player.getInventory().addItem(kitItem);
+									if (kitItem != null && kitItem.getType() != Material.AIR) {
+										droppedItems.addAll(player.getInventory().addItem(kitItem).values());
+									}
 								} catch (Exception ex) {
 									continue;
 								}
 							}
 						}
+
 						List<ItemStack> armourItems = playerKitEvent.getKitArmour();
 						List<ItemStack> leftOverArmour = new ArrayList<ItemStack>();
 						for (ItemStack armourItem : armourItems) {
@@ -139,10 +143,23 @@ public class SetKit {
 							}
 						}
 						if (!leftOverArmour.isEmpty()) {
+							ItemStack oldHelmet = player.getInventory().getItem(0);
 							player.getInventory().setHelmet(leftOverArmour.get(0));
-							for (int i = 1; i < leftOverArmour.size(); i++)
-								player.getInventory().addItem(leftOverArmour.get(i));
+							if (oldHelmet != null && oldHelmet.getType() != Material.AIR)
+								droppedItems.addAll(player.getInventory().addItem(oldHelmet).values());
+							for (int i = 1; i < leftOverArmour.size(); i++) {
+								droppedItems.addAll(player.getInventory().addItem(leftOverArmour.get(i)).values());
+							}
 						}
+
+						if (plugin.configValues.dropItemsOnFullInventory && !droppedItems.isEmpty()) {
+							Location dropLocation = player.getLocation().clone().add(0D, 0.5D, 0D);
+							for (ItemStack droppedItem : droppedItems) {
+								if (droppedItem != null && droppedItem.getType() != Material.AIR)
+									player.getWorld().dropItemNaturally(dropLocation, droppedItem);
+							}
+						}
+
 						player.setMaxHealth(newKit.getMaxHealth());
 						player.addPotionEffects(playerKitEvent.getPotionEffects());
 

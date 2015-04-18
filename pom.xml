@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>3.3.7</version>
+    <version>3.3.8</version>
 
     <packaging>jar</packaging>
 
@@ -50,7 +50,6 @@
                     <level>private</level>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -60,7 +59,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -69,6 +67,7 @@
                     <artifactSet>
                         <includes>
                             <include>org.mcstats.*:*</include>
+                            <include>mkremins:*</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -95,7 +94,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>com.github.github</groupId>
                 <artifactId>site-maven-plugin</artifactId>
@@ -137,6 +135,14 @@
             <id>Plugin Metrics</id>
             <url>http://repo.mcstats.org/content/repositories/public/</url>
         </repository>
+        <repository>
+            <id>fanciful-mvn-repo</id>
+            <url>http://repo.franga2000.com/artifactory/public/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -161,6 +167,11 @@
             <artifactId>metrics</artifactId>
             <version>LATEST</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>mkremins</groupId>
+            <artifactId>fanciful</artifactId>
+            <version>0.3.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

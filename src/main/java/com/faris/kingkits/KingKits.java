@@ -304,6 +304,8 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
 			this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
 			this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
+			this.getConfig().addDefault("Refill sign", "[KRefill]");
+			this.getConfig().addDefault("Refill sign valid", "[&1KRefill&0]");
 			this.getConfig().addDefault("Kit cooldown enabled", true);
 			if (this.getConfig().contains("Kit cooldown")) this.getConfig().set("Kit cooldown", null);
 			this.getConfig().addDefault("List kits on join", true);
@@ -343,6 +345,7 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Kit particle effects", false);
 			this.getConfig().addDefault("Show kit preview", false);
 			this.getConfig().addDefault("Replace items when selecting a kit", true);
+			this.getConfig().addDefault("Drop items on full inventory", false);
 			if (this.getConfig().contains("Scoreboards")) this.getConfig().set("Scoreboards", null);
 			if (this.getConfig().contains("Scoreboard title")) this.getConfig().set("Scoreboard title", null);
 			this.getConfig().options().copyDefaults(true);
@@ -367,11 +370,13 @@ public class KingKits extends JavaPlugin {
 			this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
 			this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
 			this.cmdValues.previewKit = this.getConfig().getBoolean("Enable preview kit command");
-			this.configValues.strKitSign = Utilities.replaceChatColour(this.getConfig().getString("Kit sign"));
-			this.configValues.strKitListSign = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign"));
-			this.configValues.strKitSignValid = Utilities.replaceChatColour(this.getConfig().getString("Kit sign valid"));
-			this.configValues.strKitSignInvalid = Utilities.replaceChatColour(this.getConfig().getString("Kit sign invalid"));
-			this.configValues.strKitListSignValid = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign valid"));
+			this.configValues.strSignKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign"));
+			this.configValues.strSignKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign"));
+			this.configValues.strSignValidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign valid"));
+			this.configValues.strSignInvalidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign invalid"));
+			this.configValues.strSignValidKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign valid"));
+			this.configValues.strSignRefill = Utilities.replaceChatColour(this.getConfig().getString("Refill sign"));
+			this.configValues.strSignRefillValid = Utilities.replaceChatColour(this.getConfig().getString("Refill sign valid"));
 			this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
 			this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
 			this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
@@ -406,6 +411,7 @@ public class KingKits extends JavaPlugin {
 			this.configValues.kitParticleEffects = this.getConfig().getBoolean("Kit particle effects");
 			this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
 			this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
+			this.configValues.dropItemsOnFullInventory = this.getConfig().getBoolean("Drop items on full inventory");
 
 			this.configValues.guiTitle = Utilities.replaceChatColour(this.getConfig().getString("GUI.Title"));
 			this.configValues.guiSize = this.getConfig().getInt("GUI.Size");

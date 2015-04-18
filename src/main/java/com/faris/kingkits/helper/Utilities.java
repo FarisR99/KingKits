@@ -105,7 +105,12 @@ public class Utilities {
 	public static List<Player> getOnlinePlayers() {
 		List<Player> onlinePlayers = new ArrayList<Player>();
 		for (World world : Bukkit.getWorlds()) {
-			if (world != null) onlinePlayers.addAll(world.getPlayers());
+			if (world != null) {
+				for (Player worldPlayer : world.getPlayers()) {
+					if (worldPlayer != null && worldPlayer.isOnline() && world.getUID().equals(worldPlayer.getWorld().getUID()))
+						onlinePlayers.add(worldPlayer);
+				}
+			}
 		}
 		return onlinePlayers;
 	}

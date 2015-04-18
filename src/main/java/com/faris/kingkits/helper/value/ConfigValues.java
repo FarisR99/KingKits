@@ -61,6 +61,8 @@ public class ConfigValues {
 
 	public boolean replaceItems = true;
 
+	public boolean dropItemsOnFullInventory = false;
+
 	// GUI
 	public String guiTitle = "<menucolour>PvP Kits";
 	public int guiSize = 36;
@@ -98,10 +100,12 @@ public class ConfigValues {
 
 	public String kitListMode = "Text";
 
-	public String strKitSign = "[Kit]";
-	public String strKitListSign = "[KList]";
-	public String strKitSignValid = "[Kit]";
-	public String strKitSignInvalid = "[Kit]";
-	public String strKitListSignValid = "[KList]";
+	public String strSignKit = "[Kit]";
+	public String strSignKitList = "[KList]";
+	public String strSignValidKit = "[Kit]";
+	public String strSignInvalidKit = "[Kit]";
+	public String strSignValidKitList = "[KList]";
+	public String strSignRefill = "[KRefill]";
+	public String strSignRefillValid = "[KRefill]";
 
 }

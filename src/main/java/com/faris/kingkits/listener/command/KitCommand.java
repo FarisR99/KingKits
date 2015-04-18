@@ -8,6 +8,8 @@ import com.faris.kingkits.gui.GuiPreviewKit;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.KingCommand;
+import mkremins.fanciful.FancyMessage;
+import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
 
@@ -39,10 +41,51 @@ public class KitCommand extends KingCommand {
 										for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 											String kitName = kitList.get(kitPos).split(" ")[0];
 											if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-												sender.sendMessage(rCC("&6" + (kitPos + 1) + ". " + kitName));
+												if (!this.isConsole(sender) && sender.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+													FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.RED);
+													Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
+													if (targetKit != null && targetKit.hasDescription()) {
+														final List<String> kitDescription = new ArrayList<String>();
+														for (String descriptionLine : targetKit.getDescription()) {
+															descriptionLine = Utilities.replaceChatColour(descriptionLine);
+															descriptionLine = descriptionLine.replace("<player>", sender.getName());
+															descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+															descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+															descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+															descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+															kitDescription.add(descriptionLine);
+														}
+														if (!kitDescription.isEmpty())
+															listMessage.tooltip(kitDescription);
+													}
+													listMessage.command("/" + command.toLowerCase() + " " + kitName).send(sender);
+												} else {
+													sender.sendMessage(this.rCC("&6" + (kitPos + 1) + ". &c" + kitName));
+												}
 											} else {
-												if (this.getPlugin().configValues.kitListPermissions)
-													sender.sendMessage(rCC("&4" + (kitPos + 1) + ". " + kitName));
+												if (this.getPlugin().configValues.kitListPermissions) {
+													if (!this.isConsole(sender) && sender.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+														FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.DARK_RED);
+														Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
+														if (targetKit != null && targetKit.hasDescription()) {
+															final List<String> kitDescription = new ArrayList<String>();
+															for (String descriptionLine : targetKit.getDescription()) {
+																descriptionLine = Utilities.replaceChatColour(descriptionLine);
+																descriptionLine = descriptionLine.replace("<player>", sender.getName());
+																descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+																descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+																descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+																descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+																kitDescription.add(descriptionLine);
+															}
+															if (!kitDescription.isEmpty())
+																listMessage.tooltip(kitDescription);
+														}
+														listMessage.command("/" + command.toLowerCase() + " " + kitName).send(sender);
+													} else {
+														sender.sendMessage(this.rCC("&4" + (kitPos + 1) + ". &4" + kitName));
+													}
+												}
 											}
 										}
 									} else {
