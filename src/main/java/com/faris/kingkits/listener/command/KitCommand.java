@@ -29,7 +29,7 @@ public class KitCommand extends KingCommand {
 		if (command.equalsIgnoreCase("pvpkit")) {
 			if (sender.hasPermission(this.getPlugin().permissions.kitUseCommand)) {
 				if (this.getPlugin().cmdValues.pvpKits) {
-					if (this.isConsole(sender) || this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(((Player) sender).getWorld().getName())) {
+					if (this.isConsole(sender) || Utilities.inPvPWorld(((Player) sender))) {
 						if (args.length == 0) {
 							if (sender.hasPermission(this.getPlugin().permissions.kitList)) {
 								if (this.isConsole(sender) || (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
@@ -37,7 +37,7 @@ public class KitCommand extends KingCommand {
 									Lang.sendMessage(sender, Lang.GEN_KIT_LIST_TITLE, String.valueOf(kitList.size()));
 									if (!kitList.isEmpty()) {
 										if (this.getPlugin().configValues.sortAlphabetically)
-											Collections.sort(kitList, Utilities.ALPHABETICAL_ORDER);
+											Collections.sort(kitList, Utilities.ALPHANUMERICAL_ORDER);
 										for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 											String kitName = kitList.get(kitPos).split(" ")[0];
 											if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {

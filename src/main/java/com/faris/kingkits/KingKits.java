@@ -214,7 +214,7 @@ public class KingKits extends JavaPlugin {
 		}
 
 		// Clear inventories on reload
-		if (this.configValues.clearInvsOnReload) {
+		if (this.configValues.clearInvOnReload) {
 			for (Player target : Utilities.getOnlinePlayers()) {
 				if (KingKitsAPI.hasKit(target.getName(), false)) {
 					target.getInventory().clear();
@@ -287,7 +287,9 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("MySQL.Table prefix", "kk_");
 			this.getConfig().addDefault("GUI.Title", "<menucolour>PvP Kits");
 			this.getConfig().addDefault("GUI.Size", 36);
-			this.getConfig().addDefault("PvP Worlds", Arrays.asList("All"));
+			this.getConfig().addDefault("GUI.Page button.ID", Material.STONE_BUTTON.getId());
+			this.getConfig().addDefault("GUI.Page button.Data value", 0);
+			this.getConfig().addDefault("PvP Worlds", new ArrayList<>(Arrays.asList("All")));
 			this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
 			this.getConfig().addDefault("Multi-inventories", this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin")));
 			this.getConfig().addDefault("Enable kits command", true);
@@ -346,11 +348,11 @@ public class KingKits extends JavaPlugin {
 			this.getConfig().addDefault("Show kit preview", false);
 			this.getConfig().addDefault("Replace items when selecting a kit", true);
 			this.getConfig().addDefault("Drop items on full inventory", false);
+			this.getConfig().addDefault("Remove kit on death", true);
 			if (this.getConfig().contains("Scoreboards")) this.getConfig().set("Scoreboards", null);
 			if (this.getConfig().contains("Scoreboard title")) this.getConfig().set("Scoreboard title", null);
 			this.getConfig().options().copyDefaults(true);
 			this.getConfig().options().copyHeader(true);
-			this.saveConfig();
 
 			this.configValues.opBypass = this.getConfig().getBoolean("Op bypass");
 			this.configValues.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
@@ -359,7 +361,6 @@ public class KingKits extends JavaPlugin {
 			if (!this.configValues.multiInvs && this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin"))) {
 				this.configValues.multiInvs = true;
 				this.getConfig().set("Multi-inventories", true);
-				this.saveConfig();
 			}
 			this.cmdValues.pvpKits = this.getConfig().getBoolean("Enable kits command");
 			this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
@@ -388,7 +389,7 @@ public class KingKits extends JavaPlugin {
 			this.configValues.dropItems = this.getConfig().getBoolean("Drop items");
 			this.configValues.dropAnimations = this.getConfig().getIntegerList("Drop animations");
 			this.configValues.allowPickingUpItems = this.getConfig().getBoolean("Allow picking up items");
-			this.configValues.clearInvsOnReload = this.getConfig().getBoolean("Clear inventories on reload");
+			this.configValues.clearInvOnReload = this.getConfig().getBoolean("Clear inventories on reload");
 			this.configValues.oneKitPerLife = this.getConfig().getBoolean("One kit per life");
 			this.configValues.checkForUpdates = this.getConfig().getBoolean("Check for updates");
 			this.configValues.automaticUpdates = this.getConfig().getBoolean("Automatically update");
@@ -412,11 +413,16 @@ public class KingKits extends JavaPlugin {
 			this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
 			this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
 			this.configValues.dropItemsOnFullInventory = this.getConfig().getBoolean("Drop items on full inventory");
+			this.configValues.removeKitOnDeath = this.getConfig().getBoolean("Remove kit on death");
 
 			this.configValues.guiTitle = Utilities.replaceChatColour(this.getConfig().getString("GUI.Title"));
 			this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
-			if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54)
-				this.configValues.guiSize = 36;
+			if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54) {
+				this.configValues.guiSize = 54;
+				this.getConfig().set("GUI.Size", 54);
+			}
+			this.configValues.guiItemID = this.getConfig().getInt("GUI.Page button.ID");
+			this.configValues.guiItemData = (short) this.getConfig().getInt("GUI.Page button.Data value");
 
 
 			this.configValues.scores = this.getConfig().getBoolean("Enable score");
@@ -424,11 +430,11 @@ public class KingKits extends JavaPlugin {
 			String scoreChatPrefix = this.getConfig().getString("Score chat prefix");
 			if (!scoreChatPrefix.contains("<score>")) {
 				this.getConfig().set("Score chat prefix", "&6[&a<score>&6]");
-				this.saveConfig();
 			}
 			this.configValues.scoreFormat = this.getConfig().getString("Score chat prefix");
 			this.configValues.maxScore = this.getConfig().getInt("Max score");
 
+			this.saveConfig();
 			this.loadMySQL();
 			this.loadPvPKits();
 			this.loadUserKits();
@@ -619,16 +625,15 @@ public class KingKits extends JavaPlugin {
 		this.getEconomyConfig().addDefault("Use economy", false);
 		this.getEconomyConfig().addDefault("Enable cost per kit", false);
 		this.getEconomyConfig().addDefault("Enable cost per refill", false);
-		this.getEconomyConfig().addDefault("Cost per refill", 2.50);
+		this.getEconomyConfig().addDefault("Cost per refill", 2.5D);
 		this.getEconomyConfig().addDefault("Currency", "dollars");
 		this.getEconomyConfig().addDefault("Message", "&a<money> <currency> was taken from your balance.");
 		this.getEconomyConfig().addDefault("Enable money per kill", false);
-		this.getEconomyConfig().addDefault("Money per kill", 5.00);
+		this.getEconomyConfig().addDefault("Money per kill", 5D);
 		this.getEconomyConfig().addDefault("Money per kill message", "&aYou received <money> <currency> for killing <target>.");
 		this.getEconomyConfig().addDefault("Enable money per death", false);
-		this.getEconomyConfig().addDefault("Money per death", 5.00);
+		this.getEconomyConfig().addDefault("Money per death", 5D);
 		this.getEconomyConfig().addDefault("Money per death message", "&aYou lost <money> <currency> for being killed by <killer>.");
-		if (this.getEconomyConfig().contains("Cost per kit")) this.getEconomyConfig().set("Cost per kit", null);
 		this.getEconomyConfig().options().copyDefaults(true);
 		this.getEconomyConfig().options().copyHeader(true);
 		this.saveEconomyConfig();
@@ -700,7 +705,7 @@ public class KingKits extends JavaPlugin {
 				List<String> kitNames = new ArrayList<String>(this.getKitsConfig().getKeys(false));
 				for (int pos = 0; pos < kitNames.size(); pos++) {
 					String kit = kitNames.get(pos);
-					if (kit.split(" ").length > 1) kit = kit.split(" ")[0];
+					if (kit.contains(" ")) kit = kit.split(" ")[0];
 					try {
 						this.getServer().getPluginManager().removePermission(new Permission("kingkits.kits." + kit.toLowerCase()));
 					} catch (Exception ex) {
@@ -713,12 +718,11 @@ public class KingKits extends JavaPlugin {
 			List<String> kitNames = new ArrayList<String>(this.getKitsConfig().getKeys(false));
 			for (int pos = 0; pos < kitNames.size(); pos++) {
 				String kit = kitNames.get(pos);
-				if (kit.split(" ").length > 1) kit = kit.split(" ")[0];
+				if (kit.contains(" ")) kit = kit.split(" ")[0];
 				try {
 					this.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kit.toLowerCase()));
 				} catch (Exception ex) {
-					this.getLogger().info("Couldn't register the permission node: " + "kingkits.kits." + kit.toLowerCase());
-					this.getLogger().info("This error probably occurred because it's already registered.");
+					this.getLogger().info("Couldn't register the permission node: kingkits.kits." + kit.toLowerCase());
 				}
 			}
 		} catch (Exception ex) {

@@ -21,6 +21,7 @@ import java.util.List;
 public class GuiKitMenu extends GuiKingKits {
 
 	private KitStack[] guiKitStacks = null;
+	private int page = 1, maxPage = -1;
 
 	/**
 	 * Create a new gui menu instance.
@@ -30,8 +31,21 @@ public class GuiKitMenu extends GuiKingKits {
 	 * @param kitStacks - The kits in the menu
 	 */
 	public GuiKitMenu(Player player, String title, KitStack[] kitStacks) {
-		super(player, player.getServer().createInventory(null, KingKits.getInstance() != null ? KingKits.getInstance().configValues.guiSize : 36, title));
+		this(player, title, kitStacks, 1);
+	}
+
+	/**
+	 * Create a new gui menu instance.
+	 *
+	 * @param player - The player that is using the menu
+	 * @param title - The title of the menu
+	 * @param kitStacks - The kits in the menu
+	 */
+	public GuiKitMenu(Player player, String title, KitStack[] kitStacks, int page) {
+		super(player, player.getServer().createInventory(null, KingKits.getInstance() != null ? KingKits.getInstance().configValues.guiSize : 54, title));
 		this.guiKitStacks = kitStacks;
+		this.maxPage = this.guiKitStacks.length > 0 ? (int) ((double) (this.guiKitStacks.length - 1) / (this.guiInventory.getSize() - 9) + 1) : 1;
+		this.page = page > this.maxPage ? this.maxPage : page;
 	}
 
 	@Override
@@ -60,74 +74,103 @@ public class GuiKitMenu extends GuiKingKits {
 
 	@Override
 	protected void fillInventory() {
+		this.guiInventory.clear();
+
+		int startPosition = 0;
+		int endPosition = this.guiKitStacks.length - 1;
 		if (this.getPlugin().configValues.sortAlphabetically) {
-			for (int i = 0; i < this.guiKitStacks.length; i++) {
+			if (this.guiInventory.getSize() > 9) {
+				startPosition = (this.page - 1) * (this.guiInventory.getSize() - 9);
+				endPosition = startPosition + this.guiInventory.getSize() - 9;
+			}
+			for (int i = startPosition; i < this.guiKitStacks.length; i++) {
 				try {
+					if (i > endPosition) break;
 					ItemStack currentStack = this.guiKitStacks[i].getItemStack();
-					if (currentStack != null) {
-						if (currentStack.getType() != Material.AIR) {
-							if (currentStack.getItemMeta() != null) {
-								ItemMeta itemMeta = currentStack.getItemMeta();
-								Kit targetKit = KingKitsAPI.getKitByName(this.guiKitStacks[i].getKitName(), (this.getPlayer() != null ? this.getPlayer().getUniqueId() : UUIDFetcher.lookupName(this.getPlayerName()).getId()));
+					if (currentStack != null && currentStack.getType() != Material.AIR) {
+						currentStack = currentStack.clone();
+						if (currentStack.getItemMeta() != null) {
+							ItemMeta itemMeta = currentStack.getItemMeta();
+							Kit targetKit = KingKitsAPI.getKitByName(this.guiKitStacks[i].getKitName(), this.getPlayer() != null ? this.getPlayer().getUniqueId() : null);
+							if (targetKit == null) continue;
 
-								ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utilities.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
-								itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
+							ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utilities.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
+							itemMeta.setDisplayName(ChatColor.RESET.toString() + kitColour + this.guiKitStacks[i].getKitName());
 
-								if (targetKit != null && targetKit.hasDescription()) {
-									List<String> kitDescription = new ArrayList<String>();
-									for (String descriptionLine : targetKit.getDescription()) {
-										descriptionLine = Utilities.replaceChatColour(descriptionLine);
-										descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
-										descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
-										descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
-										descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
-										descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
-										kitDescription.add(descriptionLine);
-									}
-									itemMeta.setLore(kitDescription);
+							if (targetKit != null && targetKit.hasDescription()) {
+								List<String> kitDescription = new ArrayList<String>();
+								for (String descriptionLine : targetKit.getDescription()) {
+									descriptionLine = Utilities.replaceChatColour(descriptionLine);
+									descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
+									descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+									descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+									descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+									descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+									kitDescription.add(descriptionLine);
 								}
-								currentStack.setItemMeta(itemMeta);
+								itemMeta.setLore(kitDescription);
 							}
-							this.guiInventory.addItem(currentStack);
+							currentStack.setItemMeta(itemMeta);
+							if (!this.guiInventory.addItem(currentStack).isEmpty()) break;
 						}
 					}
 				} catch (Exception ex) {
-					continue;
+					break;
+				}
+			}
+			if (this.guiInventory.getSize() > 9) {
+				try {
+					Material buttonType = Material.getMaterial(KingKits.getInstance().configValues.guiItemID);
+					if (buttonType == Material.AIR) buttonType = Material.STONE_BUTTON;
+					this.guiInventory.setItem(this.guiInventory.getSize() - 9, Utilities.ItemUtils.setName(new ItemStack(buttonType, 1, KingKits.getInstance().configValues.guiItemData), this.page == 1 ? "&8Previous Page" : "&fPrevious Page"));
+					this.guiInventory.setItem(this.guiInventory.getSize() - 1, Utilities.ItemUtils.setName(new ItemStack(buttonType, 1, KingKits.getInstance().configValues.guiItemData), this.page >= this.maxPage ? "&8Next Page" : "&fNext Page"));
+				} catch (Exception ex) {
 				}
 			}
 		} else {
 			List<ItemStack> addItems = new ArrayList<ItemStack>();
-			for (int i = 0; i < this.guiKitStacks.length; i++) {
+			for (int i = startPosition; i < this.guiKitStacks.length; i++) {
 				try {
 					ItemStack currentStack = this.guiKitStacks[i].getItemStack();
-					if (currentStack != null) {
-						if (currentStack.getType() != Material.AIR) {
-							Kit targetKit = KingKitsAPI.getKitByName(this.guiKitStacks[i].getKitName(), (this.getPlayer() != null ? this.getPlayer().getUniqueId() : UUIDFetcher.lookupName(this.getPlayerName()).getId()));
-							if (currentStack.getItemMeta() != null) {
-								ItemMeta itemMeta = currentStack.getItemMeta();
-								ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utilities.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
-								itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
-								currentStack.setItemMeta(itemMeta);
-							}
-							if (targetKit != null && targetKit.getGuiPosition() > 0 && targetKit.getGuiPosition() < this.guiInventory.getSize()) {
-								try {
-									this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
-								} catch (Exception ex) {
-									ex.printStackTrace();
-									addItems.add(currentStack);
+					if (currentStack != null && currentStack.getType() != Material.AIR) {
+						currentStack = currentStack.clone();
+						Kit targetKit = KingKitsAPI.getKitByName(this.guiKitStacks[i].getKitName(), (this.getPlayer() != null ? this.getPlayer().getUniqueId() : UUIDFetcher.lookupName(this.getPlayerName()).getId()));
+						if (currentStack.getItemMeta() != null) {
+							ItemMeta itemMeta = currentStack.getItemMeta();
+							ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utilities.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
+							itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
+
+							if (targetKit != null && targetKit.hasDescription()) {
+								List<String> kitDescription = new ArrayList<String>();
+								for (String descriptionLine : targetKit.getDescription()) {
+									descriptionLine = Utilities.replaceChatColour(descriptionLine);
+									descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
+									descriptionLine = descriptionLine.replace("<name>", targetKit.getName());
+									descriptionLine = descriptionLine.replace("<cost>", String.valueOf(targetKit.getCost()));
+									descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(targetKit.getCooldown()));
+									descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(targetKit.getMaxHealth()));
+									kitDescription.add(descriptionLine);
 								}
-							} else {
+								itemMeta.setLore(kitDescription);
+							}
+							currentStack.setItemMeta(itemMeta);
+						}
+						if (targetKit != null && targetKit.getGuiPosition() > 0 && targetKit.getGuiPosition() < this.guiInventory.getSize()) {
+							try {
+								this.guiInventory.setItem(targetKit.getGuiPosition() - 1, currentStack);
+							} catch (Exception ex) {
+								ex.printStackTrace();
 								addItems.add(currentStack);
 							}
+						} else {
+							addItems.add(currentStack);
 						}
 					}
 				} catch (Exception ex) {
 					continue;
 				}
 			}
-			for (ItemStack itemStack : addItems) {
-				this.guiInventory.addItem(itemStack);
-			}
+			for (ItemStack itemStack : addItems) this.guiInventory.addItem(itemStack);
 		}
 	}
 
@@ -146,7 +189,7 @@ public class GuiKitMenu extends GuiKingKits {
 		return this;
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	protected void onPlayerClickInventory(InventoryClickEvent event) {
 		try {
 			if (this.guiInventory != null && event.getInventory() != null && event.getWhoClicked() != null) {
@@ -154,46 +197,58 @@ public class GuiKitMenu extends GuiKingKits {
 					if (event.getSlot() >= 0) {
 						if (event.getSlotType() == SlotType.CONTAINER) {
 							if (event.getWhoClicked().getName().equals(this.getPlayerName())) {
-								if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-									ItemStack clickedItem = event.getCurrentItem();
-									event.setCurrentItem(null);
-									event.setCancelled(true);
-									this.closeMenu(true, true);
-									if (clickedItem != null && clickedItem.getType() != Material.AIR && clickedItem.getItemMeta() != null) {
-										final String kitName = Utilities.stripColour(clickedItem.getItemMeta().getDisplayName());
-										if (kitName != null) {
-											final Kit kit = KingKitsAPI.getKitByName(kitName, event.getWhoClicked().getUniqueId());
-											if (kit != null) {
-												if (KingKitsAPI.isUserKit(kit.getRealName(), event.getWhoClicked().getUniqueId()) || event.getWhoClicked().hasPermission("kingkits.kits." + (kit.getRealName().toLowerCase()))) {
-													final Player player = (Player) event.getWhoClicked();
-													boolean validCooldown = true;
-													if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
-														if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
-															long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
-															if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
-																this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
-																this.getPlugin().saveCooldownConfig();
-															} else {
-																Utilities.sendDelayMessage(player, kit, currentCooldown);
-																validCooldown = false;
-															}
-														}
-													}
-													if (validCooldown) {
-														SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
-													}
-												} else if (this.getPlugin().configValues.showKitPreview) {
-													if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
+								ItemStack clickedItem = event.getCurrentItem();
+								event.setCancelled(true);
+								if (clickedItem != null && clickedItem.getType() != Material.AIR) {
+									String itemName = ChatColor.stripColor(Utilities.ItemUtils.getName(clickedItem));
+									if (event.getRawSlot() == this.guiInventory.getSize() - 9 && itemName.equals("Previous Page") && clickedItem.getType().getId() == KingKits.getInstance().configValues.guiItemID && clickedItem.getDurability() == KingKits.getInstance().configValues.guiItemData) {
+										if (this.page > 1) {
+											this.page--;
+											this.fillInventory();
+										}
+									} else if (event.getRawSlot() == this.guiInventory.getSize() - 1 && itemName.equals("Next Page") && clickedItem.getType().getId() == KingKits.getInstance().configValues.guiItemID && clickedItem.getDurability() == KingKits.getInstance().configValues.guiItemData) {
+										if (this.page < this.maxPage) {
+											this.page++;
+											this.fillInventory();
+										}
+									} else {
+										this.closeMenu(true, true);
+										if (clickedItem.getItemMeta() != null) {
+											final String kitName = Utilities.stripColour(clickedItem.getItemMeta().getDisplayName());
+											if (kitName != null) {
+												final Kit kit = KingKitsAPI.getKitByName(kitName, event.getWhoClicked().getUniqueId());
+												if (kit != null) {
+													if (KingKitsAPI.isUserKit(kit.getRealName(), event.getWhoClicked().getUniqueId()) || event.getWhoClicked().hasPermission("kingkits.kits." + kit.getRealName().toLowerCase())) {
 														final Player player = (Player) event.getWhoClicked();
-														player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
-															public void run() {
-																if (player != null) {
-																	if (!guiPreviewKitMap.containsKey(player.getName())) {
-																		new GuiPreviewKit(player, kitName).openMenu();
-																	}
+														boolean validCooldown = true;
+														if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+															if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
+																long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
+																if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
+																	this.getPlugin().getCooldownConfig().set(player.getName() + "." + kit.getRealName(), null);
+																	this.getPlugin().saveCooldownConfig();
+																} else {
+																	Utilities.sendDelayMessage(player, kit, currentCooldown);
+																	validCooldown = false;
 																}
 															}
-														}, 3L);
+														}
+														if (validCooldown) {
+															SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
+														}
+													} else if (this.getPlugin().configValues.showKitPreview) {
+														if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
+															final Player player = (Player) event.getWhoClicked();
+															player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
+																public void run() {
+																	if (player != null) {
+																		if (!guiPreviewKitMap.containsKey(player.getName())) {
+																			new GuiPreviewKit(player, kitName, page).openMenu();
+																		}
+																	}
+																}
+															}, 3L);
+														}
 													}
 												}
 											}

@@ -3,6 +3,9 @@ package com.faris.kingkits.listener.event.custom;
 import org.bukkit.command.*;
 import org.bukkit.event.*;
 
+/**
+ * Called before the KingKits' configuration reloads.
+ */
 public class KingKitsPreReloadEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -10,17 +13,14 @@ public class KingKitsPreReloadEvent extends Event implements Cancellable {
 	private CommandSender theSender = null;
 	private boolean isCanceled = false;
 
-	/**
-	 * Create a new KingKitsPreReloadEvent instance.
-	 *
-	 * @param sender - The CommandSender that is reloading the configuration.
-	 */
 	public KingKitsPreReloadEvent(CommandSender sender) {
 		this.theSender = sender;
 	}
 
 	/**
-	 * Returns the player *
+	 * Get the reloader.
+	 *
+	 * @return The reloader.
 	 */
 	public CommandSender getSender() {
 		return this.theSender;

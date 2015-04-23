@@ -1,6 +1,7 @@
 package com.faris.kingkits.helper;
 
 
+import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import org.bukkit.*;
 import org.bukkit.enchantments.*;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 public class Utilities {
 
-	public static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
+	public static Comparator<String> ALPHANUMERICAL_ORDER = new Comparator<String>() {
 		public int compare(String str1, String str2) {
 			int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
 			if (res == 0) res = str1.compareTo(str2);
@@ -146,6 +147,10 @@ public class Utilities {
 			else if (friendlyName.equalsIgnoreCase("Wither")) return PotionEffectType.WITHER.getName();
 		}
 		return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
+	}
+
+	public static boolean inPvPWorld(LivingEntity livingEntity) {
+		return livingEntity != null && KingKits.getInstance() != null && livingEntity.getWorld() != null && (KingKits.getInstance().configValues.pvpWorlds.contains("All") || KingKits.getInstance().configValues.pvpWorlds.contains(livingEntity.getWorld().getName()));
 	}
 
 	public static boolean isInteger(String aString) {

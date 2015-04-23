@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.helper.Lang;
+import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -14,89 +15,89 @@ public class RefillCommand extends PlayerCommand {
 	}
 
 	@Override
-	protected boolean onCommand(Player p, String command, String[] args) {
+	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("refill") || command.equalsIgnoreCase("soup")) {
 			try {
-				if (p.hasPermission(this.getPlugin().permissions.refillSoupSingle) || p.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
+				if (player.hasPermission(this.getPlugin().permissions.refillSoupSingle) || player.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
 					if (this.getPlugin().cmdValues.refillKits) {
-						if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
+						if (Utilities.inPvPWorld(player)) {
 							if (this.getPlugin().configValues.quickSoupKitOnly) {
-								if (!this.getPlugin().usingKits.containsKey(p.getName())) {
-									Lang.sendMessage(p, Lang.GEN_NO_KIT_SELECTED);
+								if (!this.getPlugin().usingKits.containsKey(player.getName())) {
+									Lang.sendMessage(player, Lang.GEN_NO_KIT_SELECTED);
 									return true;
 								}
 							}
 							if (args.length == 0) {
-								if (p.hasPermission(this.getPlugin().permissions.refillSoupSingle)) {
-									if (p.getInventory().getItemInHand() != null) {
-										if (p.getInventory().getItemInHand().getType() == Material.BOWL) {
+								if (player.hasPermission(this.getPlugin().permissions.refillSoupSingle)) {
+									if (player.getInventory().getItemInHand() != null) {
+										if (player.getInventory().getItemInHand().getType() == Material.BOWL) {
 											int invContentsSize = 0;
-											ItemStack[] itemContents = p.getInventory().getContents();
+											ItemStack[] itemContents = player.getInventory().getContents();
 											for (ItemStack itemContent : itemContents) {
 												if (itemContent != null) {
 													if (itemContent.getType() != Material.AIR) invContentsSize++;
 												}
 											}
-											if (invContentsSize < p.getInventory().getSize()) {
-												ItemStack itemInHand = p.getInventory().getItemInHand();
+											if (invContentsSize < player.getInventory().getSize()) {
+												ItemStack itemInHand = player.getInventory().getItemInHand();
 												int amount = itemInHand.getAmount();
 												if (amount <= 1) {
-													p.getInventory().setItemInHand(new ItemStack(Material.MUSHROOM_SOUP, 1));
+													player.getInventory().setItemInHand(new ItemStack(Material.MUSHROOM_SOUP, 1));
 												} else {
 													itemInHand.setAmount(amount - 1);
-													p.getInventory().setItemInHand(itemInHand);
-													p.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
+													player.getInventory().setItemInHand(itemInHand);
+													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
 												}
 												if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 													try {
 														net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-														if (economy.hasAccount(p)) {
+														if (economy.hasAccount(player)) {
 															double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
-															if (economy.getBalance(p) >= cost) {
-																economy.withdrawPlayer(p, cost);
+															if (economy.getBalance(player) >= cost) {
+																economy.withdrawPlayer(player, cost);
 																if (cost != 0)
-																	p.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																	player.sendMessage(this.getPlugin().getEconomyMessage(cost));
 															} else {
-																Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																return true;
 															}
 														} else {
-															Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+															Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 															return true;
 														}
 													} catch (Exception ex) {
 													}
 												}
 											} else {
-												Lang.sendMessage(p, Lang.COMMAND_REFILL_FULL_INV);
+												Lang.sendMessage(player, Lang.COMMAND_REFILL_FULL_INV);
 											}
 										} else {
-											Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
+											Lang.sendMessage(player, Lang.COMMAND_REFILL_BOWL);
 										}
 									} else {
-										Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
+										Lang.sendMessage(player, Lang.COMMAND_REFILL_BOWL);
 									}
 								} else {
-									this.sendNoAccess(p);
+									this.sendNoAccess(player);
 								}
 							} else if (args.length == 1) {
 								if (args[0].equalsIgnoreCase("all")) {
-									if (p.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
-										if (p.getInventory().getItemInHand() != null) {
-											if (p.getInventory().getItemInHand().getType() == Material.BOWL) {
+									if (player.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
+										if (player.getInventory().getItemInHand() != null) {
+											if (player.getInventory().getItemInHand().getType() == Material.BOWL) {
 												int invContentsSize = 0;
-												ItemStack[] inventoryContents = p.getInventory().getContents();
+												ItemStack[] inventoryContents = player.getInventory().getContents();
 												for (ItemStack itemContent : inventoryContents) {
 													if (itemContent != null) {
 														if (itemContent.getType() != Material.AIR) invContentsSize++;
 													}
 												}
-												if (invContentsSize < p.getInventory().getSize()) {
-													int bowlAmount = p.getInventory().getItemInHand().getAmount();
+												if (invContentsSize < player.getInventory().getSize()) {
+													int bowlAmount = player.getInventory().getItemInHand().getAmount();
 													int invSize = 0;
 													int bowlsGiven = 0;
-													ItemStack[] itemContents = p.getInventory().getContents();
-													int invMaxSize = p.getInventory().getSize();
+													ItemStack[] itemContents = player.getInventory().getContents();
+													int invMaxSize = player.getInventory().getSize();
 													for (int i = 0; i < itemContents.length; i++) {
 														if (itemContents[i] != null) {
 															if (itemContents[i].getType() != Material.AIR) invSize++;
@@ -111,81 +112,82 @@ public class RefillCommand extends PlayerCommand {
 													if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 														try {
 															net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-															if (economy.hasAccount(p)) {
+															if (economy.hasAccount(player)) {
 																double cost = this.getPlugin().configValues.vaultValues.costPerRefill * bowlsGiven;
-																if (economy.getBalance(p) >= cost) {
-																	economy.withdrawPlayer(p, cost);
+																if (economy.getBalance(player) >= cost) {
+																	economy.withdrawPlayer(player, cost);
 																	if (cost != 0)
-																		p.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																		player.sendMessage(this.getPlugin().getEconomyMessage(cost));
 																} else {
-																	Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																	Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																	return true;
 																}
 															} else {
-																Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																return true;
 															}
 														} catch (Exception ex) {
 														}
 													}
 													for (int i = 0; i < bowlsGiven; i++) {
-														p.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
+														player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
 													}
-													if (p.getInventory().getItemInHand().getAmount() - bowlsGiven > 0)
-														p.getInventory().setItemInHand(new ItemStack(Material.BOWL, p.getInventory().getItemInHand().getAmount() - bowlsGiven));
-													else p.getInventory().setItemInHand(new ItemStack(Material.AIR));
+													if (player.getInventory().getItemInHand().getAmount() - bowlsGiven > 0)
+														player.getInventory().setItemInHand(new ItemStack(Material.BOWL, player.getInventory().getItemInHand().getAmount() - bowlsGiven));
+													else
+														player.getInventory().setItemInHand(new ItemStack(Material.AIR));
 												} else {
-													if (p.getInventory().getItemInHand().getAmount() == 1) {
+													if (player.getInventory().getItemInHand().getAmount() == 1) {
 														if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 															try {
 																net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-																if (economy.hasAccount(p)) {
+																if (economy.hasAccount(player)) {
 																	double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
-																	if (economy.getBalance(p) >= cost) {
-																		economy.withdrawPlayer(p, cost);
+																	if (economy.getBalance(player) >= cost) {
+																		economy.withdrawPlayer(player, cost);
 																		if (cost != 0)
-																			p.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																			player.sendMessage(this.getPlugin().getEconomyMessage(cost));
 																	} else {
-																		Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																		Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																		return true;
 																	}
 																} else {
-																	Lang.sendMessage(p, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																	Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																	return true;
 																}
 															} catch (Exception ex) {
 															}
-															p.getInventory().setItemInHand(new ItemStack(Material.MUSHROOM_SOUP));
+															player.getInventory().setItemInHand(new ItemStack(Material.MUSHROOM_SOUP));
 														}
 													}
 												}
 											} else {
-												Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
+												Lang.sendMessage(player, Lang.COMMAND_REFILL_BOWL);
 											}
 										} else {
-											Lang.sendMessage(p, Lang.COMMAND_REFILL_BOWL);
+											Lang.sendMessage(player, Lang.COMMAND_REFILL_BOWL);
 										}
 									} else {
-										this.sendNoAccess(p);
+										this.sendNoAccess(player);
 									}
 								} else {
-									Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<all>]");
+									Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<all>]");
 								}
 							} else {
-								Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<all>]");
+								Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<all>]");
 							}
 						} else {
-							Lang.sendMessage(p, Lang.COMMAND_GEN_WORLD);
+							Lang.sendMessage(player, Lang.COMMAND_GEN_WORLD);
 						}
 					} else {
-						Lang.sendMessage(p, Lang.COMMAND_GEN_DISABLED);
+						Lang.sendMessage(player, Lang.COMMAND_GEN_DISABLED);
 					}
 				} else {
-					this.sendNoAccess(p);
+					this.sendNoAccess(player);
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				Lang.sendMessage(p, Lang.COMMAND_GEN_ERROR);
+				Lang.sendMessage(player, Lang.COMMAND_GEN_ERROR);
 			}
 			return true;
 		}

@@ -18,15 +18,15 @@ public class RenameKitCommand extends PlayerCommand {
 	}
 
 	@Override
-	protected boolean onCommand(Player p, String command, String[] args) {
+	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("renamekit")) {
 			try {
-				if (p.hasPermission(this.getPlugin().permissions.kitRenameCommand)) {
+				if (player.hasPermission(this.getPlugin().permissions.kitRenameCommand)) {
 					if (this.getPlugin().cmdValues.renameKits) {
-						if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
+						if (Utilities.inPvPWorld(player)) {
 							if (args.length == 0) {
-								Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<name> <newname>]");
-								Lang.sendMessage(p, Lang.COMMAND_RENAME_KIT_DESCRIPTION);
+								Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<name> <newname>]");
+								Lang.sendMessage(player, Lang.COMMAND_RENAME_KIT_DESCRIPTION);
 							} else if (args.length == 2) {
 								String strKit = args[0];
 								String strNewKit = args[1];
@@ -61,30 +61,30 @@ public class RenameKitCommand extends PlayerCommand {
 											this.getPlugin().kitList.remove(strKit);
 											this.getPlugin().kitList.put(strNewKit, kit);
 
-											Lang.sendMessage(p, Lang.COMMAND_RENAME_RENAMED, strKit, strNewKit);
+											Lang.sendMessage(player, Lang.COMMAND_RENAME_RENAMED, strKit, strNewKit);
 										} else {
-											Lang.sendMessage(p, Lang.KIT_NONEXISTENT, strKit);
+											Lang.sendMessage(player, Lang.KIT_NONEXISTENT, strKit);
 										}
 									} else {
-										Lang.sendMessage(p, Lang.COMMAND_RENAME_ILLEGAL_CHARACTERS);
+										Lang.sendMessage(player, Lang.COMMAND_RENAME_ILLEGAL_CHARACTERS);
 									}
 								} else {
-									Lang.sendMessage(p, Lang.COMMAND_RENAME_ALREADY_EXISTS, strNewKit);
+									Lang.sendMessage(player, Lang.COMMAND_RENAME_ALREADY_EXISTS, strNewKit);
 								}
 							} else {
-								Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<name> <newname>]");
+								Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<name> <newname>]");
 							}
 						} else {
-							Lang.sendMessage(p, Lang.COMMAND_GEN_WORLD);
+							Lang.sendMessage(player, Lang.COMMAND_GEN_WORLD);
 						}
 					} else {
-						Lang.sendMessage(p, Lang.COMMAND_GEN_DISABLED);
+						Lang.sendMessage(player, Lang.COMMAND_GEN_DISABLED);
 					}
 				} else {
-					this.sendNoAccess(p);
+					this.sendNoAccess(player);
 				}
 			} catch (Exception ex) {
-				Lang.sendMessage(p, Lang.COMMAND_GEN_ERROR);
+				Lang.sendMessage(player, Lang.COMMAND_GEN_ERROR);
 			}
 			return true;
 		}

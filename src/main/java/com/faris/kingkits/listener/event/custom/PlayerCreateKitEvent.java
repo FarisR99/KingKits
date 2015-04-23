@@ -8,6 +8,9 @@ import org.bukkit.inventory.*;
 
 import java.util.*;
 
+/**
+ * Called before a player creates a kit.
+ */
 public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -19,33 +22,15 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 	private boolean isCancelled = false;
 	private boolean isUserKit = false;
 
-	/**
-	 * Create a new PlayerCreateKitEvent instance.
-	 *
-	 * @param player - The player.
-	 * @param kitName - The new kit.
-	 * @param newKitItems - The kit items.
-	 * @param isUserKit - Whether the kit is a private user kit or not.
-	 */
 	public PlayerCreateKitEvent(Player player, String kitName, final List<ItemStack> newKitItems, List<ItemStack> armourContents, boolean isUserKit) {
 		this(player, kitName, new HashMap<Integer, ItemStack>() {
 			{
-				for (int i = 0; i < newKitItems.size(); i++) {
-					this.put(i, newKitItems.get(i));
-				}
+				for (int i = 0; i < newKitItems.size(); i++) this.put(i, newKitItems.get(i));
 			}
 		}, armourContents, isUserKit);
 
 	}
 
-	/**
-	 * Create a new PlayerCreateKitEvent instance.
-	 *
-	 * @param player - The player.
-	 * @param kitName - The new kit.
-	 * @param newKitItems - The kit items.
-	 * @param isUserKit - Whether the kit is a private user kit or not.
-	 */
 	public PlayerCreateKitEvent(Player player, String kitName, Map<Integer, ItemStack> newKitItems, List<ItemStack> armourContents, boolean isUserKit) {
 		super(player);
 		this.kitName = kitName;
@@ -55,43 +40,63 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 	}
 
 	/**
-	 * Returns the kit's name *
+	 * Get the kit's name.
+	 *
+	 * @return The kit's name.
 	 */
 	public String getKit() {
 		return this.kitName;
 	}
 
 	/**
-	 * Returns an unmodifiable List of armour in the new kit *
+	 * Get a list of the armour in the new kit.
+	 *
+	 * @return An unmodifiable List of armour in the new kit.
 	 */
 	public List<ItemStack> getKitArmour() {
 		return Collections.unmodifiableList(this.armourContents);
 	}
 
 	/**
-	 * Returns an unmodifiable List of items in the new kit *
+	 * Get a list of all the items in the new kit.
+	 *
+	 * @return An unmodifiable List of items in the new kit.
 	 */
 	public List<ItemStack> getKitContents() {
 		return new ArrayList<ItemStack>(this.kitContents.values());
 	}
 
+	/**
+	 * Get all the items in the new kit and their slots.
+	 *
+	 * @return An unmodifiable Map of all the items in the new kit and their slots.
+	 */
 	public Map<Integer, ItemStack> getKitContentsWithSlots() {
 		return Collections.unmodifiableMap(this.kitContents);
 	}
 
+	/**
+	 * Check whether the created kit is a user kit or not.
+	 *
+	 * @return Whether the created kit is a user kit or not.
+	 */
 	public boolean isUserKit() {
 		return this.isUserKit;
 	}
 
 	/**
-	 * Set the item contents of the new kit *
+	 * Set the armour contents of the new kit.
+	 *
+	 * @param armourContents The armour contents
 	 */
 	public void setArmourContents(List<ItemStack> armourContents) {
 		if (armourContents != null) this.armourContents = armourContents;
 	}
 
 	/**
-	 * Set the item contents of the new kit *
+	 * Set the item contents of the new kit.
+	 *
+	 * @param kitContents The items
 	 */
 	public void setKitContents(List<ItemStack> kitContents) {
 		if (kitContents != null) {
@@ -104,7 +109,9 @@ public class PlayerCreateKitEvent extends PlayerEvent implements Cancellable {
 	}
 
 	/**
-	 * Set the item contents of the new kit *
+	 * Set the item contents of the new kit.
+	 *
+	 * @param kitContents The items
 	 */
 	public void setKitContents(Map<Integer, ItemStack> kitContents) {
 		if (kitContents != null) this.kitContents = kitContents;

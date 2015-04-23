@@ -572,6 +572,27 @@ public class KingKitsAPI {
 	 * @param ignoreChecks Whether or not to ignore checking the configuration 'Kit list mode'
 	 */
 	public static void showKitMenu(Player player, boolean ignoreChecks) {
+		showKitMenu(player, 1, ignoreChecks);
+	}
+
+	/**
+	 * Show the kit menu to a player.
+	 *
+	 * @param player The player
+	 * @param startingPage The page at which the GUI opens at
+	 */
+	public static void showKitMenu(Player player, int startingPage) {
+		showKitMenu(player, startingPage, false);
+	}
+
+	/**
+	 * Show the kit menu to a player.
+	 *
+	 * @param player The player
+	 * @param startingPage The page at which the GUI opens at
+	 * @param ignoreChecks Whether or not to ignore checking the configuration 'Kit list mode'
+	 */
+	public static void showKitMenu(Player player, int startingPage, boolean ignoreChecks) {
 		if (KingKits.getInstance() != null && player != null && (!ignoreChecks || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
 			List<Kit> kitValues = new ArrayList<>();
 			if (KingKits.getInstance().configValues.sortAlphabetically) {
@@ -582,7 +603,7 @@ public class KingKitsAPI {
 						if (userKit != null) kitNames.add(userKit.getRealName());
 					}
 				}
-				Collections.sort(kitNames, Utilities.ALPHABETICAL_ORDER);
+				Collections.sort(kitNames, Utilities.ALPHANUMERICAL_ORDER);
 
 				for (Iterator<String> kitIterator = kitNames.iterator(); kitIterator.hasNext(); ) {
 					Kit kit = getKitByName(kitIterator.next(), player.getUniqueId());
@@ -612,7 +633,7 @@ public class KingKitsAPI {
 				kitStacks[index] = new KitStack(kit.getName(), kit.getGuiItem());
 			}
 			ChatColor menuColour = kitStacks.length > 0 ? ChatColor.AQUA : ChatColor.RED;
-			new GuiKitMenu(player, KingKits.getInstance().configValues.guiTitle.replace("<menucolour>", menuColour.toString()), kitStacks).openMenu();
+			new GuiKitMenu(player, KingKits.getInstance().configValues.guiTitle.replace("<menucolour>", menuColour.toString()), kitStacks, startingPage).openMenu();
 		}
 	}
 
@@ -625,7 +646,7 @@ public class KingKitsAPI {
 	public static void showKitPreview(Player player, String kitName) {
 		if (KingKits.getInstance() != null && player != null && kitName != null) {
 			Kit kit = getKitByName(kitName, false);
-			if (kit != null) new GuiPreviewKit(player, kit.getRealName()).openMenu();
+			if (kit != null) new GuiPreviewKit(player, kit).openMenu();
 		}
 	}
 

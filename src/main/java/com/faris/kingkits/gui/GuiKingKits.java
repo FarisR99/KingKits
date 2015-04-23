@@ -43,9 +43,8 @@ public abstract class GuiKingKits implements Listener {
 
 	public boolean openMenu() {
 		this.closeMenu(false, false);
-		if (!guiPreviewKitMap.containsKey(this.playerName)) {
+		if (!guiKitMenuMap.containsKey(this.playerName) && !guiPreviewKitMap.containsKey(this.playerName)) {
 			if (this.getPlayer() != null) {
-				this.guiInventory.clear();
 				this.fillInventory();
 				this.getPlayer().openInventory(this.guiInventory);
 				return true;

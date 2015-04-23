@@ -25,14 +25,14 @@ public class CreateKitCommand extends PlayerCommand {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	protected boolean onCommand(Player p, String command, String[] args) {
+	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("createkit")) {
-			if (p.hasPermission(this.getPlugin().permissions.kitCreateCommand)) {
+			if (player.hasPermission(this.getPlugin().permissions.kitCreateCommand)) {
 				if (this.getPlugin().cmdValues.createKits) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(p.getWorld().getName())) {
+					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
-							Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
-							Lang.sendMessage(p, Lang.COMMAND_CREATE_KIT_DESCRIPTION);
+							Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
+							Lang.sendMessage(player, Lang.COMMAND_CREATE_KIT_DESCRIPTION);
 						} else if (args.length > 0 && args.length < 3) {
 							String kitName = args[0];
 
@@ -51,18 +51,18 @@ public class CreateKitCommand extends PlayerCommand {
 										String[] guiSplit = args[1].split(":");
 										if (guiSplit.length == 2) {
 											if (!this.isInteger(guiSplit[0]) || !this.isInteger(guiSplit[1])) {
-												Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
+												Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
 												return true;
 											}
 										} else {
 											if (!this.isInteger(args[1])) {
-												Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
+												Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
 												return true;
 											}
 										}
 									} else {
 										if (!this.isInteger(args[1])) {
-											Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
+											Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
 											return true;
 										}
 									}
@@ -70,16 +70,16 @@ public class CreateKitCommand extends PlayerCommand {
 
 								Map<Integer, ItemStack> itemsInInv = new HashMap<Integer, ItemStack>();
 								List<ItemStack> armourInInv = new ArrayList<ItemStack>();
-								ItemStack[] pContents = p.getInventory().getContents();
-								if (pContents == null) pContents = new ItemStack[p.getInventory().getSize()];
-								for (int i = 0; i < p.getInventory().getSize(); i++) {
+								ItemStack[] pContents = player.getInventory().getContents();
+								if (pContents == null) pContents = new ItemStack[player.getInventory().getSize()];
+								for (int i = 0; i < player.getInventory().getSize(); i++) {
 									if (pContents.length > i && pContents[i] != null) itemsInInv.put(i, pContents[i]);
 									else itemsInInv.put(i, new ItemStack(Material.AIR));
 								}
-								for (ItemStack armour : p.getInventory().getArmorContents())
+								for (ItemStack armour : player.getInventory().getArmorContents())
 									if (armour != null && armour.getType() != Material.AIR) armourInInv.add(armour);
-								PlayerCreateKitEvent createKitEvent = new PlayerCreateKitEvent(p, kitName, itemsInInv, armourInInv, false);
-								p.getServer().getPluginManager().callEvent(createKitEvent);
+								PlayerCreateKitEvent createKitEvent = new PlayerCreateKitEvent(player, kitName, itemsInInv, armourInInv, false);
+								player.getServer().getPluginManager().callEvent(createKitEvent);
 
 								if (!createKitEvent.isCancelled()) {
 									itemsInInv = createKitEvent.getKitContentsWithSlots();
@@ -115,47 +115,47 @@ public class CreateKitCommand extends PlayerCommand {
 										}
 
 										List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
-										for (PotionEffect potionEffect : p.getActivePotionEffects()) {
+										for (PotionEffect potionEffect : player.getActivePotionEffects()) {
 											if (potionEffect != null) kitPotionEffects.add(potionEffect);
 										}
 										if (!kitPotionEffects.isEmpty()) kit.setPotionEffects(kitPotionEffects);
 
-										kit.setMaxHealth((int) p.getMaxHealth());
+										kit.setMaxHealth((int) player.getMaxHealth());
 
 										this.getPlugin().getKitsConfig().set(kitName, kit.serialize());
 										this.getPlugin().kitList.put(kitName, kit);
 										this.getPlugin().saveKitsConfig();
 
 										try {
-											p.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
+											player.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
 										} catch (Exception ex) {
 										}
-										Lang.sendMessage(p, containsKit ? Lang.COMMAND_CREATE_OVERWRITTEN : Lang.COMMAND_CREATE_CREATED, kitName);
+										Lang.sendMessage(player, containsKit ? Lang.COMMAND_CREATE_OVERWRITTEN : Lang.COMMAND_CREATE_CREATED, kitName);
 
 										if (this.getPlugin().configValues.removeItemsOnCreateKit) {
-											p.getInventory().clear();
-											p.getInventory().setArmorContents(null);
+											player.getInventory().clear();
+											player.getInventory().setArmorContents(null);
 										}
 									} else {
-										Lang.sendMessage(p, Lang.COMMAND_CREATE_EMPTY_INV);
+										Lang.sendMessage(player, Lang.COMMAND_CREATE_EMPTY_INV);
 									}
 								} else {
-									Lang.sendMessage(p, Lang.COMMAND_CREATE_DENIED);
+									Lang.sendMessage(player, Lang.COMMAND_CREATE_DENIED);
 								}
 							} else {
-								Lang.sendMessage(p, Lang.COMMAND_CREATE_ILLEGAL_CHARACTERS);
+								Lang.sendMessage(player, Lang.COMMAND_CREATE_ILLEGAL_CHARACTERS);
 							}
 						} else {
-							Lang.sendMessage(p, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
+							Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
 						}
 					} else {
-						Lang.sendMessage(p, Lang.COMMAND_GEN_WORLD);
+						Lang.sendMessage(player, Lang.COMMAND_GEN_WORLD);
 					}
 				} else {
-					Lang.sendMessage(p, Lang.COMMAND_GEN_DISABLED);
+					Lang.sendMessage(player, Lang.COMMAND_GEN_DISABLED);
 				}
 			} else {
-				this.sendNoAccess(p);
+				this.sendNoAccess(player);
 			}
 			return true;
 		}

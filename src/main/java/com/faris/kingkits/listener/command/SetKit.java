@@ -40,7 +40,7 @@ public class SetKit {
 	public static Kit setKit(Player player, boolean sendMessages, String kitName) throws Exception {
 		if (player == null || kitName == null) return null;
 		KingKits plugin = KingKits.getInstance();
-		if (plugin.configValues.pvpWorlds.contains("All") || plugin.configValues.pvpWorlds.contains(player.getWorld().getName())) {
+		if (Utilities.inPvPWorld(player)) {
 			Kit newKit = KingKitsAPI.getKitByName(Utilities.stripColour(kitName), player.getUniqueId());
 			if (newKit != null) {
 				kitName = newKit.getRealName();

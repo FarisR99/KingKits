@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiPreviewKit extends GuiKingKits {
+
 	private List<ItemStack> guiItemStacks = null;
+	private int oldKitMenuPage = 1;
 
 	/**
 	 * Create a new Kit GUI preview instance.
@@ -23,9 +25,20 @@ public class GuiPreviewKit extends GuiKingKits {
 	 * @param kitName - The kit name
 	 */
 	public GuiPreviewKit(Player player, String kitName) {
+		this(player, kitName, 1);
+	}
+
+	/**
+	 * Create a new Kit GUI preview instance.
+	 *
+	 * @param player - The player that is using the menu
+	 * @param kitName - The kit name
+	 */
+	public GuiPreviewKit(Player player, String kitName, int oldKitMenuPage) {
 		super(player, player.getServer().createInventory(player, 45, Lang.GUI_PREVIEW_TITLE.getMessage(kitName)));
 		Kit kit = KingKitsAPI.getKitByName(kitName, true);
 		this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
+		this.oldKitMenuPage = oldKitMenuPage;
 	}
 
 	/**
@@ -65,6 +78,8 @@ public class GuiPreviewKit extends GuiKingKits {
 
 	@Override
 	protected void fillInventory() {
+		this.guiInventory.clear();
+
 		for (int itemStackPos = 0; itemStackPos < this.guiItemStacks.size(); itemStackPos++) {
 			if (itemStackPos < 36) {
 				ItemStack itemStack = this.guiItemStacks.get(itemStackPos);
@@ -80,7 +95,7 @@ public class GuiPreviewKit extends GuiKingKits {
 				backItemMeta.setDisplayName(Lang.GUI_PREVIEW_BACK.getMessage());
 				backItem.setItemMeta(backItemMeta);
 			}
-			this.guiInventory.setItem(this.guiInventory.getSize() - 1, backItem);
+			this.guiInventory.setItem(this.guiInventory.getSize() - 5, backItem);
 		}
 	}
 
@@ -91,13 +106,13 @@ public class GuiPreviewKit extends GuiKingKits {
 				event.setCancelled(true);
 				if (event.getWhoClicked() instanceof Player) {
 					final Player player = (Player) event.getWhoClicked();
-					if (event.getSlot() == this.guiInventory.getSize() - 1 && event.getCurrentItem().getType() == Material.STONE_BUTTON) {
+					if (event.getSlot() == this.guiInventory.getSize() - 5 && event.getCurrentItem().getType() == Material.STONE_BUTTON) {
 						this.closeMenu(true, true);
 						if (!guiKitMenuMap.containsKey(event.getWhoClicked().getName())) {
 							player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
 								public void run() {
 									if (player != null) {
-										KingKitsAPI.showKitMenu(player);
+										KingKitsAPI.showKitMenu(player, oldKitMenuPage);
 									}
 								}
 							}, 3L);

@@ -14,6 +14,7 @@ import org.bukkit.potion.*;
 import java.util.*;
 
 public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
+
 	private String kitName = "";
 	private String realName = "";
 	private boolean userKit = false;
@@ -696,4 +697,5 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 	public static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {
 		return entrySet != null ? getValues(entrySet.getValue()) : null;
 	}
+
 }

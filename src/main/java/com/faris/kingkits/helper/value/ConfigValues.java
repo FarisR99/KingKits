@@ -9,63 +9,44 @@ public class ConfigValues {
 	// Booleans
 	public boolean checkForUpdates = true;
 	public boolean automaticUpdates = false;
-
 	public boolean opBypass = true;
-
 	public boolean listKitsOnJoin = true;
 	public boolean kitListPermissionsJoin = false;
 	public boolean sortAlphabetically = true;
-
 	public boolean kitListPermissions = true;
-
 	public boolean dropItemsOnDeath = false;
 	public boolean dropItems = false;
-	@SuppressWarnings("deprecation")
 	public List<Integer> dropAnimations = Arrays.asList(Material.BOWL.getId());
 	public boolean allowPickingUpItems = true;
-
-	public boolean clearInvsOnReload = true;
-
+	public boolean clearInvOnReload = true;
 	public boolean oneKitPerLife = false;
-
 	public boolean removeItemsOnLeave = true;
 	public boolean removePotionEffectsOnLeave = true;
 	public boolean removeItemsOnCreateKit = true;
-
 	public boolean rightClickCompass = true;
-
 	public boolean quickSoup = true;
 	public boolean quickSoupKitOnly = true;
 	public double quickSoupHeal = 2.5;
-
 	public boolean banBlockBreakingAndPlacing = false;
-
 	public boolean disableDeathMessages = false;
-
 	public boolean lockHunger = true;
 	public int hungerLock = 20;
-
 	public boolean disableGamemode = false;
-
 	public boolean killstreaks = false;
-
 	public boolean disableItemBreaking = true;
-
 	public boolean kitMenuOnJoin = false;
-
 	public boolean kitParticleEffects = false;
-
 	public boolean showKitPreview = false;
-
 	public boolean kitCooldown = false;
-
 	public boolean replaceItems = true;
-
 	public boolean dropItemsOnFullInventory = false;
+	public boolean removeKitOnDeath = true;
 
 	// GUI
 	public String guiTitle = "<menucolour>PvP Kits";
 	public int guiSize = 36;
+	public int guiItemID = Material.STONE_BUTTON.getId();
+	public short guiItemData = 0;
 
 	// Scores
 	public boolean scores = false;

@@ -21,7 +21,7 @@ public class DeleteUserKitCommand extends PlayerCommand {
 		if (command.equalsIgnoreCase("deleteukit")) {
 			if (player.hasPermission(this.getPlugin().permissions.kitUDeleteCommand)) {
 				if (this.getPlugin().cmdValues.deleteUKits) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(player.getWorld().getName())) {
+					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
 							Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " <kit>");
 							Lang.sendMessage(player, Lang.COMMAND_DELETE_UKIT_DESCRIPTION);

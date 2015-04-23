@@ -23,10 +23,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.potion.*;
 import org.bukkit.scoreboard.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class EventListener implements Listener {
 
@@ -50,7 +47,7 @@ public class EventListener implements Listener {
 			// List kits on join
 			try {
 				if (this.getPlugin().configValues.listKitsOnJoin) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						this.listKitsOnJoin(event.getPlayer());
 					}
 				}
@@ -134,7 +131,7 @@ public class EventListener implements Listener {
 			// Remove potion effects
 			try {
 				if (this.getPlugin().configValues.removePotionEffectsOnLeave) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects()) {
 							PotionEffectType potionEffectType = potionEffectOnPlayer.getType();
 							event.getPlayer().removePotionEffect(potionEffectType);
@@ -185,7 +182,7 @@ public class EventListener implements Listener {
 					if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
 						if (this.getPlugin().configValues.quickSoup) {
 							if (event.getPlayer().hasPermission(this.getPlugin().permissions.quickSoup) || (this.getPlugin().configValues.opBypass && event.getPlayer().isOp())) {
-								if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+								if (Utilities.inPvPWorld(event.getPlayer())) {
 									Player player = event.getPlayer();
 									int soupAmount = player.getInventory().getItemInHand().getAmount();
 									if (soupAmount > 0) {
@@ -254,7 +251,7 @@ public class EventListener implements Listener {
 			try {
 				if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (event.getPlayer().getWorld() != null) {
-						if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+						if (Utilities.inPvPWorld(event.getPlayer())) {
 							Player player = event.getPlayer();
 							BlockState block = event.getClickedBlock().getState();
 							if ((block instanceof Sign)) {
@@ -403,7 +400,7 @@ public class EventListener implements Listener {
 		try {
 			// Creating a sign
 			try {
-				if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+				if (Utilities.inPvPWorld(event.getPlayer())) {
 					Player p = event.getPlayer();
 					String signType = event.getLine(0);
 					if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignKit)) {
@@ -453,14 +450,14 @@ public class EventListener implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		try {
-			boolean inPvPWorld = this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getWorld().getName());
+			boolean inPvPWorld = Utilities.inPvPWorld(event.getEntity());
 
 			// Scores
 			try {
 				if (this.getPlugin().configValues.scores) {
 					if (inPvPWorld) {
 						final Player killer = event.getEntity().getKiller();
-						if (killer != null && !event.getEntity().getName().equals(killer.getName())) {
+						if (killer != null && !event.getEntity().getUniqueId().equals(killer.getUniqueId())) {
 							try {
 								if (!this.getPlugin().playerScores.containsKey(killer.getUniqueId()))
 									this.getPlugin().playerScores.put(killer.getUniqueId(), 0);
@@ -469,7 +466,7 @@ public class EventListener implements Listener {
 								if (newScore > this.getPlugin().configValues.maxScore)
 									newScore = this.getPlugin().configValues.maxScore;
 								this.getPlugin().playerScores.put(killer.getUniqueId(), newScore);
-								this.getPlugin().getScoresConfig().set("Scores." + killer.getUniqueId(), (long) newScore);
+								this.getPlugin().getScoresConfig().set("Scores." + killer.getUniqueId().toString(), (long) newScore);
 								this.getPlugin().saveScoresConfig();
 
 								if (KingKitsSQL.sqlEnabled) {
@@ -493,26 +490,30 @@ public class EventListener implements Listener {
 			// Core
 			try {
 				Player player = event.getEntity();
-				boolean hadKit = false;
-				if (this.getPlugin().playerKits.containsKey(player.getName())) {
-					this.getPlugin().playerKits.remove(player.getName());
-					hadKit = true;
-				}
-				if (this.getPlugin().usingKits.containsKey(player.getName())) {
-					this.getPlugin().usingKits.remove(player.getName());
-					hadKit = true;
+				if (this.getPlugin().configValues.removeKitOnDeath) {
+					boolean hadKit = false;
+					if (this.getPlugin().playerKits.containsKey(player.getName())) {
+						this.getPlugin().playerKits.remove(player.getName());
+						hadKit = true;
+					}
+					if (this.getPlugin().usingKits.containsKey(player.getName())) {
+						this.getPlugin().usingKits.remove(player.getName());
+						hadKit = true;
+					}
+					if (hadKit) {
+						player.setMaxHealth(20D);
+						player.getInventory().clear();
+						player.getInventory().setArmorContents(null);
+						player.updateInventory();
+
+						for (PotionEffect activeEffect : player.getActivePotionEffects())
+							player.removePotionEffect(activeEffect.getType());
+					}
+				} else {
+					event.setKeepInventory(true);
 				}
 				if (inPvPWorld && !this.getPlugin().configValues.dropItemsOnDeath)
 					event.getDrops().clear();
-				if (hadKit) {
-					player.setMaxHealth(20D);
-					player.getInventory().clear();
-					player.getInventory().setArmorContents(null);
-					player.updateInventory();
-
-					for (PotionEffect activeEffect : player.getActivePotionEffects())
-						player.removePotionEffect(activeEffect.getType());
-				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -529,8 +530,8 @@ public class EventListener implements Listener {
 			if (event.getEntity().getKiller() != null) {
 				try {
 					if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useMoneyPerDeath) {
-						if (!event.getEntity().getName().equalsIgnoreCase(event.getEntity().getKiller().getName())) {
-							if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getEntity().getKiller().getWorld().getName())) {
+						if (!event.getEntity().getUniqueId().equals(event.getEntity().getKiller().getUniqueId())) {
+							if (Utilities.inPvPWorld(event.getEntity().getKiller())) {
 								net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
 								economy.withdrawPlayer(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath);
 								event.getEntity().sendMessage(this.getPlugin().getMPDMessage(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath));
@@ -558,7 +559,7 @@ public class EventListener implements Listener {
 				if (event.getItemDrop() != null) {
 					if (event.getPlayer().getWorld() != null) {
 						if (!this.getPlugin().configValues.dropItems) {
-							if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+							if (Utilities.inPvPWorld(event.getPlayer())) {
 								if (this.getPlugin().configValues.opBypass) {
 									if (!event.getPlayer().isOp()) {
 										if (this.getPlugin().playerKits.containsKey(event.getPlayer().getName())) {
@@ -599,7 +600,7 @@ public class EventListener implements Listener {
 				if (event.getItem() != null) {
 					if (event.getPlayer().getWorld() != null) {
 						if (!this.getPlugin().configValues.allowPickingUpItems) {
-							if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+							if (Utilities.inPvPWorld(event.getPlayer())) {
 								if (this.getPlugin().configValues.opBypass) {
 									if (!event.getPlayer().isOp()) {
 										if (this.getPlugin().playerKits.containsKey(event.getPlayer().getName())) {
@@ -628,7 +629,7 @@ public class EventListener implements Listener {
 			// Score chat prefix
 			try {
 				if (this.getPlugin().configValues.scores) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						Player player = event.getPlayer();
 						if (!this.getPlugin().playerScores.containsKey(player.getUniqueId())) {
 							this.getPlugin().playerScores.put(player.getUniqueId(), 0);
@@ -649,7 +650,7 @@ public class EventListener implements Listener {
 	public void onPlayerInteractCompass(PlayerInteractEvent event) {
 		try {
 			if (this.getPlugin().configValues.rightClickCompass) {
-				if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+				if (Utilities.inPvPWorld(event.getPlayer())) {
 					if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 						if (event.getPlayer().getInventory().getItemInHand() != null) {
 							if (event.getPlayer().getInventory().getItemInHand().getType() == Material.COMPASS) {
@@ -731,7 +732,7 @@ public class EventListener implements Listener {
 			// Disable block breaking
 			try {
 				if (this.getPlugin().configValues.banBlockBreakingAndPlacing) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						if (this.getPlugin().configValues.opBypass) {
 							if (!event.getPlayer().isOp()) event.setCancelled(true);
 						} else {
@@ -788,7 +789,7 @@ public class EventListener implements Listener {
 			// Disable block placing
 			try {
 				if (this.getPlugin().configValues.banBlockBreakingAndPlacing) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						if (this.getPlugin().configValues.opBypass) {
 							if (!event.getPlayer().isOp()) event.setCancelled(true);
 						} else {
@@ -809,11 +810,8 @@ public class EventListener implements Listener {
 			// Lock hunger bar
 			try {
 				if (this.getPlugin().configValues.lockHunger) {
-					if (event.getEntity() instanceof Player) {
-						Player player = (Player) event.getEntity();
-						if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(player.getWorld().getName()))
-							event.setFoodLevel(this.getPlugin().configValues.hungerLock);
-					}
+					if (Utilities.inPvPWorld(event.getEntity()))
+						event.setFoodLevel(this.getPlugin().configValues.hungerLock);
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -829,7 +827,7 @@ public class EventListener implements Listener {
 			try {
 				Player killer = event.getPlayer();
 				if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useMoneyPerKill) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(killer.getWorld().getName())) {
+					if (Utilities.inPvPWorld(killer)) {
 						net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
 						if (economy != null) {
 							if (!economy.hasAccount(killer)) economy.createPlayerAccount(killer);
@@ -845,7 +843,7 @@ public class EventListener implements Listener {
 			// Update their killstreak
 			try {
 				if (this.getPlugin().configValues.killstreaks) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
 						if (!this.getPlugin().playerKillstreaks.containsKey(event.getPlayer().getName()))
 							this.getPlugin().playerKillstreaks.put(event.getPlayer().getName(), 0L);
 
@@ -885,7 +883,7 @@ public class EventListener implements Listener {
 		try {
 			// Remove kit
 			try {
-				if (!this.getPlugin().configValues.pvpWorlds.contains("All") && !this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName())) {
+				if (!Utilities.inPvPWorld(event.getPlayer())) {
 					if (this.getPlugin().playerKits.containsKey(event.getPlayer().getName()))
 						this.getPlugin().playerKits.remove(event.getPlayer().getName());
 					if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
@@ -924,7 +922,7 @@ public class EventListener implements Listener {
 				if (this.getPlugin().configValues.disableGamemode) {
 					if (event.getNewGameMode() == GameMode.CREATIVE) {
 						if (!(this.getPlugin().configValues.opBypass && event.getPlayer().isOp())) {
-							if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))
+							if (Utilities.inPvPWorld(event.getPlayer()))
 								event.setCancelled(true);
 						}
 					}
@@ -946,7 +944,7 @@ public class EventListener implements Listener {
 					if (player.getGameMode() == GameMode.SURVIVAL) {
 						if (player.getItemInHand() != null && this.getPlugin().usingKits.containsKey(player.getName())) {
 							boolean repair = false;
-							if ((this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+							if (this.isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL) {
 								if (this.getPlugin().configValues.disableItemBreaking) {
 									repair = true;
 								} else {
@@ -1062,6 +1060,8 @@ public class EventListener implements Listener {
 			public void run() {
 				if (p != null && p.isOnline()) {
 					List<String> kitList = getPlugin().getKitList();
+					if (getPlugin().configValues.sortAlphabetically)
+						Collections.sort(kitList, Utilities.ALPHANUMERICAL_ORDER);
 					StringBuilder sbKits = new StringBuilder();
 					for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 						String kit = kitList.get(kitPos);

@@ -28,7 +28,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 		if (command.equalsIgnoreCase("createukit")) {
 			if (player.hasPermission(this.getPlugin().permissions.kitUCreateCommand)) {
 				if (this.getPlugin().cmdValues.createUKits) {
-					if (this.getPlugin().configValues.pvpWorlds.contains("All") || this.getPlugin().configValues.pvpWorlds.contains(player.getWorld().getName())) {
+					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
 							Lang.sendMessage(player, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " [<kit>|<kit> <guiitem>]");
 							Lang.sendMessage(player, Lang.COMMAND_CREATE_UKIT_DESCRIPTION);

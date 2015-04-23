@@ -3,6 +3,9 @@ package com.faris.kingkits.listener.event.custom;
 import org.bukkit.command.*;
 import org.bukkit.event.*;
 
+/**
+ * Called after the KingKits' configuration reloads.
+ */
 public class KingKitsReloadEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -19,12 +22,6 @@ public class KingKitsReloadEvent extends Event {
 		this.theSender = sender;
 	}
 
-	/**
-	 * Create a new KingKitsReloadEvent instance.
-	 *
-	 * @param sender - The CommandSender that is reloading the configuration.
-	 * @param failedException - If the reload has not been successful, this will hold the error thrown instance. If successful, this will be null.
-	 */
 	public KingKitsReloadEvent(CommandSender sender, Exception failedException) {
 		this.theSender = sender;
 		this.failedException = failedException;
@@ -40,7 +37,9 @@ public class KingKitsReloadEvent extends Event {
 	}
 
 	/**
-	 * Returns the player *
+	 * Get the reloader.
+	 *
+	 * @return The reloader.
 	 */
 	public CommandSender getSender() {
 		return this.theSender;
