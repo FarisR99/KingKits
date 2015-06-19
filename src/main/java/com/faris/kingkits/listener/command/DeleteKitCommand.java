@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.KingKitsAPI;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -19,7 +20,7 @@ public class DeleteKitCommand extends PlayerCommand {
 	@Override
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("deletekit")) {
-			if (player.hasPermission(this.getPlugin().permissions.kitDeleteCommand)) {
+			if (player.hasPermission(Permissions.COMMAND_KIT_DELETE)) {
 				if (this.getPlugin().cmdValues.deleteKits) {
 					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {

@@ -76,15 +76,15 @@ public class UUIDFetcher {
 	 * @return A profile with the given name
 	 */
 	public static Map<String, UUID> lookupNames(List<String> names) {
-		Map<String, UUID> playerProfiles = new HashMap<String, UUID>();
+		Map<String, UUID> playerProfiles = new HashMap<>();
 		if (names != null && !names.isEmpty()) {
-			List<Integer> removeIndexes = new ArrayList<Integer>();
+			List<Integer> removeIndexes = new ArrayList<>();
 			for (int i = 0; i < names.size(); i++) {
 				String name = names.get(i);
 				if (nameCache.contains(name)) {
 					PlayerProfile playerProfile = nameCache.get(name);
 					playerProfiles.put(playerProfile.getName(), playerProfile.getId());
-					removeIndexes.add(new Integer(i));
+					removeIndexes.add(i);
 				}
 			}
 			for (Integer removeIndex : removeIndexes) names.remove(removeIndex.intValue());
@@ -178,25 +178,26 @@ public class UUIDFetcher {
 		}
 	}
 
-
 	private static Cache<UUID, PlayerProfile> idCache = new Cache<>();
 
 	private static List<PlayerProfile> postNames(List<String> names) throws Exception {
-		JSONArray request = new JSONArray();
-		for (String name : names) {
-			request.add(name);
+		try {
+			JSONArray request = new JSONArray();
+			for (String name : names) request.add(name);
+			Object rawResponse = postJson("https://api.mojang.com/profiles/minecraft", request);
+			if (!(rawResponse instanceof JSONArray)) return null;
+			JSONArray response = (JSONArray) rawResponse;
+			List<PlayerProfile> profiles = new ArrayList<>();
+			for (Object rawEntry : response) {
+				if (!(rawEntry instanceof JSONObject)) return null;
+				JSONObject entry = (JSONObject) rawEntry;
+				PlayerProfile profile = deserializeProfile(entry);
+				if (profile != null) profiles.add(profile);
+			}
+			return profiles;
+		} catch (Exception ex) {
+			throw ex;
 		}
-		Object rawResponse = postJson("https://api.mojang.com/profiles/minecraft", request);
-		if (!(rawResponse instanceof JSONArray)) return null;
-		JSONArray response = (JSONArray) rawResponse;
-		List<PlayerProfile> profiles = new ArrayList<>();
-		for (Object rawEntry : response) {
-			if (!(rawEntry instanceof JSONObject)) return null;
-			JSONObject entry = (JSONObject) rawEntry;
-			PlayerProfile profile = deserializeProfile(entry);
-			if (profile != null) profiles.add(profile);
-		}
-		return profiles;
 	}
 
 	private static PlayerProfile deserializeProfile(JSONObject jsonObject) {
@@ -206,9 +207,8 @@ public class UUIDFetcher {
 		UUID playerUUID = toUUID((String) jsonObject.get("id"));
 		if (playerUUID == null) return null;
 		PlayerProfile profile = new PlayerProfile(playerUUID, name);
-		if (jsonObject.containsKey("properties") && jsonObject.get("properties") instanceof JSONArray) {
+		if (jsonObject.containsKey("properties") && jsonObject.get("properties") instanceof JSONArray)
 			profile.properties = (JSONArray) jsonObject.get("properties");
-		}
 		return profile;
 	}
 
@@ -241,20 +241,20 @@ public class UUIDFetcher {
 			connection.setRequestMethod("GET");
 
 			reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			StringBuffer result = new StringBuffer();
+			StringBuilder result = new StringBuilder();
 			String line;
 			while ((line = reader.readLine()) != null) result.append(line);
+
 			return JSON_PARSER.parse(result.toString());
 		} catch (Exception ex) {
-			return null;
 		} finally {
 			try {
 				if (reader != null) reader.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();
-				return null;
 			}
 		}
+		return null;
 	}
 
 	private static String post(String rawUrl, String body) {
@@ -270,23 +270,24 @@ public class UUIDFetcher {
 			connection.setRequestProperty("Content-Type", "application/json");
 			out = connection.getOutputStream();
 			out.write(body.getBytes());
+
 			reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			StringBuffer result = new StringBuffer();
+			StringBuilder result = new StringBuilder();
 			String line;
 			while ((line = reader.readLine()) != null) result.append(line);
+
 			return result.toString();
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			return null;
 		} finally {
 			try {
 				if (out != null) out.close();
 				if (reader != null) reader.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();
-				return null;
 			}
 		}
+		return null;
 	}
 
 	private static Object postJson(String url, JSONArray body) {
@@ -300,18 +301,18 @@ public class UUIDFetcher {
 	}
 
 	private static class Cache<K, V> {
-		private long expireTime = 1000 * 60 * 5; // 5 minutes (default)
+		private long expireTime = 1000 * 60 * 5;
 		private Map<K, CachedEntry<V>> map = new HashMap<>();
 
 		public boolean contains(K key) {
-			return map.containsKey(key) && get(key) != null;
+			return this.map.containsKey(key) && this.get(key) != null;
 		}
 
 		public V get(K key) {
-			CachedEntry<V> entry = map.get(key);
+			CachedEntry<V> entry = this.map.get(key);
 			if (entry == null) return null;
 			if (entry.isExpired()) {
-				map.remove(key);
+				this.map.remove(key);
 				return null;
 			} else {
 				return entry.getValue();
@@ -319,28 +320,24 @@ public class UUIDFetcher {
 		}
 
 		public void put(K key, V value) {
-			map.put(key, new CachedEntry(value, expireTime));
+			this.map.put(key, new CachedEntry(value, this.expireTime));
 		}
 
 		private static class CachedEntry<V> {
+			private final SoftReference<V> value;
+			private final long expires;
+
 			public CachedEntry(V value, long expireTime) {
-				this.value = new SoftReference(value);
+				this.value = new SoftReference<V>(value);
 				this.expires = expireTime + System.currentTimeMillis();
 			}
 
-			private final SoftReference<V> value; //Caching is low memory priortiy
-			private final long expires;
-
 			public V getValue() {
-				if (isExpired()) {
-					return null;
-				}
-				return value.get();
+				return this.isExpired() ? null : this.value.get();
 			}
 
 			public boolean isExpired() {
-				if (value.get() == null) return true;
-				return expires != -1 && expires > System.currentTimeMillis();
+				return this.value.get() == null || (this.expires != -1 && this.expires > System.currentTimeMillis());
 			}
 		}
 	}

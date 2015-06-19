@@ -1,8 +1,6 @@
 package com.faris.kingkits.listener.command;
 
-import com.faris.kingkits.KingKits;
-import com.faris.kingkits.KingKitsAPI;
-import com.faris.kingkits.Kit;
+import com.faris.kingkits.*;
 import com.faris.kingkits.gui.GuiKingKits;
 import com.faris.kingkits.gui.GuiPreviewKit;
 import com.faris.kingkits.helper.Lang;
@@ -27,13 +25,13 @@ public class KitCommand extends KingCommand {
 	@Override
 	protected boolean onCommand(CommandSender sender, String command, String[] args) {
 		if (command.equalsIgnoreCase("pvpkit")) {
-			if (sender.hasPermission(this.getPlugin().permissions.kitUseCommand)) {
+			if (sender.hasPermission(Permissions.KIT_USE)) {
 				if (this.getPlugin().cmdValues.pvpKits) {
 					if (this.isConsole(sender) || Utilities.inPvPWorld(((Player) sender))) {
 						if (args.length == 0) {
-							if (sender.hasPermission(this.getPlugin().permissions.kitList)) {
+							if (sender.hasPermission(Permissions.KIT_LIST)) {
 								if (this.isConsole(sender) || (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
-									List<String> kitList = new ArrayList<String>(this.getPlugin().kitList.keySet());
+									List<String> kitList = new ArrayList<>(this.getPlugin().kitList.keySet());
 									Lang.sendMessage(sender, Lang.GEN_KIT_LIST_TITLE, String.valueOf(kitList.size()));
 									if (!kitList.isEmpty()) {
 										if (this.getPlugin().configValues.sortAlphabetically)
@@ -41,11 +39,11 @@ public class KitCommand extends KingCommand {
 										for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 											String kitName = kitList.get(kitPos).split(" ")[0];
 											if (sender.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-												if (!this.isConsole(sender) && sender.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+												if (!this.isConsole(sender) && sender.hasPermission(Permissions.KIT_LIST_TOOLTIP)) {
 													FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.RED);
 													Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
 													if (targetKit != null && targetKit.hasDescription()) {
-														final List<String> kitDescription = new ArrayList<String>();
+														final List<String> kitDescription = new ArrayList<>();
 														for (String descriptionLine : targetKit.getDescription()) {
 															descriptionLine = Utilities.replaceChatColour(descriptionLine);
 															descriptionLine = descriptionLine.replace("<player>", sender.getName());
@@ -64,11 +62,11 @@ public class KitCommand extends KingCommand {
 												}
 											} else {
 												if (this.getPlugin().configValues.kitListPermissions) {
-													if (!this.isConsole(sender) && sender.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+													if (!this.isConsole(sender) && sender.hasPermission(Permissions.KIT_LIST_TOOLTIP)) {
 														FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.DARK_RED);
 														Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
 														if (targetKit != null && targetKit.hasDescription()) {
-															final List<String> kitDescription = new ArrayList<String>();
+															final List<String> kitDescription = new ArrayList<>();
 															for (String descriptionLine : targetKit.getDescription()) {
 																descriptionLine = Utilities.replaceChatColour(descriptionLine);
 																descriptionLine = descriptionLine.replace("<player>", sender.getName());
@@ -107,7 +105,7 @@ public class KitCommand extends KingCommand {
 									kitName = kitList.get(kitListLC.indexOf(kitName.toLowerCase()));
 								try {
 									final Kit kit = KingKitsAPI.getKitByName(kitName, false);
-									if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+									if (kit != null && kit.hasCooldown() && !player.hasPermission(Permissions.KIT_COOLDOWN_BYPASS)) {
 										if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
 											long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
 											if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
@@ -125,13 +123,13 @@ public class KitCommand extends KingCommand {
 												GuiPreviewKit guiPreviewKit = new GuiPreviewKit(player, kitName);
 												guiPreviewKit.openMenu();
 											} else {
-												SetKit.setKingKit(player, kitName, true);
+												SetKit.setKitWithDelay(player, kitName, true);
 											}
 										} else {
-											SetKit.setKingKit(player, kitName, true);
+											SetKit.setKitWithDelay(player, kitName, true);
 										}
 									} else {
-										SetKit.setKingKit(player, kitName, true);
+										SetKit.setKitWithDelay(player, kitName, true);
 									}
 								} catch (Exception ex) {
 									ex.printStackTrace();
@@ -140,7 +138,7 @@ public class KitCommand extends KingCommand {
 								Lang.sendMessage(sender, Lang.COMMAND_GEN_IN_GAME);
 							}
 						} else if (args.length == 2) {
-							if (sender.hasPermission(this.getPlugin().permissions.kitUseOtherCommand)) {
+							if (sender.hasPermission(Permissions.KIT_USE_OTHER)) {
 								String strTarget = args[1];
 								Player target = sender.getServer().getPlayer(strTarget);
 								if (target != null && target.isOnline()) {

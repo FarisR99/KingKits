@@ -3,6 +3,7 @@ package com.faris.kingkits.listener.command;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.KingKitsAPI;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -21,7 +22,7 @@ public class RenameUserKitCommand extends PlayerCommand {
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("renameukit")) {
 			try {
-				if (player.hasPermission(this.getPlugin().permissions.kitURenameCommand)) {
+				if (player.hasPermission(Permissions.COMMAND_UKIT_RENAME)) {
 					if (this.getPlugin().cmdValues.renameUKits) {
 						if (Utilities.inPvPWorld(player)) {
 							if (args.length == 0) {
@@ -47,7 +48,7 @@ public class RenameUserKitCommand extends PlayerCommand {
 
 											if (this.getPlugin().userKitList.containsKey(player.getUniqueId())) {
 												List<Kit> kitList = this.getPlugin().userKitList.get(player.getUniqueId());
-												if (kitList == null) kitList = new ArrayList<Kit>();
+												if (kitList == null) kitList = new ArrayList<>();
 												int deleteIndex = -1;
 												for (int i = 0; i < kitList.size(); i++) {
 													Kit targetKit = kitList.get(i);
@@ -68,7 +69,7 @@ public class RenameUserKitCommand extends PlayerCommand {
 												}
 											}
 											List<Kit> kitList = this.getPlugin().userKitList.get(player.getUniqueId());
-											if (kitList == null) kitList = new ArrayList<Kit>();
+											if (kitList == null) kitList = new ArrayList<>();
 											if (!kitList.contains(kit)) kitList.add(kit);
 											this.getPlugin().userKitList.put(player.getUniqueId(), kitList);
 

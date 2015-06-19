@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -27,7 +28,7 @@ public class CreateKitCommand extends PlayerCommand {
 	@Override
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("createkit")) {
-			if (player.hasPermission(this.getPlugin().permissions.kitCreateCommand)) {
+			if (player.hasPermission(Permissions.COMMAND_KIT_CREATE)) {
 				if (this.getPlugin().cmdValues.createKits) {
 					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
@@ -68,8 +69,8 @@ public class CreateKitCommand extends PlayerCommand {
 									}
 								}
 
-								Map<Integer, ItemStack> itemsInInv = new HashMap<Integer, ItemStack>();
-								List<ItemStack> armourInInv = new ArrayList<ItemStack>();
+								Map<Integer, ItemStack> itemsInInv = new HashMap<>();
+								List<ItemStack> armourInInv = new ArrayList<>();
 								ItemStack[] pContents = player.getInventory().getContents();
 								if (pContents == null) pContents = new ItemStack[player.getInventory().getSize()];
 								for (int i = 0; i < player.getInventory().getSize(); i++) {
@@ -97,7 +98,7 @@ public class CreateKitCommand extends PlayerCommand {
 											ItemStack guiItem = null;
 											try {
 												guiItem = new ItemStack(Integer.parseInt(args[1]));
-											} catch (Exception ex) {
+											} catch (Exception ignored) {
 											}
 											try {
 												if (args[1].contains(":")) {
@@ -105,7 +106,7 @@ public class CreateKitCommand extends PlayerCommand {
 													guiItem = new ItemStack(Integer.parseInt(guiSplit[0]));
 													guiItem.setDurability(Short.parseShort(guiSplit[1]));
 												}
-											} catch (Exception ex) {
+											} catch (Exception ignored) {
 											}
 											if (guiItem != null) {
 												if (guiItem.getType() != Material.AIR) {
@@ -114,7 +115,7 @@ public class CreateKitCommand extends PlayerCommand {
 											}
 										}
 
-										List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
+										List<PotionEffect> kitPotionEffects = new ArrayList<>();
 										for (PotionEffect potionEffect : player.getActivePotionEffects()) {
 											if (potionEffect != null) kitPotionEffects.add(potionEffect);
 										}
@@ -128,7 +129,8 @@ public class CreateKitCommand extends PlayerCommand {
 
 										try {
 											player.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
-										} catch (Exception ex) {
+											player.getServer().getPluginManager().addPermission(new Permission("kingkits.free." + kitName.toLowerCase()));
+										} catch (Exception ignored) {
 										}
 										Lang.sendMessage(player, containsKit ? Lang.COMMAND_CREATE_OVERWRITTEN : Lang.COMMAND_CREATE_CREATED, kitName);
 

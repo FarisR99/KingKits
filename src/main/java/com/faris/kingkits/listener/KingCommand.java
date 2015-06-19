@@ -46,11 +46,7 @@ public abstract class KingCommand implements CommandExecutor {
 	 * Returns if a sender is not a player *
 	 */
 	protected boolean isConsole(CommandSender sender) {
-		if (sender != null) {
-			return !(sender instanceof Player);
-		} else {
-			return false;
-		}
+		return sender != null && !(sender instanceof Player);
 	}
 
 	/**

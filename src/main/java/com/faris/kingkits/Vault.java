@@ -5,25 +5,47 @@ import org.bukkit.plugin.*;
 
 public class Vault {
 
-	private boolean printed = false;
+	private static boolean printed = false;
 
-	public Vault() {
-		this.printed = false;
-	}
-
-	public Object getEconomy() {
-		if (KingKits.getInstance() != null && Bukkit.getServer().getPluginManager().isPluginEnabled("Vault") && KingKits.getInstance().configValues.vaultValues.useEconomy) {
+	public static Object getEconomy() {
+		if (KingKits.getInstance() != null && hasVault() && KingKits.getInstance().configValues.vaultValues.useEconomy) {
 			try {
 				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				if (economyProvider != null) return economyProvider.getProvider();
 			} catch (Exception ex) {
-				if (!this.printed) {
+				if (!printed) {
 					System.out.println("Vault could not be found.");
-					this.printed = true;
+					printed = true;
 				}
 			}
 		}
 		return null;
+	}
+
+	public static Object getPermissions() {
+		if (KingKits.getInstance() != null) {
+			if (hasVault()) {
+				try {
+					RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permissionProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+					if (permissionProvider != null) permissionProvider.getProvider();
+				} catch (Exception ex) {
+					if (!printed) {
+						System.out.println("Vault could not be found.");
+						printed = true;
+					}
+				}
+			} else {
+				if (!printed) {
+					System.out.println("Vault could not be found.");
+					printed = true;
+				}
+			}
+		}
+		return null;
+	}
+
+	public static boolean hasVault() {
+		return Bukkit.getServer().getPluginManager().isPluginEnabled("Vault");
 	}
 
 }

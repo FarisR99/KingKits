@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>3.3.9</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -64,10 +64,10 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <artifactSet>
                         <includes>
                             <include>org.mcstats.*:*</include>
-                            <include>mkremins:*</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -135,21 +135,13 @@
             <id>Plugin Metrics</id>
             <url>http://repo.mcstats.org/content/repositories/public/</url>
         </repository>
-        <repository>
-            <id>fanciful-mvn-repo</id>
-            <url>http://repo.franga2000.com/artifactory/public/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>LATEST</version>
+            <version>1.8.7-R0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
@@ -167,11 +159,6 @@
             <artifactId>metrics</artifactId>
             <version>LATEST</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>mkremins</groupId>
-            <artifactId>fanciful</artifactId>
-            <version>0.3.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

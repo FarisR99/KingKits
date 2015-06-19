@@ -66,6 +66,7 @@ public class KingKitsAPI {
 
 			try {
 				KingKits.getInstance().getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kitName.toLowerCase()));
+				KingKits.getInstance().getServer().getPluginManager().addPermission(new Permission("kingkits.free." + kitName.toLowerCase()));
 			} catch (Exception ex) {
 				getPluginLogger().warning(ex.getClass().getSimpleName() + " error: " + ex.getMessage());
 			}
@@ -88,9 +89,7 @@ public class KingKitsAPI {
 	public static boolean createUserKit(UUID playerUUID, String kitName, List<ItemStack> itemsInKit, List<PotionEffect> potionEffects, ItemStack guiItem, double costOfKit) {
 		Map<Integer, ItemStack> mapItemsInKit = new HashMap<>();
 		if (itemsInKit != null) {
-			for (int i = 0; i < itemsInKit.size(); i++) {
-				mapItemsInKit.put(i, itemsInKit.get(i));
-			}
+			for (int i = 0; i < itemsInKit.size(); i++) mapItemsInKit.put(i, itemsInKit.get(i));
 		}
 		return createUserKit(playerUUID, kitName, mapItemsInKit, potionEffects, guiItem, costOfKit);
 	}
@@ -582,7 +581,7 @@ public class KingKitsAPI {
 	 * @param startingPage The page at which the GUI opens at
 	 */
 	public static void showKitMenu(Player player, int startingPage) {
-		showKitMenu(player, startingPage, false);
+		showKitMenu(player, startingPage, true);
 	}
 
 	/**
@@ -593,7 +592,7 @@ public class KingKitsAPI {
 	 * @param ignoreChecks Whether or not to ignore checking the configuration 'Kit list mode'
 	 */
 	public static void showKitMenu(Player player, int startingPage, boolean ignoreChecks) {
-		if (KingKits.getInstance() != null && player != null && (!ignoreChecks || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu"))) {
+		if (KingKits.getInstance() != null && player != null && (ignoreChecks || (KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Gui") || KingKits.getInstance().configValues.kitListMode.equalsIgnoreCase("Menu")))) {
 			List<Kit> kitValues = new ArrayList<>();
 			if (KingKits.getInstance().configValues.sortAlphabetically) {
 				List<String> kitNames = new ArrayList<>(KingKits.getInstance().kitList.keySet());
@@ -605,8 +604,8 @@ public class KingKitsAPI {
 				}
 				Collections.sort(kitNames, Utilities.ALPHANUMERICAL_ORDER);
 
-				for (Iterator<String> kitIterator = kitNames.iterator(); kitIterator.hasNext(); ) {
-					Kit kit = getKitByName(kitIterator.next(), player.getUniqueId());
+				for (String kitName : kitNames) {
+					Kit kit = getKitByName(kitName, player.getUniqueId());
 					if (kit != null) {
 						if (!kit.isUserKit() && !KingKits.getInstance().configValues.kitListPermissions) {
 							if (!player.hasPermission("kingkits.kits." + kit.getRealName().toLowerCase())) continue;

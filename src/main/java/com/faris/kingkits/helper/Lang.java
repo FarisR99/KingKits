@@ -72,6 +72,7 @@ public enum Lang {
 	KIT_ALREADY_CHOSEN("Kit.Already chosen", "&6You have already chosen a kit!"),
 	KIT_NONEXISTENT("Kit.Non-existent", "&4%s &6does not exist."),
 	KIT_NOT_ENOUGH_MONEY("Kit.Not enough money", "&aYou do not have enough money to change kits."),
+	KIT_UNLOCK("Kit.Unlocked", "&6Congratulations! You had enough points and unlocked &c%s&6!"),
 
 	SIGN_CREATE_NO_PERMISSION("Sign.Create.No permission", "&4You do not have access to create a KingKits %s sign."),
 	SIGN_CREATE_SECOND_LINE("Sign.Create.Second line empty", "&cPlease enter a kit name on the second line."),
@@ -90,12 +91,11 @@ public enum Lang {
 	TIME_DAY_PLURAL("Time.Days", "days");
 
 	private static YamlConfiguration config = null;
-	private static File configFile = null;
 
 	private String key = "";
 	private String defaultValue = "";
 
-	private Lang(String key, String defValue) {
+	Lang(String key, String defValue) {
 		this.key = key;
 		this.defaultValue = defValue;
 	}
@@ -149,7 +149,7 @@ public enum Lang {
 	}
 
 	public static void init(JavaPlugin plugin) {
-		configFile = new File(plugin.getDataFolder(), "messages.yml");
+		File configFile = new File(plugin.getDataFolder(), "messages.yml");
 		config = YamlConfiguration.loadConfiguration(configFile);
 
 		for (Lang value : values()) {
@@ -157,7 +157,7 @@ public enum Lang {
 		}
 		try {
 			config.save(configFile);
-		} catch (Exception ex) {
+		} catch (Exception ignored) {
 		}
 	}
 

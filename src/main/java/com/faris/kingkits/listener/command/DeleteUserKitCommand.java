@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -19,7 +20,7 @@ public class DeleteUserKitCommand extends PlayerCommand {
 	@Override
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("deleteukit")) {
-			if (player.hasPermission(this.getPlugin().permissions.kitUDeleteCommand)) {
+			if (player.hasPermission(Permissions.COMMAND_UKIT_DELETE)) {
 				if (this.getPlugin().cmdValues.deleteUKits) {
 					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
@@ -36,7 +37,7 @@ public class DeleteUserKitCommand extends PlayerCommand {
 									this.getPlugin().saveUserKitsConfig();
 									if (this.getPlugin().userKitList.containsKey(player.getUniqueId())) {
 										List<Kit> kitList = this.getPlugin().userKitList.get(player.getUniqueId());
-										if (kitList == null) kitList = new ArrayList<Kit>();
+										if (kitList == null) kitList = new ArrayList<>();
 										int deleteIndex = -1;
 										for (int i = 0; i < kitList.size(); i++) {
 											Kit targetKit = kitList.get(i);

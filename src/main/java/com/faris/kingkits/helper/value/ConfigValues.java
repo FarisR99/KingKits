@@ -2,10 +2,12 @@ package com.faris.kingkits.helper.value;
 
 import org.bukkit.*;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ConfigValues {
+
 	// Booleans
 	public boolean checkForUpdates = true;
 	public boolean automaticUpdates = false;
@@ -16,7 +18,7 @@ public class ConfigValues {
 	public boolean kitListPermissions = true;
 	public boolean dropItemsOnDeath = false;
 	public boolean dropItems = false;
-	public List<Integer> dropAnimations = Arrays.asList(Material.BOWL.getId());
+	public List<Integer> dropAnimations = new ArrayList<>(Collections.singletonList(Material.BOWL.getId()));
 	public boolean allowPickingUpItems = true;
 	public boolean clearInvOnReload = true;
 	public boolean oneKitPerLife = false;
@@ -41,12 +43,16 @@ public class ConfigValues {
 	public boolean replaceItems = true;
 	public boolean dropItemsOnFullInventory = false;
 	public boolean removeKitOnDeath = true;
+	public boolean decreaseScoreOnAutoUnlock = false;
+	public boolean decreaseScoreOnDeath = false;
+	public List<String> commandsToRunOnDeath = new ArrayList<>();
 
 	// GUI
 	public String guiTitle = "<menucolour>PvP Kits";
 	public int guiSize = 36;
 	public int guiItemID = Material.STONE_BUTTON.getId();
 	public short guiItemData = 0;
+	public boolean guiOnRespawn = false;
 
 	// Scores
 	public boolean scores = false;
@@ -73,7 +79,7 @@ public class ConfigValues {
 	// Strings
 	public String commandToRun = "";
 
-	public List<String> pvpWorlds = Arrays.asList("All");
+	public List<String> pvpWorlds = new ArrayList<>(Collections.singletonList("All"));
 	public String multiInvsPlugin = "Multiverse-Inventories";
 	public boolean multiInvs = false;
 

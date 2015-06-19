@@ -3,6 +3,7 @@ package com.faris.kingkits.gui;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.KingKitsAPI;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.UUIDFetcher;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.helper.container.KitStack;
@@ -42,7 +43,7 @@ public class GuiKitMenu extends GuiKingKits {
 	 * @param kitStacks - The kits in the menu
 	 */
 	public GuiKitMenu(Player player, String title, KitStack[] kitStacks, int page) {
-		super(player, player.getServer().createInventory(null, KingKits.getInstance() != null ? KingKits.getInstance().configValues.guiSize : 54, title));
+		super(player, player.getServer().createInventory(null, KingKits.getInstance() != null ? KingKits.getInstance().configValues.guiSize : 54, Utilities.trimString(title, 32)));
 		this.guiKitStacks = kitStacks;
 		this.maxPage = this.guiKitStacks.length > 0 ? (int) ((double) (this.guiKitStacks.length - 1) / (this.guiInventory.getSize() - 9) + 1) : 1;
 		this.page = page > this.maxPage ? this.maxPage : page;
@@ -94,11 +95,11 @@ public class GuiKitMenu extends GuiKingKits {
 							Kit targetKit = KingKitsAPI.getKitByName(this.guiKitStacks[i].getKitName(), this.getPlayer() != null ? this.getPlayer().getUniqueId() : null);
 							if (targetKit == null) continue;
 
-							ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + (targetKit != null ? targetKit.getRealName().toLowerCase() : Utilities.stripColour(this.guiKitStacks[i].getKitName().toLowerCase()))) ? ChatColor.GREEN : ChatColor.DARK_RED;
+							ChatColor kitColour = this.getPlayer().hasPermission("kingkits.kits." + targetKit.getRealName().toLowerCase()) ? ChatColor.GREEN : ChatColor.DARK_RED;
 							itemMeta.setDisplayName(ChatColor.RESET.toString() + kitColour + this.guiKitStacks[i].getKitName());
 
-							if (targetKit != null && targetKit.hasDescription()) {
-								List<String> kitDescription = new ArrayList<String>();
+							if (targetKit.hasDescription()) {
+								List<String> kitDescription = new ArrayList<>();
 								for (String descriptionLine : targetKit.getDescription()) {
 									descriptionLine = Utilities.replaceChatColour(descriptionLine);
 									descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
@@ -124,11 +125,11 @@ public class GuiKitMenu extends GuiKingKits {
 					if (buttonType == Material.AIR) buttonType = Material.STONE_BUTTON;
 					this.guiInventory.setItem(this.guiInventory.getSize() - 9, Utilities.ItemUtils.setName(new ItemStack(buttonType, 1, KingKits.getInstance().configValues.guiItemData), this.page == 1 ? "&8Previous Page" : "&fPrevious Page"));
 					this.guiInventory.setItem(this.guiInventory.getSize() - 1, Utilities.ItemUtils.setName(new ItemStack(buttonType, 1, KingKits.getInstance().configValues.guiItemData), this.page >= this.maxPage ? "&8Next Page" : "&fNext Page"));
-				} catch (Exception ex) {
+				} catch (Exception ignored) {
 				}
 			}
 		} else {
-			List<ItemStack> addItems = new ArrayList<ItemStack>();
+			List<ItemStack> addItems = new ArrayList<>();
 			for (int i = startPosition; i < this.guiKitStacks.length; i++) {
 				try {
 					ItemStack currentStack = this.guiKitStacks[i].getItemStack();
@@ -141,7 +142,7 @@ public class GuiKitMenu extends GuiKingKits {
 							itemMeta.setDisplayName(ChatColor.RESET + "" + kitColour + this.guiKitStacks[i].getKitName());
 
 							if (targetKit != null && targetKit.hasDescription()) {
-								List<String> kitDescription = new ArrayList<String>();
+								List<String> kitDescription = new ArrayList<>();
 								for (String descriptionLine : targetKit.getDescription()) {
 									descriptionLine = Utilities.replaceChatColour(descriptionLine);
 									descriptionLine = descriptionLine.replace("<player>", this.getPlayerName());
@@ -166,8 +167,7 @@ public class GuiKitMenu extends GuiKingKits {
 							addItems.add(currentStack);
 						}
 					}
-				} catch (Exception ex) {
-					continue;
+				} catch (Exception ignored) {
 				}
 			}
 			for (ItemStack itemStack : addItems) this.guiInventory.addItem(itemStack);
@@ -221,7 +221,7 @@ public class GuiKitMenu extends GuiKingKits {
 													if (KingKitsAPI.isUserKit(kit.getRealName(), event.getWhoClicked().getUniqueId()) || event.getWhoClicked().hasPermission("kingkits.kits." + kit.getRealName().toLowerCase())) {
 														final Player player = (Player) event.getWhoClicked();
 														boolean validCooldown = true;
-														if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+														if (kit != null && kit.hasCooldown() && !player.hasPermission(Permissions.KIT_COOLDOWN_BYPASS)) {
 															if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
 																long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
 																if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
@@ -234,14 +234,14 @@ public class GuiKitMenu extends GuiKingKits {
 															}
 														}
 														if (validCooldown) {
-															SetKit.setKingKit(player, kit != null ? kit.getRealName() : kitName, true);
+															SetKit.setKitWithDelay(player, kit != null ? kit.getRealName() : kitName, true);
 														}
 													} else if (this.getPlugin().configValues.showKitPreview) {
 														if (!guiPreviewKitMap.containsKey(event.getWhoClicked().getName())) {
 															final Player player = (Player) event.getWhoClicked();
 															player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
 																public void run() {
-																	if (player != null) {
+																	if (player.isOnline()) {
 																		if (!guiPreviewKitMap.containsKey(player.getName())) {
 																			new GuiPreviewKit(player, kitName, page).openMenu();
 																		}
@@ -262,7 +262,7 @@ public class GuiKitMenu extends GuiKingKits {
 			}
 		} catch (Exception ex) {
 			if (event.getInventory() != null && this.guiInventory != null) {
-				if (this.getPlayer().equals(event.getWhoClicked().getName())) {
+				if (this.getPlayerName().equals(event.getWhoClicked().getName())) {
 					event.setCurrentItem(null);
 					event.setCancelled(true);
 					this.closeMenu(true, true);

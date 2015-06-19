@@ -7,37 +7,91 @@ import java.util.List;
 
 public class Permissions {
 
-	public List<Permission> permissionsList = new ArrayList<Permission>();
+	private static List<Permission> registeredPermissions = new ArrayList<>();
 
-	public Permission kitUseCommand = this.registerPermission(new Permission("kingkits.kit.use"));
-	public Permission kitUseOtherCommand = this.registerPermission(new Permission("kingkits.kit.use.other"));
-	public Permission kitCreateCommand = this.registerPermission(new Permission("kingkits.kit.create"));
-	public Permission kitDeleteCommand = this.registerPermission(new Permission("kingkits.kit.delete"));
-	public Permission kitRenameCommand = this.registerPermission(new Permission("kingkits.kit.rename"));
-	public Permission kitUCreateCommand = this.registerPermission(new Permission("kingkits.kit.ucreate"));
-	public Permission kitUDeleteCommand = this.registerPermission(new Permission("kingkits.kit.udelete"));
-	public Permission kitURenameCommand = this.registerPermission(new Permission("kingkits.kit.urename"));
-	public Permission kitPreviewCommand = this.registerPermission(new Permission("kingkits.kit.preview"));
-	public Permission kitPreviewOtherCommand = this.registerPermission(new Permission("kingkits.kit.preview.other"));
-	public Permission kitList = this.registerPermission(new Permission("kingkits.kit.list"));
-	public Permission kitListTooltip = this.registerPermission(new Permission("kingkits.kit.list.tooltip"));
-	public Permission kitBypassCooldown = this.registerPermission(new Permission("kingkits.kit.cooldown.bypass"));
-	public Permission kitUseSign = this.registerPermission(new Permission("kingkits.kit.sign.use"));
-	public Permission kitCreateSign = this.registerPermission(new Permission("kingkits.kit.sign.create"));
-	public Permission kitListSign = this.registerPermission(new Permission("kingkits.kit.sign.list"));
-	public Permission kitRefillSign = this.registerPermission(new Permission("kingkits.kit.sign.refill"));
-	public Permission rightClickCompass = this.registerPermission(new Permission("kingkits.compass"));
-	public Permission quickSoup = this.registerPermission(new Permission("kingkits.quicksoup"));
-	public Permission refillSoupSingle = this.registerPermission(new Permission("kingkits.refill.single"));
-	public Permission refillSoupAll = this.registerPermission(new Permission("kingkits.refill.all"));
-	public Permission cmdConfigManagement = this.registerPermission(new Permission("kingkits.command.config"));
-	public Permission killstreak = this.registerPermission(new Permission("kingkits.command.killstreak"));
-	public Permission cmdReloadConfig = this.registerPermission(new Permission("kingkits.command.reload"));
-	public Permission cmdSetCooldown = this.registerPermission(new Permission("kingkits.command.setcooldown"));
+	public static Permission COMMAND_KK_CONFIG = null;
+	public static Permission COMMAND_KK_RELOAD = null;
+	public static Permission COMMAND_KK_SET_COOLDOWN = null;
 
-	private Permission registerPermission(Permission permission) {
-		if (this.permissionsList == null) this.permissionsList = new ArrayList<Permission>();
-		if (!this.permissionsList.contains(permission)) this.permissionsList.add(permission);
+	public static Permission COMMAND_KIT_CREATE = null;
+	public static Permission COMMAND_KIT_DELETE = null;
+	public static Permission COMMAND_KIT_RENAME = null;
+	public static Permission COMMAND_UKIT_CREATE = null;
+	public static Permission COMMAND_UKIT_DELETE = null;
+	public static Permission COMMAND_UKIT_RENAME = null;
+
+	public static Permission COMMAND_PREVIEW_KIT = null;
+	public static Permission COMMAND_PREVIEW_KIT_OTHER = null;
+
+	public static Permission KIT_USE = null;
+	public static Permission KIT_USE_OTHER = null;
+	public static Permission KIT_LIST = null;
+	public static Permission KIT_LIST_TOOLTIP = null;
+
+	public static Permission SIGN_CREATE = null;
+	public static Permission SIGN_KIT = null;
+	public static Permission SIGN_LIST = null;
+	public static Permission SIGN_REFILL = null;
+
+	public static Permission SOUP_QUICKSOUP = null;
+	public static Permission SOUP_REFILL_SINGLE = null;
+	public static Permission SOUP_REFILL_ALL = null;
+
+	public static Permission KIT_COOLDOWN_BYPASS = null;
+	public static Permission COMPASS = null;
+	public static Permission COMMAND_KILLSTREAK = null;
+
+	private Permissions() {
+	}
+
+	public static void clearPermissions() {
+		registeredPermissions.clear();
+	}
+
+	public static List<Permission> getPermissions() {
+		return registeredPermissions;
+	}
+
+	public static void initialisePermissions() {
+		COMMAND_KK_CONFIG = registerPermission("kingkits.command.config");
+		COMMAND_KK_RELOAD = registerPermission("kingkits.command.reload");
+		COMMAND_KK_SET_COOLDOWN = registerPermission("kingkits.command.setcooldown");
+		
+		COMMAND_KIT_CREATE = registerPermission("kingkits.kit.create");
+		COMMAND_KIT_DELETE = registerPermission("kingkits.kit.delete");
+		COMMAND_KIT_RENAME = registerPermission("kingkits.kit.rename");
+		COMMAND_UKIT_CREATE = registerPermission("kingkits.kit.ucreate");
+		COMMAND_UKIT_DELETE = registerPermission("kingkits.kit.udelete");
+		COMMAND_UKIT_RENAME = registerPermission("kingkits.kit.urename");
+		
+		COMMAND_PREVIEW_KIT = registerPermission("kingkits.kit.preview");
+		COMMAND_PREVIEW_KIT_OTHER = registerPermission("kingkits.kit.preview.other");
+		
+		KIT_USE = registerPermission("kingkits.kit.use");
+		KIT_USE_OTHER = registerPermission("kingkits.kit.use.other");
+		KIT_LIST = registerPermission("kingkits.kit.list");
+		KIT_LIST_TOOLTIP = registerPermission("kingkits.kit.list.tooltip");
+		
+		SIGN_CREATE = registerPermission("kingkits.kit.sign.create");
+		SIGN_KIT = registerPermission("kingkits.kit.sign.use");
+		SIGN_LIST = registerPermission("kingkits.kit.sign.list");
+		SIGN_REFILL = registerPermission("kingkits.kit.sign.refill");
+		
+		SOUP_QUICKSOUP = registerPermission("kingkits.quicksoup");
+		SOUP_REFILL_SINGLE = registerPermission("kingkits.refill.single");
+		SOUP_REFILL_ALL = registerPermission("kingkits.refill.all");
+		
+		KIT_COOLDOWN_BYPASS = registerPermission("kingkits.kit.cooldown.bypass");
+		COMPASS = registerPermission("kingkits.compass");
+		COMMAND_KILLSTREAK = registerPermission("kingkits.command.killstreak");
+	}
+
+	private static Permission registerPermission(String permissionNode) {
+		return permissionNode != null ? registerPermission(new Permission(permissionNode)) : null;
+	}
+
+	private static Permission registerPermission(Permission permission) {
+		if (!registeredPermissions.contains(permission)) registeredPermissions.add(permission);
 		return permission;
 	}
 

@@ -104,7 +104,7 @@ public class Utilities {
 	}
 
 	public static List<Player> getOnlinePlayers() {
-		List<Player> onlinePlayers = new ArrayList<Player>();
+		List<Player> onlinePlayers = new ArrayList<>();
 		for (World world : Bukkit.getWorlds()) {
 			if (world != null) {
 				for (Player worldPlayer : world.getPlayers()) {
@@ -149,35 +149,37 @@ public class Utilities {
 		return friendlyName != null ? friendlyName.toUpperCase().replace(" ", "_") : "";
 	}
 
-	public static boolean inPvPWorld(LivingEntity livingEntity) {
-		return livingEntity != null && KingKits.getInstance() != null && livingEntity.getWorld() != null && (KingKits.getInstance().configValues.pvpWorlds.contains("All") || KingKits.getInstance().configValues.pvpWorlds.contains(livingEntity.getWorld().getName()));
+	public static boolean inPvPWorld(Entity entity) {
+		return entity != null && inPvPWorld(entity.getLocation());
 	}
 
-	public static boolean isInteger(String aString) {
-		try {
-			Integer.parseInt(aString);
-			return true;
-		} catch (Exception ex) {
-			return false;
-		}
+	public static boolean inPvPWorld(Location location) {
+		return location != null && KingKits.getInstance() != null && location.getWorld() != null && (KingKits.getInstance().configValues.pvpWorlds.contains("All") || KingKits.getInstance().configValues.pvpWorlds.contains(location.getWorld().getName()));
 	}
 
 	public static boolean isItemNull(ItemStack item) {
 		return item == null || item.getType() == Material.AIR;
 	}
 
-	public static boolean isLong(String aString) {
+	public static boolean isNumber(Class<? extends Number> numberClass, Object objNumber) {
+		if (objNumber == null) return false;
 		try {
-			Long.parseLong(aString);
-			return true;
-		} catch (Exception ex) {
-			return false;
-		}
-	}
-
-	public static boolean isShort(String aString) {
-		try {
-			Short.parseShort(aString);
+			if (numberClass.isInstance(objNumber)) return true;
+			String strNumber = objNumber.toString();
+			String className = numberClass.getSimpleName();
+			if (className.equalsIgnoreCase("Double")) {
+				Double.parseDouble(strNumber);
+			} else if (className.equalsIgnoreCase("Float")) {
+				Float.parseFloat(strNumber);
+			} else if (className.equalsIgnoreCase("Integer")) {
+				Integer.parseInt(strNumber);
+			} else if (className.equalsIgnoreCase("Long")) {
+				Long.parseLong(strNumber);
+			} else if (className.equalsIgnoreCase("Short")) {
+				Short.parseShort(strNumber);
+			} else {
+				return false;
+			}
 			return true;
 		} catch (Exception ex) {
 			return false;
@@ -203,7 +205,7 @@ public class Utilities {
 	}
 
 	public static List<String> replaceBukkitColours(List<String> someStrings) {
-		List<String> stringList = new ArrayList<String>();
+		List<String> stringList = new ArrayList<>();
 		if (someStrings != null) {
 			for (String aString : someStrings) {
 				if (aString != null)
@@ -219,11 +221,10 @@ public class Utilities {
 	}
 
 	public static List<String> replaceChatColours(List<String> someStrings) {
-		List<String> stringList = new ArrayList<String>();
+		List<String> stringList = new ArrayList<>();
 		if (someStrings != null) {
 			for (String aString : someStrings) {
-				if (aString != null)
-					stringList.add(replaceChatColour(aString));
+				if (aString != null) stringList.add(replaceChatColour(aString));
 			}
 		}
 		return stringList;
@@ -267,10 +268,13 @@ public class Utilities {
 	}
 
 	public static List<String> toLowerCaseList(List<String> normalList) {
-		List<String> list = new ArrayList<String>();
-		for (String s : normalList)
-			list.add(s.toLowerCase());
+		List<String> list = new ArrayList<>();
+		for (String listItem : normalList) list.add(listItem.toLowerCase());
 		return list;
+	}
+
+	public static String trimString(String aString, int length) {
+		return aString != null ? (aString.length() > length ? aString.substring(0, length) : aString) : "";
 	}
 
 	public static class ItemUtils {
@@ -303,7 +307,7 @@ public class Utilities {
 				if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLore())
 					return itemStack.getItemMeta().getLore();
 			}
-			return new ArrayList<String>();
+			return new ArrayList<>();
 		}
 
 		public static ItemStack setDye(ItemStack itemStack, int itemDye) {
@@ -312,10 +316,9 @@ public class Utilities {
 				if (itemMeta != null && itemMeta instanceof LeatherArmorMeta) {
 					LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 					Color itemDyeColor = Color.fromRGB(itemDye);
-					if (itemDyeColor != null) {
-						leatherArmorMeta.setColor(itemDyeColor);
-						itemStack.setItemMeta(itemMeta);
-					}
+
+					leatherArmorMeta.setColor(itemDyeColor);
+					itemStack.setItemMeta(itemMeta);
 				}
 			}
 			return itemStack;
@@ -332,11 +335,11 @@ public class Utilities {
 			return itemStack;
 		}
 
-		public static ItemStack setLores(ItemStack itemStack, List<String> itemLores) {
-			if (itemStack != null && itemLores != null) {
+		public static ItemStack setLore(ItemStack itemStack, List<String> itemLore) {
+			if (itemStack != null && itemLore != null) {
 				ItemMeta itemMeta = itemStack.getItemMeta();
 				if (itemMeta != null) {
-					itemMeta.setLore(replaceChatColours(itemLores));
+					itemMeta.setLore(replaceChatColours(itemLore));
 					itemStack.setItemMeta(itemMeta);
 				}
 			}

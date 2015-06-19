@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -21,7 +22,7 @@ public class RenameKitCommand extends PlayerCommand {
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("renamekit")) {
 			try {
-				if (player.hasPermission(this.getPlugin().permissions.kitRenameCommand)) {
+				if (player.hasPermission(Permissions.COMMAND_KIT_RENAME)) {
 					if (this.getPlugin().cmdValues.renameKits) {
 						if (Utilities.inPvPWorld(player)) {
 							if (args.length == 0) {
@@ -44,14 +45,14 @@ public class RenameKitCommand extends PlayerCommand {
 											this.getPlugin().getKitsConfig().set(strNewKit, kit.serialize());
 											this.getPlugin().saveKitsConfig();
 
-											Map<String, String> newKits = new HashMap<String, String>();
+											Map<String, String> newKits = new HashMap<>();
 											for (Map.Entry<String, String> entrySet : this.getPlugin().usingKits.entrySet()) {
 												if (entrySet.getValue() != null && entrySet.getValue().equals(strKit))
 													newKits.put(entrySet.getKey(), strNewKit);
 											}
 											this.getPlugin().usingKits.putAll(newKits);
 
-											newKits = new HashMap<String, String>();
+											newKits = new HashMap<>();
 											for (Map.Entry<String, String> entrySet : this.getPlugin().playerKits.entrySet()) {
 												if (entrySet.getValue() != null && entrySet.getValue().equals(strKit))
 													newKits.put(entrySet.getKey(), strNewKit);

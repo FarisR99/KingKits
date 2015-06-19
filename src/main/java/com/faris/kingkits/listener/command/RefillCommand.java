@@ -1,6 +1,8 @@
 package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
+import com.faris.kingkits.Permissions;
+import com.faris.kingkits.Vault;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -18,7 +20,7 @@ public class RefillCommand extends PlayerCommand {
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("refill") || command.equalsIgnoreCase("soup")) {
 			try {
-				if (player.hasPermission(this.getPlugin().permissions.refillSoupSingle) || player.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
+				if (player.hasPermission(Permissions.SOUP_REFILL_SINGLE) || player.hasPermission(Permissions.SOUP_REFILL_ALL)) {
 					if (this.getPlugin().cmdValues.refillKits) {
 						if (Utilities.inPvPWorld(player)) {
 							if (this.getPlugin().configValues.quickSoupKitOnly) {
@@ -28,7 +30,7 @@ public class RefillCommand extends PlayerCommand {
 								}
 							}
 							if (args.length == 0) {
-								if (player.hasPermission(this.getPlugin().permissions.refillSoupSingle)) {
+								if (player.hasPermission(Permissions.SOUP_REFILL_SINGLE)) {
 									if (player.getInventory().getItemInHand() != null) {
 										if (player.getInventory().getItemInHand().getType() == Material.BOWL) {
 											int invContentsSize = 0;
@@ -50,22 +52,24 @@ public class RefillCommand extends PlayerCommand {
 												}
 												if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 													try {
-														net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-														if (economy.hasAccount(player)) {
-															double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
-															if (economy.getBalance(player) >= cost) {
-																economy.withdrawPlayer(player, cost);
-																if (cost != 0)
-																	player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+														net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
+														if (economy != null) {
+															if (economy.hasAccount(player)) {
+																double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
+																if (economy.getBalance(player) >= cost) {
+																	economy.withdrawPlayer(player, cost);
+																	if (cost != 0)
+																		player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																} else {
+																	Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																	return true;
+																}
 															} else {
 																Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																return true;
 															}
-														} else {
-															Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
-															return true;
 														}
-													} catch (Exception ex) {
+													} catch (Exception ignored) {
 													}
 												}
 											} else {
@@ -82,7 +86,7 @@ public class RefillCommand extends PlayerCommand {
 								}
 							} else if (args.length == 1) {
 								if (args[0].equalsIgnoreCase("all")) {
-									if (player.hasPermission(this.getPlugin().permissions.refillSoupAll)) {
+									if (player.hasPermission(Permissions.SOUP_REFILL_ALL)) {
 										if (player.getInventory().getItemInHand() != null) {
 											if (player.getInventory().getItemInHand().getType() == Material.BOWL) {
 												int invContentsSize = 0;
@@ -98,9 +102,9 @@ public class RefillCommand extends PlayerCommand {
 													int bowlsGiven = 0;
 													ItemStack[] itemContents = player.getInventory().getContents();
 													int invMaxSize = player.getInventory().getSize();
-													for (int i = 0; i < itemContents.length; i++) {
-														if (itemContents[i] != null) {
-															if (itemContents[i].getType() != Material.AIR) invSize++;
+													for (ItemStack itemContent : itemContents) {
+														if (itemContent != null) {
+															if (itemContent.getType() != Material.AIR) invSize++;
 														}
 													}
 													for (int i = 0; i < bowlAmount; i++) {
@@ -111,22 +115,24 @@ public class RefillCommand extends PlayerCommand {
 													}
 													if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 														try {
-															net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-															if (economy.hasAccount(player)) {
-																double cost = this.getPlugin().configValues.vaultValues.costPerRefill * bowlsGiven;
-																if (economy.getBalance(player) >= cost) {
-																	economy.withdrawPlayer(player, cost);
-																	if (cost != 0)
-																		player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+															net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
+															if (economy != null) {
+																if (economy.hasAccount(player)) {
+																	double cost = this.getPlugin().configValues.vaultValues.costPerRefill * bowlsGiven;
+																	if (economy.getBalance(player) >= cost) {
+																		economy.withdrawPlayer(player, cost);
+																		if (cost != 0)
+																			player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																	} else {
+																		Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																		return true;
+																	}
 																} else {
 																	Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																	return true;
 																}
-															} else {
-																Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
-																return true;
 															}
-														} catch (Exception ex) {
+														} catch (Exception ignored) {
 														}
 													}
 													for (int i = 0; i < bowlsGiven; i++) {
@@ -140,22 +146,24 @@ public class RefillCommand extends PlayerCommand {
 													if (player.getInventory().getItemInHand().getAmount() == 1) {
 														if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useCostPerRefill) {
 															try {
-																net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-																if (economy.hasAccount(player)) {
-																	double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
-																	if (economy.getBalance(player) >= cost) {
-																		economy.withdrawPlayer(player, cost);
-																		if (cost != 0)
-																			player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
+																if (economy != null) {
+																	if (economy.hasAccount(player)) {
+																		double cost = this.getPlugin().configValues.vaultValues.costPerRefill;
+																		if (economy.getBalance(player) >= cost) {
+																			economy.withdrawPlayer(player, cost);
+																			if (cost != 0)
+																				player.sendMessage(this.getPlugin().getEconomyMessage(cost));
+																		} else {
+																			Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																			return true;
+																		}
 																	} else {
 																		Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
 																		return true;
 																	}
-																} else {
-																	Lang.sendMessage(player, Lang.COMMAND_REFILL_NOT_ENOUGH_MONEY);
-																	return true;
 																}
-															} catch (Exception ex) {
+															} catch (Exception ignored) {
 															}
 															player.getInventory().setItemInHand(new ItemStack(Material.MUSHROOM_SOUP));
 														}

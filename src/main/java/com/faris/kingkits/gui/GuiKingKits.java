@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class GuiKingKits implements Listener {
-	public static Map<String, GuiKitMenu> guiKitMenuMap = new HashMap<String, GuiKitMenu>();
-	public static Map<String, GuiPreviewKit> guiPreviewKitMap = new HashMap<String, GuiPreviewKit>();
+
+	public static Map<String, GuiKitMenu> guiKitMenuMap = new HashMap<>();
+	public static Map<String, GuiPreviewKit> guiPreviewKitMap = new HashMap<>();
 
 	private Player player = null;
 	private String playerName = null;
@@ -31,9 +32,7 @@ public abstract class GuiKingKits implements Listener {
 		this.player = player;
 		this.playerName = this.player.getName();
 
-		this.guiInventory = inventory;
-		if (this.guiInventory == null)
-			this.guiInventory = this.player.getServer().createInventory(this.player, InventoryType.CHEST);
+		this.guiInventory = inventory != null ? inventory : this.player.getServer().createInventory(this.player, InventoryType.CHEST);
 
 		if (KingKits.getInstance() != null)
 			this.player.getServer().getPluginManager().registerEvents(this, this.getPlugin());

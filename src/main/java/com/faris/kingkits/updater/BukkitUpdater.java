@@ -273,7 +273,7 @@ public class BukkitUpdater {
 			this.thread = new Thread(new UpdateRunnable());
 			this.thread.start();
 		} else {
-			runUpdater();
+			this.runUpdater();
 		}
 	}
 
@@ -358,11 +358,9 @@ public class BukkitUpdater {
 	private void saveFile(String file) {
 		final File folder = this.updateFolder;
 
-		deleteOldFiles();
-		if (!folder.exists()) {
-			this.fileIOOrError(folder, folder.mkdir(), true);
-		}
-		downloadFile();
+		this.deleteOldFiles();
+		if (!folder.exists()) this.fileIOOrError(folder, folder.mkdir(), true);
+		this.downloadFile();
 
 		// Check to see if it's a zip file, if it is, unzip it.
 		final File dFile = new File(folder.getAbsolutePath(), file);
@@ -370,9 +368,7 @@ public class BukkitUpdater {
 			// Unzip
 			this.unzip(dFile.getAbsolutePath());
 		}
-		if (this.announce) {
-			this.plugin.getLogger().info("Finished updating.");
-		}
+		if (this.announce) this.plugin.getLogger().info("Finished updating.");
 	}
 
 	/**
@@ -389,33 +385,26 @@ public class BukkitUpdater {
 
 			final byte[] data = new byte[BukkitUpdater.BYTE_SIZE];
 			int count;
-			if (this.announce) {
-				this.plugin.getLogger().info("About to download a new update: " + this.versionName);
-			}
+			if (this.announce) this.plugin.getLogger().info("About to download a new update: " + this.versionName);
 			long downloaded = 0;
 			while ((count = in.read(data, 0, BukkitUpdater.BYTE_SIZE)) != -1) {
 				downloaded += count;
 				fout.write(data, 0, count);
 				final int percent = (int) ((downloaded * 100) / fileLength);
-				if (this.announce && ((percent % 10) == 0)) {
+				if (this.announce && ((percent % 10) == 0))
 					this.plugin.getLogger().info("Downloading update: " + percent + "% of " + fileLength + " bytes.");
-				}
 			}
 		} catch (Exception ex) {
 			this.plugin.getLogger().log(Level.WARNING, "The auto-updater tried to download a new update, but was unsuccessful.", ex);
 			this.result = BukkitUpdater.UpdateResult.FAIL_DOWNLOAD;
 		} finally {
 			try {
-				if (in != null) {
-					in.close();
-				}
+				if (in != null) in.close();
 			} catch (final IOException ex) {
 				this.plugin.getLogger().log(Level.SEVERE, null, ex);
 			}
 			try {
-				if (fout != null) {
-					fout.close();
-				}
+				if (fout != null) fout.close();
 			} catch (final IOException ex) {
 				this.plugin.getLogger().log(Level.SEVERE, null, ex);
 			}
@@ -427,7 +416,7 @@ public class BukkitUpdater {
 	 */
 	private void deleteOldFiles() {
 		//Just a quick check to make sure we didn't leave any files from last time...
-		File[] list = listFilesOrError(this.updateFolder);
+		File[] list = this.listFilesOrError(this.updateFolder);
 		for (final File xFile : list) {
 			if (xFile.getName().endsWith(".zip")) {
 				this.fileIOOrError(xFile, xFile.mkdir(), true);
@@ -472,8 +461,7 @@ public class BukkitUpdater {
 			zipFile.close();
 
 			// Move any plugin data folders that were included to the right place, Bukkit won't do this for us.
-			moveNewZipFiles(zipPath);
-
+			this.moveNewZipFiles(zipPath);
 		} catch (final IOException e) {
 			this.plugin.getLogger().log(Level.SEVERE, "The auto-updater tried to unzip a new update file, but was unsuccessful.", e);
 			this.result = BukkitUpdater.UpdateResult.FAIL_DOWNLOAD;
@@ -530,11 +518,9 @@ public class BukkitUpdater {
 	 * @return true if a file inside the plugins folder is named this.
 	 */
 	private boolean pluginExists(String name) {
-		File[] plugins = listFilesOrError(new File("plugins"));
+		File[] plugins = this.listFilesOrError(new File("plugins"));
 		for (final File file : plugins) {
-			if (file.getName().equals(name)) {
-				return true;
-			}
+			if (file.getName().equals(name)) return true;
 		}
 		return false;
 	}

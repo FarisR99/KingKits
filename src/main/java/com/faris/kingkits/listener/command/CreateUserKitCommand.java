@@ -2,6 +2,7 @@ package com.faris.kingkits.listener.command;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.PlayerCommand;
@@ -26,7 +27,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 	@Override
 	protected boolean onCommand(Player player, String command, String[] args) {
 		if (command.equalsIgnoreCase("createukit")) {
-			if (player.hasPermission(this.getPlugin().permissions.kitUCreateCommand)) {
+			if (player.hasPermission(Permissions.COMMAND_UKIT_CREATE)) {
 				if (this.getPlugin().cmdValues.createUKits) {
 					if (Utilities.inPvPWorld(player)) {
 						if (args.length == 0) {
@@ -54,7 +55,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 
 								if (!this.containsIllegalCharacters(kitName)) {
 									List<Kit> playerKits = this.getPlugin().userKitList.get(player.getUniqueId());
-									if (playerKits == null) playerKits = new ArrayList<Kit>();
+									if (playerKits == null) playerKits = new ArrayList<>();
 									int maxSizePerm = 0;
 									for (int i = 1; i <= 54; i++) {
 										if (maxSizePerm < i && player.hasPermission("kingkits.kit.limit." + i))
@@ -83,8 +84,8 @@ public class CreateUserKitCommand extends PlayerCommand {
 											}
 										}
 
-										Map<Integer, ItemStack> itemsInInv = new HashMap<Integer, ItemStack>();
-										List<ItemStack> armourInInv = new ArrayList<ItemStack>();
+										Map<Integer, ItemStack> itemsInInv = new HashMap<>();
+										List<ItemStack> armourInInv = new ArrayList<>();
 										ItemStack[] pContents = player.getInventory().getContents();
 										if (pContents == null)
 											pContents = new ItemStack[player.getInventory().getSize()];
@@ -106,14 +107,12 @@ public class CreateUserKitCommand extends PlayerCommand {
 												if (containsKit) {
 													this.getPlugin().getUserKitsConfig().set(player.getUniqueId().toString() + "." + kitName, null);
 													this.getPlugin().saveUserKitsConfig();
-													if (playerKits != null) {
-														List<Kit> newKits = new ArrayList<Kit>();
-														for (Kit playerKit : playerKits) {
-															if (playerKit != null && !playerKit.getRealName().toLowerCase().equals(kitName.toLowerCase()))
-																newKits.add(playerKit);
-														}
-														this.getPlugin().userKitList.put(player.getUniqueId(), newKits);
+													List<Kit> newKits = new ArrayList<>();
+													for (Kit playerKit : playerKits) {
+														if (playerKit != null && !playerKit.getRealName().toLowerCase().equals(kitName.toLowerCase()))
+															newKits.add(playerKit);
 													}
+													this.getPlugin().userKitList.put(player.getUniqueId(), newKits);
 												}
 
 												final Kit kit = new Kit(kitName, itemsInInv).setRealName(kitName).setArmour(armourInInv).setUserKit(true);
@@ -121,7 +120,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 													ItemStack guiItem = null;
 													try {
 														guiItem = new ItemStack(Integer.parseInt(args[1]));
-													} catch (Exception ex) {
+													} catch (Exception ignored) {
 													}
 													try {
 														if (args[1].contains(":")) {
@@ -129,7 +128,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 															guiItem = new ItemStack(Integer.parseInt(guiSplit[0]));
 															guiItem.setDurability(Short.parseShort(guiSplit[1]));
 														}
-													} catch (Exception ex) {
+													} catch (Exception ignored) {
 													}
 													if (guiItem != null) {
 														if (guiItem.getType() != Material.AIR) {
@@ -138,7 +137,7 @@ public class CreateUserKitCommand extends PlayerCommand {
 													}
 												}
 
-												List<PotionEffect> kitPotionEffects = new ArrayList<PotionEffect>();
+												List<PotionEffect> kitPotionEffects = new ArrayList<>();
 												for (PotionEffect potionEffect : player.getActivePotionEffects()) {
 													if (potionEffect != null) kitPotionEffects.add(potionEffect);
 												}
@@ -146,7 +145,6 @@ public class CreateUserKitCommand extends PlayerCommand {
 												kit.setMaxHealth((int) player.getMaxHealth());
 
 												this.getPlugin().getUserKitsConfig().set(player.getUniqueId().toString() + "." + kitName, kit.serialize());
-												if (playerKits == null) playerKits = new ArrayList<Kit>();
 												playerKits.add(kit);
 												this.getPlugin().userKitList.put(player.getUniqueId(), playerKits);
 												this.getPlugin().saveUserKitsConfig();

@@ -3,6 +3,7 @@ package com.faris.kingkits.gui;
 import com.faris.kingkits.KingKitsAPI;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helper.Lang;
+import com.faris.kingkits.helper.Utilities;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
@@ -35,7 +36,7 @@ public class GuiPreviewKit extends GuiKingKits {
 	 * @param kitName - The kit name
 	 */
 	public GuiPreviewKit(Player player, String kitName, int oldKitMenuPage) {
-		super(player, player.getServer().createInventory(player, 45, Lang.GUI_PREVIEW_TITLE.getMessage(kitName)));
+		super(player, player.getServer().createInventory(player, 45, Utilities.trimString(Lang.GUI_PREVIEW_TITLE.getMessage(kitName), 32)));
 		Kit kit = KingKitsAPI.getKitByName(kitName, true);
 		this.guiItemStacks = kit != null ? kit.getMergedItems() : new ArrayList<ItemStack>();
 		this.oldKitMenuPage = oldKitMenuPage;
@@ -111,9 +112,7 @@ public class GuiPreviewKit extends GuiKingKits {
 						if (!guiKitMenuMap.containsKey(event.getWhoClicked().getName())) {
 							player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
 								public void run() {
-									if (player != null) {
-										KingKitsAPI.showKitMenu(player, oldKitMenuPage);
-									}
+									if (player.isOnline()) KingKitsAPI.showKitMenu(player, oldKitMenuPage);
 								}
 							}, 3L);
 						}
@@ -121,7 +120,7 @@ public class GuiPreviewKit extends GuiKingKits {
 						player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
 							@SuppressWarnings("deprecation")
 							public void run() {
-								if (player != null && player.isOnline()) player.updateInventory();
+								if (player.isOnline()) player.updateInventory();
 							}
 						}, 2L);
 					}
@@ -142,7 +141,7 @@ public class GuiPreviewKit extends GuiKingKits {
 					}
 				}
 			}
-		} catch (Exception ex) {
+		} catch (Exception ignored) {
 		}
 	}
 

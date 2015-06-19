@@ -17,10 +17,10 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
 
 	private String kitName = "";
 	private String oldKit = "";
-	private Map<Integer, ItemStack> kitContents = new HashMap<Integer, ItemStack>();
-	private List<ItemStack> armourItems = new ArrayList<ItemStack>();
-	private List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
-	private List<String> kitCommands = new ArrayList<String>();
+	private Map<Integer, ItemStack> kitContents = new HashMap<>();
+	private List<ItemStack> armourItems = new ArrayList<>();
+	private List<PotionEffect> potionEffects = new ArrayList<>();
+	private List<String> kitCommands = new ArrayList<>();
 
 	private boolean isCancelled = false;
 
@@ -77,7 +77,7 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
 	 * @return An unmodifiable List of all the items in the kit.
 	 */
 	public List<ItemStack> getKitContents() {
-		return new ArrayList<ItemStack>(this.kitContents.values());
+		return new ArrayList<>(this.kitContents.values());
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class PlayerKitEvent extends PlayerEvent implements Cancellable {
 	 * @param kitContents The items
 	 */
 	public void setKitContents(List<ItemStack> kitContents) {
-		this.kitContents = new HashMap<Integer, ItemStack>();
+		this.kitContents = new HashMap<>();
 		if (kitContents != null) {
 			for (int i = 0; i < kitContents.size(); i++) {
 				ItemStack kitContent = kitContents.get(i);

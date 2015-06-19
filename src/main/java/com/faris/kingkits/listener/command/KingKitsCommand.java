@@ -3,6 +3,7 @@ package com.faris.kingkits.listener.command;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.KingKitsAPI;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.helper.container.ConfigCommand;
@@ -23,7 +24,7 @@ import java.util.Map;
 
 public class KingKitsCommand extends KingCommand {
 
-	private List<ConfigCommand> configCommands = new ArrayList<ConfigCommand>();
+	private List<ConfigCommand> configCommands = new ArrayList<>();
 
 	public KingKitsCommand(KingKits pluginInstance) {
 		super(pluginInstance);
@@ -49,7 +50,7 @@ public class KingKitsCommand extends KingCommand {
 				} else if (args.length > 0) {
 					String strCommand = args[0];
 					if (strCommand.equalsIgnoreCase("reload")) {
-						if (sender.isOp() || sender.hasPermission(this.getPlugin().permissions.cmdReloadConfig)) {
+						if (sender.isOp() || sender.hasPermission(Permissions.COMMAND_KK_RELOAD)) {
 							if (args.length == 1) {
 								KingKitsPreReloadEvent kkPreReloadEvent = new KingKitsPreReloadEvent(sender);
 								sender.getServer().getPluginManager().callEvent(kkPreReloadEvent);
@@ -59,10 +60,9 @@ public class KingKitsCommand extends KingCommand {
 										this.getPlugin().loadConfiguration();
 										Lang.init(this.getPlugin());
 										try {
-											if (sender.getServer().getPluginManager().isPluginEnabled("KingKitsSpecial") && sender.getServer().getPluginCommand("kkspecial") != null) {
+											if (sender.getServer().getPluginManager().isPluginEnabled("KingKitsSpecial") && sender.getServer().getPluginCommand("kkspecial") != null)
 												sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "kkspecial reload");
-											}
-										} catch (Exception ex) {
+										} catch (Exception ignored) {
 										}
 
 										sender.sendMessage(ChatColor.GOLD + "You reloaded KingKits configurations.");
@@ -84,7 +84,7 @@ public class KingKitsCommand extends KingCommand {
 							this.sendNoAccess(sender);
 						}
 					} else if (strCommand.equalsIgnoreCase("config")) {
-						if (sender.hasPermission(this.getPlugin().permissions.cmdConfigManagement)) {
+						if (sender.hasPermission(Permissions.COMMAND_KK_CONFIG)) {
 							if (args.length == 2) {
 								String configProperty = args[1];
 								if (configProperty.equalsIgnoreCase("list")) {
@@ -93,7 +93,8 @@ public class KingKitsCommand extends KingCommand {
 									for (int i = 0; i < this.configCommands.size(); i++) {
 										if (i == this.configCommands.size() - 1)
 											configListBuilder.append(this.configCommands.get(i).getCommand());
-										else configListBuilder.append(this.configCommands.get(i).getCommand() + ", ");
+										else
+											configListBuilder.append(this.configCommands.get(i).getCommand()).append(", ");
 									}
 									sender.sendMessage(ChatColor.GOLD + configListBuilder.toString().trim());
 								} else {
@@ -134,7 +135,7 @@ public class KingKitsCommand extends KingCommand {
 					} else if (strCommand.equalsIgnoreCase("killstreak")) {
 						if (!this.isConsole(sender)) {
 							Player player = (Player) sender;
-							if (player.hasPermission(this.getPlugin().permissions.killstreak)) {
+							if (player.hasPermission(Permissions.COMMAND_KILLSTREAK)) {
 								if (args.length == 1) {
 									long killstreak = KingKitsAPI.getKillstreak(player);
 									sender.sendMessage(ChatColor.GOLD + "Killstreak: " + ChatColor.DARK_RED + killstreak);
@@ -148,7 +149,7 @@ public class KingKitsCommand extends KingCommand {
 							Lang.sendMessage(sender, Lang.COMMAND_GEN_IN_GAME);
 						}
 					} else if (strCommand.equalsIgnoreCase("setcooldown")) {
-						if (sender.hasPermission(this.getPlugin().permissions.cmdSetCooldown)) {
+						if (sender.hasPermission(Permissions.COMMAND_KK_SET_COOLDOWN)) {
 							if (args.length == 3) {
 								String strTargetKit = args[1];
 								List<String> kitList = this.getPlugin().getKitList();
@@ -159,7 +160,7 @@ public class KingKitsCommand extends KingCommand {
 									Kit targetKit = this.getPlugin().kitList.get(strTargetKit);
 									if (targetKit != null) {
 										String strCooldown = args[2];
-										if (Utilities.isInteger(strCooldown)) {
+										if (Utilities.isNumber(Integer.class, strCooldown)) {
 											int cooldown = Integer.parseInt(strCooldown);
 											if (cooldown >= 0) {
 												targetKit.setCooldown(cooldown);
@@ -191,7 +192,7 @@ public class KingKitsCommand extends KingCommand {
 					}
 				}
 			} catch (Exception ex) {
-				if (Math.random() < 0.25) ex.printStackTrace();
+				if (sender.isOp()) ex.printStackTrace();
 			}
 			return true;
 		}
@@ -216,14 +217,14 @@ public class KingKitsCommand extends KingCommand {
 			String key = "";
 			String config = "";
 			if (this.containsCommand(this.configCommands, propertyKey)) {
-				for (int i = 0; i < this.configCommands.size(); i++) {
-					if (this.configCommands.get(i).getCommand().equalsIgnoreCase(propertyKey)) {
-						ConfigCommand configCommand = this.configCommands.get(i);
+				for (ConfigCommand configCommand : this.configCommands) {
+					if (configCommand.getCommand().equalsIgnoreCase(propertyKey)) {
 						key = configCommand.getDescription();
 						config = configCommand.getConfig();
 					}
 				}
-				if (key == "") return ChatColor.RED + "Failed to find the key '" + propertyKey + "' in the config.";
+				if (key.equals(""))
+					return ChatColor.RED + "Failed to find the key '" + propertyKey + "' in the config.";
 			} else return ChatColor.RED + "Failed to find the key '" + propertyKey + "' in the config.";
 			if (config.equalsIgnoreCase("Config")) {
 				String value = String.valueOf(propertyValue);

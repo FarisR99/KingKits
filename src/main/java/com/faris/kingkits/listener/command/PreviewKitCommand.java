@@ -3,6 +3,7 @@ package com.faris.kingkits.listener.command;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.KingKitsAPI;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.gui.GuiKingKits;
 import com.faris.kingkits.gui.GuiPreviewKit;
 import com.faris.kingkits.helper.Lang;
@@ -25,7 +26,7 @@ public class PreviewKitCommand extends KingCommand {
 				if (args.length == 1) {
 					if (sender instanceof Player) {
 						Player player = (Player) sender;
-						if (player.hasPermission(this.getPlugin().permissions.kitPreviewCommand)) {
+						if (player.hasPermission(Permissions.COMMAND_PREVIEW_KIT)) {
 							String strKit = args[0];
 							Kit kit = KingKitsAPI.getKitByName(strKit, false);
 							if (kit != null) {
@@ -42,7 +43,7 @@ public class PreviewKitCommand extends KingCommand {
 						Lang.sendMessage(sender, Lang.COMMAND_GEN_IN_GAME);
 					}
 				} else if (args.length == 2) {
-					if (sender.hasPermission(this.getPlugin().permissions.kitPreviewOtherCommand)) {
+					if (sender.hasPermission(Permissions.COMMAND_PREVIEW_KIT_OTHER)) {
 						String strKit = args[0];
 						Kit kit = KingKitsAPI.getKitByName(strKit, false);
 						if (kit != null) {
@@ -62,7 +63,7 @@ public class PreviewKitCommand extends KingCommand {
 						this.sendNoAccess(sender);
 					}
 				} else {
-					if (sender.hasPermission(this.getPlugin().permissions.kitPreviewCommand) || sender.hasPermission(this.getPlugin().permissions.kitPreviewOtherCommand)) {
+					if (sender.hasPermission(Permissions.COMMAND_PREVIEW_KIT) || sender.hasPermission(Permissions.COMMAND_PREVIEW_KIT_OTHER)) {
 						Lang.sendMessage(sender, Lang.COMMAND_GEN_USAGE, command.toLowerCase() + " <kit> [<player>]");
 					} else {
 						this.sendNoAccess(sender);

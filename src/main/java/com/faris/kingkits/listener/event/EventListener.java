@@ -1,9 +1,6 @@
 package com.faris.kingkits.listener.event;
 
-import com.faris.kingkits.KingKits;
-import com.faris.kingkits.KingKitsAPI;
-import com.faris.kingkits.KingKitsSQL;
-import com.faris.kingkits.Kit;
+import com.faris.kingkits.*;
 import com.faris.kingkits.gui.GuiKingKits;
 import com.faris.kingkits.gui.GuiKitMenu;
 import com.faris.kingkits.gui.GuiPreviewKit;
@@ -21,7 +18,6 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.potion.*;
-import org.bukkit.scoreboard.*;
 
 import java.util.*;
 
@@ -37,7 +33,7 @@ public class EventListener implements Listener {
 				if (!event.getEntity().getUniqueId().equals(event.getEntity().getKiller().getUniqueId()))
 					event.getEntity().getServer().getPluginManager().callEvent(new PlayerKilledEvent(event.getEntity().getKiller(), event.getEntity()));
 			}
-		} catch (Exception ex) {
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -62,7 +58,7 @@ public class EventListener implements Listener {
 					player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
 						@SuppressWarnings("deprecation")
 						public void run() {
-							if (player != null && player.isOnline()) {
+							if (player.isOnline()) {
 								if (!GuiKingKits.guiKitMenuMap.containsKey(player.getName()) && !GuiKingKits.guiPreviewKitMap.containsKey(player.getName())) {
 									KingKitsAPI.showKitMenu(player, false);
 								}
@@ -72,23 +68,6 @@ public class EventListener implements Listener {
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
-			}
-
-			// Scoreboard
-			try {
-				if (event.getPlayer().getScoreboard() != null) {
-					Objective scoreboardObj = event.getPlayer().getScoreboard().getObjective("KingKits");
-					if (scoreboardObj != null) {
-						Scoreboard playerBoard = event.getPlayer().getScoreboard();
-						playerBoard.resetScores(ChatColor.GREEN + "Score:");
-						playerBoard.resetScores(ChatColor.GREEN + "Killstreak:");
-						event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Score:");
-						event.getPlayer().getScoreboard().resetScores(ChatColor.GREEN + "Killstreak:");
-						playerBoard.clearSlot(DisplaySlot.SIDEBAR);
-						event.getPlayer().setScoreboard(playerBoard);
-					}
-				}
-			} catch (Exception ex) {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -167,7 +146,7 @@ public class EventListener implements Listener {
 			// Remove killstreak
 			try {
 				this.getPlugin().playerKillstreaks.remove(event.getPlayer().getName());
-			} catch (Exception ex) {
+			} catch (Exception ignored) {
 			}
 		} catch (Exception ex) {
 		}
@@ -181,7 +160,7 @@ public class EventListener implements Listener {
 				if (event.getItem() != null) {
 					if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
 						if (this.getPlugin().configValues.quickSoup) {
-							if (event.getPlayer().hasPermission(this.getPlugin().permissions.quickSoup) || (this.getPlugin().configValues.opBypass && event.getPlayer().isOp())) {
+							if (event.getPlayer().hasPermission(Permissions.SOUP_QUICKSOUP)) {
 								if (Utilities.inPvPWorld(event.getPlayer())) {
 									Player player = event.getPlayer();
 									int soupAmount = player.getInventory().getItemInHand().getAmount();
@@ -258,7 +237,7 @@ public class EventListener implements Listener {
 								Sign sign = (Sign) block;
 								String firstLine = sign.getLine(0);
 								if (firstLine.equals((this.getPlugin().configValues.strSignValidKit.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignValidKit.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignValidKit))) {
-									if (player.hasPermission(this.getPlugin().permissions.kitUseSign)) {
+									if (player.hasPermission(Permissions.SIGN_KIT)) {
 										String line1 = sign.getLine(1);
 										if (line1 != null) {
 											if (!line1.equalsIgnoreCase("")) {
@@ -269,7 +248,7 @@ public class EventListener implements Listener {
 													try {
 														final Kit kit = KingKitsAPI.getKitByName(kitName, false);
 														boolean validCooldown = true;
-														if (kit != null && kit.hasCooldown() && !player.hasPermission(this.getPlugin().permissions.kitBypassCooldown)) {
+														if (kit != null && kit.hasCooldown() && !player.hasPermission(Permissions.KIT_COOLDOWN_BYPASS)) {
 															if (this.getPlugin().getCooldownConfig().contains(player.getUniqueId().toString() + "." + kit.getRealName())) {
 																long currentCooldown = this.getPlugin().getCooldown(player.getUniqueId(), kit.getRealName());
 																if (System.currentTimeMillis() - currentCooldown >= kit.getCooldown() * 1000) {
@@ -281,7 +260,8 @@ public class EventListener implements Listener {
 																}
 															}
 														}
-														if (validCooldown) SetKit.setKingKit(player, kitName, true);
+														if (validCooldown)
+															SetKit.setKitWithDelay(player, kitName, true);
 													} catch (Exception ex) {
 														ex.printStackTrace();
 														Lang.sendMessage(player, Lang.COMMAND_GEN_ERROR);
@@ -306,7 +286,7 @@ public class EventListener implements Listener {
 									}
 									event.setCancelled(true);
 								} else if (firstLine.equals(this.getPlugin().configValues.strSignValidKitList.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignValidKitList.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignValidKitList)) {
-									if (player.hasPermission(this.getPlugin().permissions.kitListSign)) {
+									if (player.hasPermission(Permissions.SIGN_LIST)) {
 										if (!this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Gui") && !this.getPlugin().configValues.kitListMode.equalsIgnoreCase("Menu")) {
 											List<String> kitList = this.getPlugin().getKitList();
 											Lang.sendMessage(player, Lang.GEN_KIT_LIST_TITLE, String.valueOf(kitList.size()));
@@ -314,11 +294,11 @@ public class EventListener implements Listener {
 												for (int kitPos = 0; kitPos < kitList.size(); kitPos++) {
 													String kitName = kitList.get(kitPos).split(" ")[0];
 													if (player.hasPermission("kingkits.kits." + kitName.toLowerCase())) {
-														if (player.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+														if (player.hasPermission(Permissions.KIT_LIST_TOOLTIP)) {
 															FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.RED);
 															Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
 															if (targetKit != null && targetKit.hasDescription()) {
-																final List<String> kitDescription = new ArrayList<String>();
+																final List<String> kitDescription = new ArrayList<>();
 																for (String descriptionLine : targetKit.getDescription()) {
 																	descriptionLine = Utilities.replaceChatColour(descriptionLine);
 																	descriptionLine = descriptionLine.replace("<player>", player.getName());
@@ -337,11 +317,11 @@ public class EventListener implements Listener {
 														}
 													} else {
 														if (this.getPlugin().configValues.kitListPermissions) {
-															if (player.hasPermission(this.getPlugin().permissions.kitListTooltip)) {
+															if (player.hasPermission(Permissions.KIT_LIST_TOOLTIP)) {
 																FancyMessage listMessage = new FancyMessage((kitPos + 1) + ". ").color(ChatColor.GOLD).then(kitName).color(ChatColor.DARK_RED);
 																Kit targetKit = KingKitsAPI.getKitByName(kitName, true);
 																if (targetKit != null && targetKit.hasDescription()) {
-																	final List<String> kitDescription = new ArrayList<String>();
+																	final List<String> kitDescription = new ArrayList<>();
 																	for (String descriptionLine : targetKit.getDescription()) {
 																		descriptionLine = Utilities.replaceChatColour(descriptionLine);
 																		descriptionLine = descriptionLine.replace("<player>", player.getName());
@@ -372,7 +352,7 @@ public class EventListener implements Listener {
 									}
 									event.setCancelled(true);
 								} else if (firstLine.equals(this.getPlugin().configValues.strSignRefillValid.startsWith(ChatColor.BLACK.toString()) ? this.getPlugin().configValues.strSignRefillValid.replaceFirst(ChatColor.BLACK.toString(), "") : this.getPlugin().configValues.strSignRefillValid)) {
-									if (player.hasPermission(this.getPlugin().permissions.kitRefillSign)) {
+									if (player.hasPermission(Permissions.SIGN_REFILL)) {
 										String strLine1 = sign.getLine(1);
 										if (strLine1 != null && strLine1.equalsIgnoreCase("All")) {
 											player.performCommand("refill all");
@@ -404,7 +384,7 @@ public class EventListener implements Listener {
 					Player p = event.getPlayer();
 					String signType = event.getLine(0);
 					if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignKit)) {
-						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
+						if (p.hasPermission(Permissions.SIGN_CREATE)) {
 							if (!event.getLine(1).isEmpty()) {
 								event.setLine(0, this.getPlugin().configValues.strSignValidKit);
 							} else {
@@ -419,7 +399,7 @@ public class EventListener implements Listener {
 							event.setLine(3, "");
 						}
 					} else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignKitList)) {
-						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
+						if (p.hasPermission(Permissions.SIGN_CREATE)) {
 							event.setLine(0, this.getPlugin().configValues.strSignValidKitList);
 						} else {
 							Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "list");
@@ -429,7 +409,7 @@ public class EventListener implements Listener {
 							event.setLine(3, "");
 						}
 					} else if (signType.equalsIgnoreCase(this.getPlugin().configValues.strSignRefill)) {
-						if (p.hasPermission(this.getPlugin().permissions.kitCreateSign)) {
+						if (p.hasPermission(Permissions.SIGN_CREATE)) {
 							event.setLine(0, this.getPlugin().configValues.strSignRefillValid);
 						} else {
 							Lang.sendMessage(p, Lang.SIGN_CREATE_NO_PERMISSION, "refill");
@@ -456,29 +436,138 @@ public class EventListener implements Listener {
 			try {
 				if (this.getPlugin().configValues.scores) {
 					if (inPvPWorld) {
-						final Player killer = event.getEntity().getKiller();
-						if (killer != null && !event.getEntity().getUniqueId().equals(killer.getUniqueId())) {
+						final Player dead = event.getEntity();
+						final Player killer = dead.getKiller();
+						if (killer != null && !dead.getUniqueId().equals(killer.getUniqueId())) {
+							final UUID killerUUID = killer.getUniqueId();
+							int newScore = 0;
 							try {
-								if (!this.getPlugin().playerScores.containsKey(killer.getUniqueId()))
-									this.getPlugin().playerScores.put(killer.getUniqueId(), 0);
-								int currentScore = (Integer) this.getPlugin().playerScores.get(killer.getUniqueId());
-								int newScore = currentScore + this.getPlugin().configValues.scoreIncrement;
+								if (!this.getPlugin().playerScores.containsKey(killerUUID))
+									this.getPlugin().playerScores.put(killerUUID, 0);
+								int currentScore = (Integer) this.getPlugin().playerScores.get(killerUUID);
+								newScore = currentScore + this.getPlugin().configValues.scoreIncrement;
 								if (newScore > this.getPlugin().configValues.maxScore)
 									newScore = this.getPlugin().configValues.maxScore;
-								this.getPlugin().playerScores.put(killer.getUniqueId(), newScore);
-								this.getPlugin().getScoresConfig().set("Scores." + killer.getUniqueId().toString(), (long) newScore);
+								this.getPlugin().playerScores.put(killerUUID, newScore);
+								this.getPlugin().getScoresConfig().set("Scores." + killerUUID.toString(), (long) newScore);
 								this.getPlugin().saveScoresConfig();
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+							try {
+								int finalScore = newScore;
 
+								List<String> unlockedKits = this.getPlugin().getUnlockedKitsConfig().isList(killerUUID.toString()) ? this.getPlugin().getUnlockedKitsConfig().getStringList(killerUUID.toString()) : new ArrayList<String>();
+								List<String> kitsToAdd = new ArrayList<>();
+								for (Kit kit : this.getPlugin().kitList.values()) {
+									if (kit != null) {
+										if (kit.canBeUnlocked()) {
+											if (kit.getUnlockScore() <= finalScore) {
+												if (Vault.hasVault()) {
+													try {
+														net.milkbowl.vault.permission.Permission permission = (net.milkbowl.vault.permission.Permission) Vault.getPermissions();
+														if (!permission.has(dead, "kingkits.kits." + kit.getRealName().toLowerCase())) {
+															permission.playerAdd(dead, "kingkits.kits." + kit.getRealName().toLowerCase());
+															kitsToAdd.add(kit.getRealName());
+															if (this.getPlugin().configValues.decreaseScoreOnAutoUnlock)
+																finalScore -= kit.getUnlockScore();
+															Lang.sendMessage(killer, Lang.KIT_UNLOCK, kit.getName());
+														}
+													} catch (NullPointerException ex) {
+														System.err.println("Could not give " + killer.getName() + " the kit '" + kit.getRealName() + " because Vault permissions could not be found.");
+													} catch (Exception ex) {
+														ex.printStackTrace();
+													}
+												}
+											}
+										}
+									}
+								}
+								if (!kitsToAdd.isEmpty()) {
+									unlockedKits.addAll(kitsToAdd);
+									this.getPlugin().getUnlockedKitsConfig().set(dead.getUniqueId().toString(), unlockedKits);
+									this.getPlugin().saveUnlockedKitsConfig();
+								}
+								if (newScore != finalScore) {
+									newScore = finalScore;
+									this.getPlugin().playerScores.put(killerUUID, newScore);
+									this.getPlugin().getScoresConfig().set("Scores." + killerUUID.toString(), (long) newScore);
+									this.getPlugin().saveScoresConfig();
+								}
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+							try {
 								if (KingKitsSQL.sqlEnabled) {
 									final int kScore = newScore;
 									killer.getServer().getScheduler().runTaskAsynchronously(this.getPlugin(), new Runnable() {
 										@Override
 										public void run() {
-											KingKitsSQL.setScore(killer, kScore);
+											KingKitsSQL.setScore(killerUUID, kScore);
 										}
 									});
 								}
 							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+						}
+						if (this.getPlugin().configValues.decreaseScoreOnDeath) {
+							try {
+								if (!this.getPlugin().playerScores.containsKey(killer.getUniqueId()))
+									this.getPlugin().playerScores.put(killer.getUniqueId(), 0);
+								int currentScore = (Integer) this.getPlugin().playerScores.get(killer.getUniqueId());
+								int newScore = currentScore - this.getPlugin().configValues.scoreIncrement;
+								if (newScore > this.getPlugin().configValues.maxScore)
+									newScore = this.getPlugin().configValues.maxScore;
+								else if (newScore < 0) newScore = 0;
+								this.getPlugin().playerScores.put(killer.getUniqueId(), newScore);
+								this.getPlugin().getScoresConfig().set("Scores." + killer.getUniqueId().toString(), newScore);
+								this.getPlugin().saveScoresConfig();
+
+								if (KingKitsSQL.sqlEnabled) {
+									final int pScore = newScore;
+									final UUID playerUUID = dead.getUniqueId();
+									killer.getServer().getScheduler().runTaskAsynchronously(this.getPlugin(), new Runnable() {
+										@Override
+										public void run() {
+											KingKitsSQL.setScore(playerUUID, pScore);
+										}
+									});
+								}
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+							try {
+								int currentScore = this.getPlugin().playerScores.containsKey(dead.getUniqueId()) ? (Integer) this.getPlugin().playerScores.get(dead.getUniqueId()) : 0;
+
+								List<String> unlockedKits = this.getPlugin().getUnlockedKitsConfig().isList(dead.getUniqueId().toString()) ? this.getPlugin().getUnlockedKitsConfig().getStringList(dead.getUniqueId().toString()) : new ArrayList<String>();
+								List<String> kitsToRemove = new ArrayList<>();
+								for (String strUnlockedKit : unlockedKits) {
+									Kit unlockedKit = KingKitsAPI.getKitByName(strUnlockedKit, false);
+									if (unlockedKit != null) {
+										if (unlockedKit.canBeUnlocked()) {
+											if (unlockedKit.getUnlockScore() > currentScore) {
+												kitsToRemove.add(strUnlockedKit);
+												if (Vault.hasVault()) {
+													try {
+														net.milkbowl.vault.permission.Permission permission = (net.milkbowl.vault.permission.Permission) Vault.getPermissions();
+														if (permission.has(dead, "kingkits.kits." + unlockedKit.getRealName().toLowerCase()))
+															permission.playerRemove(dead, "kingkits.kits." + unlockedKit.getRealName().toLowerCase());
+													} catch (Exception ex) {
+														ex.printStackTrace();
+													}
+												}
+											}
+										}
+									}
+								}
+								if (!kitsToRemove.isEmpty()) {
+									unlockedKits.removeAll(kitsToRemove);
+									this.getPlugin().getUnlockedKitsConfig().set(dead.getUniqueId().toString(), unlockedKits);
+									this.getPlugin().saveUnlockedKitsConfig();
+								}
+							} catch (Exception ex) {
+								ex.printStackTrace();
 							}
 						}
 					}
@@ -490,27 +579,21 @@ public class EventListener implements Listener {
 			// Core
 			try {
 				Player player = event.getEntity();
+				boolean hadKit = this.getPlugin().playerKits.containsKey(player.getName()) || this.getPlugin().usingKits.containsKey(player.getName());
 				if (this.getPlugin().configValues.removeKitOnDeath) {
-					boolean hadKit = false;
-					if (this.getPlugin().playerKits.containsKey(player.getName())) {
+					if (this.getPlugin().playerKits.containsKey(player.getName()))
 						this.getPlugin().playerKits.remove(player.getName());
-						hadKit = true;
-					}
-					if (this.getPlugin().usingKits.containsKey(player.getName())) {
+					if (this.getPlugin().usingKits.containsKey(player.getName()))
 						this.getPlugin().usingKits.remove(player.getName());
-						hadKit = true;
-					}
-					if (hadKit) {
-						player.setMaxHealth(20D);
-						player.getInventory().clear();
-						player.getInventory().setArmorContents(null);
-						player.updateInventory();
+				}
+				if (hadKit) {
+					for (PotionEffect activeEffect : player.getActivePotionEffects())
+						player.removePotionEffect(activeEffect.getType());
 
-						for (PotionEffect activeEffect : player.getActivePotionEffects())
-							player.removePotionEffect(activeEffect.getType());
-					}
-				} else {
-					event.setKeepInventory(true);
+					player.setMaxHealth(20D);
+					player.getInventory().clear();
+					player.getInventory().setArmorContents(null);
+					player.updateInventory();
 				}
 				if (inPvPWorld && !this.getPlugin().configValues.dropItemsOnDeath)
 					event.getDrops().clear();
@@ -523,7 +606,7 @@ public class EventListener implements Listener {
 				if (this.getPlugin().configValues.disableDeathMessages) {
 					if (inPvPWorld) event.setDeathMessage("");
 				}
-			} catch (Exception ex) {
+			} catch (Exception ignored) {
 			}
 
 			// Remove money.
@@ -532,15 +615,32 @@ public class EventListener implements Listener {
 					if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useMoneyPerDeath) {
 						if (!event.getEntity().getUniqueId().equals(event.getEntity().getKiller().getUniqueId())) {
 							if (Utilities.inPvPWorld(event.getEntity().getKiller())) {
-								net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-								economy.withdrawPlayer(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath);
-								event.getEntity().sendMessage(this.getPlugin().getMPDMessage(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath));
+								if (Vault.hasVault()) {
+									net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
+									if (economy != null) {
+										economy.withdrawPlayer(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath);
+										event.getEntity().sendMessage(this.getPlugin().getMPDMessage(event.getEntity(), this.getPlugin().configValues.vaultValues.moneyPerDeath));
+									} else {
+										System.err.println("No economy plugin was found!");
+									}
+								} else {
+									System.err.println("Vault is enabled in the KingKits configuration but is not enabled on the server!");
+								}
 							}
 						}
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+			}
+
+			// Commands to run on death
+			try {
+				for (String commandToRun : this.getPlugin().configValues.commandsToRunOnDeath) {
+					event.getEntity().getServer().dispatchCommand(event.getEntity().getServer().getConsoleSender(), commandToRun.replace("<player>", event.getEntity().getName()));
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 
 			// Killstreaks
@@ -636,7 +736,7 @@ public class EventListener implements Listener {
 							this.getPlugin().getScoresConfig().set("Scores." + player.getUniqueId(), 0);
 							this.getPlugin().saveScoresConfig();
 						}
-						event.setFormat(Utilities.replaceChatColour(this.getPlugin().configValues.scoreFormat).replace("<score>", String.valueOf(this.getPlugin().playerScores.get(player.getUniqueId()))) + ChatColor.WHITE + " " + event.getFormat());
+						event.setFormat(Utilities.replaceChatColour(this.getPlugin().configValues.scoreFormat).replace("<score>", String.valueOf(this.getPlugin().playerScores.get(player.getUniqueId()))) + ChatColor.WHITE + (!this.getPlugin().configValues.scoreFormat.isEmpty() ? " " : "") + event.getFormat());
 					}
 				}
 			} catch (Exception ex) {
@@ -654,7 +754,7 @@ public class EventListener implements Listener {
 					if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 						if (event.getPlayer().getInventory().getItemInHand() != null) {
 							if (event.getPlayer().getInventory().getItemInHand().getType() == Material.COMPASS) {
-								if (event.getPlayer().hasPermission(this.getPlugin().permissions.rightClickCompass) || event.getPlayer().isOp()) {
+								if (event.getPlayer().hasPermission(Permissions.COMPASS) || event.getPlayer().isOp()) {
 									Player nearestPlayer = null;
 									double distance = -1D;
 									for (Player target : event.getPlayer().getServer().getOnlinePlayers()) {
@@ -764,7 +864,7 @@ public class EventListener implements Listener {
 								player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
 									@Override
 									public void run() {
-										if (player != null && player.isOnline() && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+										if (player.isOnline() && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
 											ItemStack item = player.getItemInHand();
 											item.setDurability((short) 0);
 											player.setItemInHand(item);
@@ -828,11 +928,17 @@ public class EventListener implements Listener {
 				Player killer = event.getPlayer();
 				if (this.getPlugin().configValues.vaultValues.useEconomy && this.getPlugin().configValues.vaultValues.useMoneyPerKill) {
 					if (Utilities.inPvPWorld(killer)) {
-						net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) this.getPlugin().vault.getEconomy();
-						if (economy != null) {
-							if (!economy.hasAccount(killer)) economy.createPlayerAccount(killer);
-							economy.depositPlayer(killer, this.getPlugin().configValues.vaultValues.moneyPerKill);
-							killer.sendMessage(this.getPlugin().getMPKMessage(event.getDead(), this.getPlugin().configValues.vaultValues.moneyPerKill));
+						if (Vault.hasVault()) {
+							net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
+							if (economy != null) {
+								if (!economy.hasAccount(killer)) economy.createPlayerAccount(killer);
+								economy.depositPlayer(killer, this.getPlugin().configValues.vaultValues.moneyPerKill);
+								killer.sendMessage(this.getPlugin().getMPKMessage(event.getDead(), this.getPlugin().configValues.vaultValues.moneyPerKill));
+							} else {
+								System.err.println("No economy plugin was found!");
+							}
+						} else {
+							System.err.println("Vault is enabled in the KingKits configuration but is not enabled on the server!");
 						}
 					}
 				}
@@ -889,22 +995,24 @@ public class EventListener implements Listener {
 					if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
 						this.getPlugin().usingKits.remove(event.getPlayer().getName());
 						event.getPlayer().setMaxHealth(20D);
-						if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
+						if (!this.getPlugin().configValues.multiInvs && !this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
 							event.getPlayer().getInventory().clear();
 							event.getPlayer().getInventory().setArmorContents(null);
 							event.getPlayer().updateInventory();
+
+							for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
+								event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
 						}
+					}
+				} else if (this.getPlugin().configValues.pvpWorlds.contains("All") || (!this.getPlugin().configValues.pvpWorlds.contains(event.getFrom().getName()) && this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))) {
+					if (!this.getPlugin().configValues.multiInvs && !this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin)) {
+						event.getPlayer().getInventory().clear();
+						event.getPlayer().getInventory().setArmorContents(null);
+
+						event.getPlayer().updateInventory();
 						for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
 							event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
 					}
-				} else if (this.getPlugin().configValues.pvpWorlds.contains("All") || (!this.getPlugin().configValues.pvpWorlds.contains(event.getFrom().getName()) && this.getPlugin().configValues.pvpWorlds.contains(event.getPlayer().getWorld().getName()))) {
-					if (!this.getPlugin().getServer().getPluginManager().isPluginEnabled(this.getPlugin().configValues.multiInvsPlugin) && !this.getPlugin().configValues.multiInvs) {
-						event.getPlayer().getInventory().clear();
-						event.getPlayer().getInventory().setArmorContents(null);
-						event.getPlayer().updateInventory();
-					}
-					for (PotionEffect potionEffectOnPlayer : event.getPlayer().getActivePotionEffects())
-						event.getPlayer().removePotionEffect(potionEffectOnPlayer.getType());
 					if (this.getPlugin().configValues.listKitsOnJoin) this.listKitsOnJoin(event.getPlayer());
 				}
 			} catch (Exception ex) {
@@ -948,17 +1056,15 @@ public class EventListener implements Listener {
 								if (this.getPlugin().configValues.disableItemBreaking) {
 									repair = true;
 								} else {
-									Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), false);
-									if (kit != null && !kit.canItemsBreak()) {
-										repair = true;
-									}
+									Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), player.getUniqueId());
+									repair = kit != null && !kit.canItemsBreak();
 								}
 							}
 							if (repair) {
 								player.getServer().getScheduler().runTask(this.getPlugin(), new Runnable() {
 									@Override
 									public void run() {
-										if (player != null && player.isOnline() && getPlugin().usingKits.containsKey(player.getName()) && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
+										if (player.isOnline() && getPlugin().usingKits.containsKey(player.getName()) && player.getItemInHand() != null && (isTool(player.getItemInHand().getType()) || player.getItemInHand().getType() == Material.FISHING_ROD || player.getItemInHand().getType() == Material.FLINT_AND_STEEL)) {
 											ItemStack item = player.getItemInHand();
 											item.setDurability((short) 0);
 											player.setItemInHand(item);
@@ -978,15 +1084,13 @@ public class EventListener implements Listener {
 							if (this.getPlugin().configValues.disableItemBreaking) {
 								repair = true;
 							} else {
-								Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), false);
-								if (kit != null && !kit.canItemsBreak()) {
-									repair = true;
-								}
+								Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), player.getUniqueId());
+								repair = kit != null && !kit.canItemsBreak();
 							}
 							if (repair) {
 								ItemStack[] armour = player.getInventory().getArmorContents();
 								for (ItemStack i : armour)
-									if (i != null && isArmour(i.getType())) i.setDurability((short) 0);
+									if (i != null && this.isArmour(i.getType())) i.setDurability((short) 0);
 								player.getInventory().setArmorContents(armour);
 								player.updateInventory();
 							}
@@ -1012,13 +1116,10 @@ public class EventListener implements Listener {
 						if (this.getPlugin().configValues.disableItemBreaking) {
 							repair = true;
 						} else {
-							Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), false);
-							if (kit != null && !kit.canItemsBreak()) {
-								repair = true;
-							}
+							Kit kit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(player.getName()), player.getUniqueId());
+							repair = kit != null && !kit.canItemsBreak();
 						}
-						if (repair)
-							event.getBow().setDurability((short) 0);
+						if (repair) event.getBow().setDurability((short) 0);
 					}
 				}
 			} catch (Exception ex) {
@@ -1033,12 +1134,52 @@ public class EventListener implements Listener {
 		try {
 			// Kit command alias
 			try {
-				if (!event.isCancelled()) {
+				if (!event.isCancelled() && Utilities.inPvPWorld(event.getPlayer())) {
 					String strCommand = event.getMessage().contains(" ") ? event.getMessage().split(" ")[0].substring(1) : event.getMessage().substring(1);
 					Kit targetKit = KingKitsAPI.getKitByName(strCommand, true);
 					if (targetKit != null && !targetKit.isUserKit() && targetKit.hasAlias()) {
 						event.setCancelled(true);
 						event.getPlayer().performCommand("pvpkit " + targetKit.getName());
+					}
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		} catch (Exception ex) {
+		}
+	}
+
+	@EventHandler
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+		try {
+			// Give items back to a player when they respawn
+			try {
+				if (this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
+					Kit playerKit = KingKitsAPI.getKitByName(this.getPlugin().usingKits.get(event.getPlayer().getName()), event.getPlayer().getUniqueId());
+					boolean removeKit = true;
+					if (playerKit != null && Utilities.inPvPWorld(event.getRespawnLocation()))
+						removeKit = !SetKit.setKit(event.getPlayer(), playerKit.getRealName(), false, false);
+					if (removeKit) {
+						this.getPlugin().usingKits.remove(event.getPlayer().getName());
+						this.getPlugin().playerKits.remove(event.getPlayer().getName());
+					}
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+
+			// Show GUI on respawn
+			try {
+				if (this.getPlugin().configValues.guiOnRespawn && !this.getPlugin().usingKits.containsKey(event.getPlayer().getName())) {
+					if (Utilities.inPvPWorld(event.getPlayer())) {
+						final Player player = event.getPlayer();
+						player.getServer().getScheduler().runTaskLater(this.getPlugin(), new Runnable() {
+							@Override
+							public void run() {
+								if (player.isOnline() && !GuiKingKits.guiKitMenuMap.containsKey(player.getName()) && !GuiKingKits.guiPreviewKitMap.containsKey(player.getName()) && Utilities.inPvPWorld(player))
+									KingKitsAPI.showKitMenu(player, 1, true);
+							}
+						}, 5L);
 					}
 				}
 			} catch (Exception ex) {

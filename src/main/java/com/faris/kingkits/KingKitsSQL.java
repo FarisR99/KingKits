@@ -1,18 +1,18 @@
 package com.faris.kingkits;
 
-import org.bukkit.entity.*;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.UUID;
 
 /**
  * @author KingFaris10
  */
 public class KingKitsSQL {
-	private static Connection connection;
+
 	public static boolean sqlEnabled = false;
+	private static Connection connection;
 
 	private static String sqlHost = null, sqlUsername = null, sqlPassword = null, sqlDatabase = null, sqlTablePrefix = "kk_";
 	private static int sqlPort = -1;
@@ -75,11 +75,11 @@ public class KingKitsSQL {
 		}
 	}
 
-	private synchronized static boolean tableContainsPlayer(Player player, String table) {
+	private synchronized static boolean tableContainsPlayer(UUID playerUUID, String table) {
 		try {
-			if (isInitialised() && player != null) {
+			if (isInitialised() && playerUUID != null) {
 				PreparedStatement searchSql = connection.prepareStatement("SELECT * FROM `" + table + "` WHERE uuid=?;");
-				searchSql.setString(1, player.getUniqueId().toString());
+				searchSql.setString(1, playerUUID.toString());
 
 				ResultSet searchResult = searchSql.executeQuery();
 				boolean containsPlayer = searchResult.next();
@@ -94,20 +94,20 @@ public class KingKitsSQL {
 		return false;
 	}
 
-	public static void setScore(Player player, int score) {
-		if (sqlEnabled && isInitialised() && player != null) {
+	public synchronized static void setScore(UUID playerUUID, int score) {
+		if (sqlEnabled && isInitialised() && playerUUID != null) {
 			try {
 				openConnection();
 				createDefaultTable((sqlTablePrefix + "score"));
-				if (tableContainsPlayer(player, (sqlTablePrefix + "score"))) {
+				if (tableContainsPlayer(playerUUID, (sqlTablePrefix + "score"))) {
 					PreparedStatement scoreSql = connection.prepareStatement("UPDATE `" + (sqlTablePrefix + "score") + "` SET score=? WHERE uuid=?;");
 					scoreSql.setInt(1, score);
-					scoreSql.setString(2, player.getUniqueId().toString());
+					scoreSql.setString(2, playerUUID.toString());
 					scoreSql.executeUpdate();
 					scoreSql.close();
 				} else {
 					PreparedStatement scoreSql = connection.prepareStatement("INSERT INTO `" + (sqlTablePrefix + "score") + "` values(?," + score + ");");
-					scoreSql.setString(1, player.getUniqueId().toString());
+					scoreSql.setString(1, playerUUID.toString());
 					scoreSql.execute();
 					scoreSql.close();
 				}

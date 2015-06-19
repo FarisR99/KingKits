@@ -38,14 +38,13 @@ import java.util.logging.Level;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class KingKits extends JavaPlugin {
+
 	private static KingKits pluginInstance = null;
 
 	// Class variables
 	private KingKitsSQL kingKitsSQL = null;
-	public Permissions permissions = new Permissions();
 	public CommandValues cmdValues = new CommandValues();
 	public ConfigValues configValues = new ConfigValues();
-	public Vault vault = new Vault();
 
 	// Plugin variables
 	public Map<String, String> usingKits = null;
@@ -54,19 +53,7 @@ public class KingKits extends JavaPlugin {
 	public Map<UUID, UUID> compassTargets = null;
 	public Map<String, Long> playerKillstreaks = null;
 
-	// Listeners
-	private EventListener playerListener = null;
-	private KingKitsCommand cmdKingKits = null;
-	private KitCommand cmdKitL = null;
-	private CreateKitCommand cmdKitC = null;
-	private DeleteKitCommand cmdKitD = null;
-	private RenameKitCommand cmdKitR = null;
-	private RefillCommand cmdRefill = null;
-	private CreateUserKitCommand cmdKitUC = null;
-	private DeleteUserKitCommand cmdKitUD = null;
-	private RenameUserKitCommand cmdKitUR = null;
-	private PreviewKitCommand cmdKitPreview = null;
-
+	// Kit lists
 	public Map<String, Kit> kitList = null;
 	public Map<UUID, List<Kit>> userKitList = null;
 	private int cooldownTaskID = -1;
@@ -75,13 +62,13 @@ public class KingKits extends JavaPlugin {
 		pluginInstance = this;
 
 		// Initialise all the collections
-		this.usingKits = new HashMap<String, String>();
-		this.playerKits = new HashMap<String, String>();
-		this.playerScores = new HashMap<UUID, Object>();
-		this.compassTargets = new HashMap<UUID, UUID>();
-		this.playerKillstreaks = new HashMap<String, Long>();
-		this.kitList = new HashMap<String, Kit>();
-		this.userKitList = new HashMap<UUID, List<Kit>>();
+		this.usingKits = new HashMap<>();
+		this.playerKits = new HashMap<>();
+		this.playerScores = new HashMap<>();
+		this.compassTargets = new HashMap<>();
+		this.playerKillstreaks = new HashMap<>();
+		this.kitList = new HashMap<>();
+		this.userKitList = new HashMap<>();
 
 		// Initialise variables
 		ConfigurationSerialization.registerClass(Kit.class);
@@ -96,43 +83,35 @@ public class KingKits extends JavaPlugin {
 			ex.printStackTrace();
 		}
 
-		// Initialise commands
-		this.cmdKingKits = new KingKitsCommand(this);
-		this.cmdKitL = new KitCommand(this);
-		this.cmdKitC = new CreateKitCommand(this);
-		this.cmdKitD = new DeleteKitCommand(this);
-		this.cmdRefill = new RefillCommand(this);
-		this.cmdKitR = new RenameKitCommand(this);
-		this.cmdKitUC = new CreateUserKitCommand(this);
-		this.cmdKitUD = new DeleteUserKitCommand(this);
-		this.cmdKitUR = new RenameUserKitCommand(this);
-		this.cmdKitPreview = new PreviewKitCommand(this);
-
 		// Register commands
-		this.getCommand("kingkits").setExecutor(this.cmdKingKits);
-		this.getCommand("kingkits").setAliases(Arrays.asList("kk"));
-		this.getCommand("pvpkit").setExecutor(this.cmdKitL);
-		this.getCommand("createkit").setExecutor(this.cmdKitC);
-		this.getCommand("deletekit").setExecutor(this.cmdKitD);
-		this.getCommand("refill").setExecutor(this.cmdRefill);
-		this.getCommand("refill").setAliases(Arrays.asList("soup"));
-		this.getCommand("renamekit").setExecutor(this.cmdKitR);
-		this.getCommand("createukit").setExecutor(this.cmdKitUC);
-		this.getCommand("deleteukit").setExecutor(this.cmdKitUD);
-		this.getCommand("renameukit").setExecutor(this.cmdKitUR);
-		this.getCommand("previewkit").setExecutor(this.cmdKitPreview);
+		this.getCommand("kingkits").setExecutor(new KingKitsCommand(this));
+		this.getCommand("kingkits").setAliases(Collections.singletonList("kk"));
+		this.getCommand("pvpkit").setExecutor(new KitCommand(this));
+		this.getCommand("createkit").setExecutor(new CreateKitCommand(this));
+		this.getCommand("deletekit").setExecutor(new DeleteKitCommand(this));
+		this.getCommand("refill").setExecutor(new RefillCommand(this));
+		this.getCommand("refill").setAliases(Collections.singletonList("soup"));
+		this.getCommand("renamekit").setExecutor(new RenameKitCommand(this));
+		this.getCommand("createukit").setExecutor(new CreateUserKitCommand(this));
+		this.getCommand("deleteukit").setExecutor(new DeleteUserKitCommand(this));
+		this.getCommand("renameukit").setExecutor(new RenameUserKitCommand(this));
+		this.getCommand("previewkit").setExecutor(new PreviewKitCommand(this));
 
 		// Register permissions
-		for (Permission registeredPerm : this.permissions.permissionsList)
-			this.getServer().getPluginManager().addPermission(registeredPerm);
+		Permissions.initialisePermissions();
+		for (Permission registeredPerm : Permissions.getPermissions()) {
+			try {
+				this.getServer().getPluginManager().addPermission(registeredPerm);
+			} catch (Exception ignored) {
+			}
+		}
 		for (int i = 1; i <= 54; i++) {
 			try {
 				this.getServer().getPluginManager().addPermission(new Permission("kingkits.kit.limit." + i));
-			} catch (Exception ex) {
-				continue;
+			} catch (Exception ignored) {
 			}
 		}
-		this.getServer().getPluginManager().registerEvents(this.playerListener = new EventListener(), this);
+		this.getServer().getPluginManager().registerEvents(new EventListener(), this);
 
 		// Check for updates
 		if (this.configValues.checkForUpdates) {
@@ -150,7 +129,7 @@ public class KingKits extends JavaPlugin {
 					}
 					this.getLogger().info(title);
 					this.getLogger().info("A new version is available: KingKits v" + updater.getVersion());
-					this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
+					this.getLogger().info("Your current version: KingKits v" + updater.getCurrentVersion());
 					this.getLogger().info((this.configValues.automaticUpdates ? "Automatic updates do not work for Spigot. " : "") + "Download it from: http://www.spigotmc.org/threads/kingkits.37947");
 				}
 			} else {
@@ -219,7 +198,7 @@ public class KingKits extends JavaPlugin {
 				if (KingKitsAPI.hasKit(target.getName(), false)) {
 					target.getInventory().clear();
 					target.getInventory().setArmorContents(null);
-					target.setMaxHealth(20D);
+					target.resetMaxHealth();
 					for (PotionEffect potionEffect : target.getActivePotionEffects())
 						target.removePotionEffect(potionEffect.getType());
 				}
@@ -238,13 +217,12 @@ public class KingKits extends JavaPlugin {
 		this.userKitList = null;
 
 		// Unregister all permissions
-		for (Permission registeredPerm : this.permissions.permissionsList)
-			this.getServer().getPluginManager().removePermission(registeredPerm);
+		for (Permission registeredPermission : Permissions.getPermissions())
+			this.getServer().getPluginManager().removePermission(registeredPermission);
 		for (int i = 1; i <= 54; i++) {
 			try {
-				this.getServer().getPluginManager().removePermission(new Permission("kingkits.kit.limit." + i));
-			} catch (Exception ex) {
-				continue;
+				this.getServer().getPluginManager().removePermission("kingkits.kit.limit." + i);
+			} catch (Exception ignored) {
 			}
 		}
 
@@ -265,226 +243,226 @@ public class KingKits extends JavaPlugin {
 			ex.printStackTrace();
 		}
 
-		this.permissions = null;
-
+		Permissions.clearPermissions();
 		pluginInstance = null;
 	}
 
 	// Load Configurations
 	public void loadConfiguration() throws Exception {
-		try {
-			if (this.cooldownTaskID != -1 && this.getServer().getScheduler().isQueued(this.cooldownTaskID))
-				this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
-			if (KingKitsSQL.isInitialised() || KingKitsSQL.isOpen()) KingKitsSQL.closeConnection();
-			this.getConfig().options().header("KingKits Configuration");
-			this.getConfig().addDefault("Op bypass", true);
-			this.getConfig().addDefault("MySQL.Enabled", false);
-			this.getConfig().addDefault("MySQL.Host", "127.0.0.1");
-			this.getConfig().addDefault("MySQL.Port", 3306);
-			this.getConfig().addDefault("MySQL.Username", "root");
-			this.getConfig().addDefault("MySQL.Password", "");
-			this.getConfig().addDefault("MySQL.Database", "kingkits");
-			this.getConfig().addDefault("MySQL.Table prefix", "kk_");
-			this.getConfig().addDefault("GUI.Title", "<menucolour>PvP Kits");
-			this.getConfig().addDefault("GUI.Size", 36);
-			this.getConfig().addDefault("GUI.Page button.ID", Material.STONE_BUTTON.getId());
-			this.getConfig().addDefault("GUI.Page button.Data value", 0);
-			this.getConfig().addDefault("PvP Worlds", new ArrayList<>(Arrays.asList("All")));
-			this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
-			this.getConfig().addDefault("Multi-inventories", this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin")));
-			this.getConfig().addDefault("Enable kits command", true);
-			this.getConfig().addDefault("Enable create kits command", true);
-			this.getConfig().addDefault("Enable delete kits command", true);
-			this.getConfig().addDefault("Enable rename kits command", true);
-			this.getConfig().addDefault("Enable create user kits command", true);
-			this.getConfig().addDefault("Enable delete user kits command", true);
-			this.getConfig().addDefault("Enable rename user kits command", true);
-			this.getConfig().addDefault("Enable refill command", true);
-			this.getConfig().addDefault("Enable preview kit command", true);
-			this.getConfig().addDefault("Kit sign", "[Kit]");
-			this.getConfig().addDefault("Kit list sign", "[KList]");
-			this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
-			this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
-			this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
-			this.getConfig().addDefault("Refill sign", "[KRefill]");
-			this.getConfig().addDefault("Refill sign valid", "[&1KRefill&0]");
-			this.getConfig().addDefault("Kit cooldown enabled", true);
-			if (this.getConfig().contains("Kit cooldown")) this.getConfig().set("Kit cooldown", null);
-			this.getConfig().addDefault("List kits on join", true);
-			this.getConfig().addDefault("Use permissions on join", true);
-			this.getConfig().addDefault("Use permissions for kit list", true);
-			this.getConfig().addDefault("Kit list mode", "Text");
-			this.getConfig().addDefault("Sort kits alphabetically", true);
-			this.getConfig().addDefault("Remove items on leave", true);
-			this.getConfig().addDefault("Drop items on death", false);
-			this.getConfig().addDefault("Drop items", false);
-			this.getConfig().addDefault("Drop animations", Arrays.asList(Material.BOWL.getId()));
-			this.getConfig().addDefault("Allow picking up items", true);
-			this.getConfig().addDefault("Clear inventories on reload", true);
-			this.getConfig().addDefault("One kit per life", false);
-			this.getConfig().addDefault("Check for updates", true);
-			this.getConfig().addDefault("Automatically update", false);
-			this.getConfig().addDefault("Enable score", false);
-			this.getConfig().addDefault("Score chat prefix", "&6[&a<score>&6]");
-			this.getConfig().addDefault("Score per kill", 2);
-			this.getConfig().addDefault("Max score", Integer.MAX_VALUE);
-			this.getConfig().addDefault("Remove potion effects on leave", true);
-			this.getConfig().addDefault("Set compass target to nearest player", true);
-			this.getConfig().addDefault("Quick soup", true);
-			this.getConfig().addDefault("Quick soup heal", 2.5D);
-			this.getConfig().addDefault("Requires kit to use refill", true);
-			this.getConfig().addDefault("Command to run when changing kits", "");
-			this.getConfig().addDefault("Disable block placing and breaking", false);
-			this.getConfig().addDefault("Disable death messages", false);
-			this.getConfig().addDefault("Lock hunger level", true);
-			this.getConfig().addDefault("Hunger lock", 20);
-			this.getConfig().addDefault("Custom message", "&6You have chosen the kit &c<kit>&6.");
-			this.getConfig().addDefault("Disable gamemode while using a kit", false);
-			this.getConfig().addDefault("Enable killstreaks", false);
-			this.getConfig().addDefault("Disable item breaking", true);
-			this.getConfig().addDefault("Kit menu on join", false);
-			this.getConfig().addDefault("Clear items on kit creation", true);
-			this.getConfig().addDefault("Kit particle effects", false);
-			this.getConfig().addDefault("Show kit preview", false);
-			this.getConfig().addDefault("Replace items when selecting a kit", true);
-			this.getConfig().addDefault("Drop items on full inventory", false);
-			this.getConfig().addDefault("Remove kit on death", true);
-			if (this.getConfig().contains("Scoreboards")) this.getConfig().set("Scoreboards", null);
-			if (this.getConfig().contains("Scoreboard title")) this.getConfig().set("Scoreboard title", null);
-			this.getConfig().options().copyDefaults(true);
-			this.getConfig().options().copyHeader(true);
+		if (this.cooldownTaskID != -1 && this.getServer().getScheduler().isQueued(this.cooldownTaskID))
+			this.getServer().getScheduler().cancelTask(this.cooldownTaskID);
+		if (KingKitsSQL.isInitialised() || KingKitsSQL.isOpen()) KingKitsSQL.closeConnection();
+		this.getConfig().options().header("KingKits Configuration");
+		this.getConfig().addDefault("Op bypass", true);
+		this.getConfig().addDefault("MySQL.Enabled", false);
+		this.getConfig().addDefault("MySQL.Host", "localhost");
+		this.getConfig().addDefault("MySQL.Port", 3306);
+		this.getConfig().addDefault("MySQL.Username", "root");
+		this.getConfig().addDefault("MySQL.Password", "");
+		this.getConfig().addDefault("MySQL.Database", "kingkits");
+		this.getConfig().addDefault("MySQL.Table prefix", "kk_");
+		this.getConfig().addDefault("GUI.Title", "<menucolour>PvP Kits");
+		this.getConfig().addDefault("GUI.Size", 36);
+		this.getConfig().addDefault("GUI.Page button.ID", Material.STONE_BUTTON.getId());
+		this.getConfig().addDefault("GUI.Page button.Data value", 0);
+		this.getConfig().addDefault("GUI.Show on respawn", false);
+		this.getConfig().addDefault("PvP Worlds", new ArrayList<String>() {{
+			this.add("All");
+		}});
+		this.getConfig().addDefault("Multiple world inventories plugin", "Multiverse-Inventories");
+		this.getConfig().addDefault("Multi-inventories", this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin")));
+		this.getConfig().addDefault("Enable kits command", true);
+		this.getConfig().addDefault("Enable create kits command", true);
+		this.getConfig().addDefault("Enable delete kits command", true);
+		this.getConfig().addDefault("Enable rename kits command", true);
+		this.getConfig().addDefault("Enable create user kits command", true);
+		this.getConfig().addDefault("Enable delete user kits command", true);
+		this.getConfig().addDefault("Enable rename user kits command", true);
+		this.getConfig().addDefault("Enable refill command", true);
+		this.getConfig().addDefault("Enable preview kit command", true);
+		this.getConfig().addDefault("Kit sign", "[Kit]");
+		this.getConfig().addDefault("Kit list sign", "[KList]");
+		this.getConfig().addDefault("Kit sign valid", "[&1Kit&0]");
+		this.getConfig().addDefault("Kit sign invalid", "[&cKit&0]");
+		this.getConfig().addDefault("Kit list sign valid", "[&1KList&0]");
+		this.getConfig().addDefault("Refill sign", "[KRefill]");
+		this.getConfig().addDefault("Refill sign valid", "[&1KRefill&0]");
+		this.getConfig().addDefault("Kit cooldown enabled", true);
+		if (this.getConfig().contains("Kit cooldown")) this.getConfig().set("Kit cooldown", null);
+		this.getConfig().addDefault("List kits on join", true);
+		this.getConfig().addDefault("Use permissions on join", true);
+		this.getConfig().addDefault("Use permissions for kit list", true);
+		this.getConfig().addDefault("Kit list mode", "Text");
+		this.getConfig().addDefault("Sort kits alphabetically", true);
+		this.getConfig().addDefault("Remove items on leave", true);
+		this.getConfig().addDefault("Drop items on death", false);
+		this.getConfig().addDefault("Drop items", false);
+		this.getConfig().addDefault("Drop animations", new ArrayList<Integer>() {{
+			this.add(Material.BOWL.getId());
+		}});
+		this.getConfig().addDefault("Allow picking up items", true);
+		this.getConfig().addDefault("Clear inventories on reload", true);
+		this.getConfig().addDefault("One kit per life", false);
+		this.getConfig().addDefault("Check for updates", true);
+		this.getConfig().addDefault("Automatically update", false);
+		this.getConfig().addDefault("Enable score", false);
+		this.getConfig().addDefault("Score chat prefix", "&6[&a<score>&6]");
+		this.getConfig().addDefault("Score per kill", 2);
+		this.getConfig().addDefault("Max score", Integer.MAX_VALUE);
+		this.getConfig().addDefault("Remove potion effects on leave", true);
+		this.getConfig().addDefault("Set compass target to nearest player", true);
+		this.getConfig().addDefault("Quick soup", true);
+		this.getConfig().addDefault("Quick soup heal", 2.5D);
+		this.getConfig().addDefault("Requires kit to use refill", true);
+		this.getConfig().addDefault("Command to run when changing kits", "");
+		this.getConfig().addDefault("Disable block placing and breaking", false);
+		this.getConfig().addDefault("Disable death messages", false);
+		this.getConfig().addDefault("Lock hunger level", true);
+		this.getConfig().addDefault("Hunger lock", 20);
+		this.getConfig().addDefault("Custom message", "&6You have chosen the kit &c<kit>&6.");
+		this.getConfig().addDefault("Disable gamemode while using a kit", false);
+		this.getConfig().addDefault("Enable killstreaks", false);
+		this.getConfig().addDefault("Disable item breaking", true);
+		this.getConfig().addDefault("Kit menu on join", false);
+		this.getConfig().addDefault("Clear items on kit creation", true);
+		this.getConfig().addDefault("Kit particle effects", false);
+		this.getConfig().addDefault("Show kit preview", false);
+		this.getConfig().addDefault("Replace items when selecting a kit", true);
+		this.getConfig().addDefault("Drop items on full inventory", false);
+		this.getConfig().addDefault("Remove kit on death", true);
+		this.getConfig().addDefault("Decrease score on auto unlock", false);
+		this.getConfig().addDefault("Decrease score on death", false);
+		this.getConfig().addDefault("Commands to run on death", new ArrayList<>());
+		this.getConfig().options().copyDefaults(true);
+		this.getConfig().options().copyHeader(true);
 
-			this.configValues.opBypass = this.getConfig().getBoolean("Op bypass");
-			this.configValues.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
-			this.configValues.multiInvsPlugin = this.getConfig().getString("Multiple world inventories plugin");
-			this.configValues.multiInvs = this.getConfig().getBoolean("Multi-inventories");
-			if (!this.configValues.multiInvs && this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin"))) {
-				this.configValues.multiInvs = true;
-				this.getConfig().set("Multi-inventories", true);
-			}
-			this.cmdValues.pvpKits = this.getConfig().getBoolean("Enable kits command");
-			this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
-			this.cmdValues.deleteKits = this.getConfig().getBoolean("Enable delete kits command");
-			this.cmdValues.renameKits = this.getConfig().getBoolean("Enable rename kits command");
-			this.cmdValues.createUKits = this.getConfig().getBoolean("Enable create user kits command");
-			this.cmdValues.deleteUKits = this.getConfig().getBoolean("Enable delete user kits command");
-			this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
-			this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
-			this.cmdValues.previewKit = this.getConfig().getBoolean("Enable preview kit command");
-			this.configValues.strSignKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign"));
-			this.configValues.strSignKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign"));
-			this.configValues.strSignValidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign valid"));
-			this.configValues.strSignInvalidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign invalid"));
-			this.configValues.strSignValidKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign valid"));
-			this.configValues.strSignRefill = Utilities.replaceChatColour(this.getConfig().getString("Refill sign"));
-			this.configValues.strSignRefillValid = Utilities.replaceChatColour(this.getConfig().getString("Refill sign valid"));
-			this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
-			this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
-			this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
-			this.configValues.sortAlphabetically = this.getConfig().getBoolean("Sort kits alphabetically");
-			this.configValues.kitListPermissionsJoin = this.getConfig().getBoolean("Use permissions on join");
-			this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions for kit list");
-			this.configValues.removeItemsOnLeave = this.getConfig().getBoolean("Remove items on leave");
-			this.configValues.dropItemsOnDeath = this.getConfig().getBoolean("Drop items on death");
-			this.configValues.dropItems = this.getConfig().getBoolean("Drop items");
-			this.configValues.dropAnimations = this.getConfig().getIntegerList("Drop animations");
-			this.configValues.allowPickingUpItems = this.getConfig().getBoolean("Allow picking up items");
-			this.configValues.clearInvOnReload = this.getConfig().getBoolean("Clear inventories on reload");
-			this.configValues.oneKitPerLife = this.getConfig().getBoolean("One kit per life");
-			this.configValues.checkForUpdates = this.getConfig().getBoolean("Check for updates");
-			this.configValues.automaticUpdates = this.getConfig().getBoolean("Automatically update");
-			this.configValues.removePotionEffectsOnLeave = this.getConfig().getBoolean("Remove potion effects on leave");
-			this.configValues.rightClickCompass = this.getConfig().getBoolean("Set compass target to nearest player");
-			this.configValues.quickSoup = this.getConfig().getBoolean("Quick soup");
-			this.configValues.quickSoupHeal = (float) (Math.ceil(this.getConfig().getDouble("Quick soup heal") * 2) / 2);
-			this.configValues.quickSoupKitOnly = this.getConfig().getBoolean("Requires kit to use refill");
-			this.configValues.banBlockBreakingAndPlacing = this.getConfig().getBoolean("Disable block placing and breaking");
-			this.configValues.disableDeathMessages = this.getConfig().getBoolean("Disable death messages");
-			this.configValues.lockHunger = this.getConfig().getBoolean("Lock hunger level");
-			this.configValues.hungerLock = this.getConfig().getInt("Hunger lock");
-			this.configValues.customMessages = this.getConfig().getString("Custom message");
-			this.configValues.commandToRun = this.getConfig().getString("Command to run when changing kits");
-			this.configValues.disableGamemode = this.getConfig().getBoolean("Disable gamemode while using a kit");
-			this.configValues.killstreaks = this.getConfig().getBoolean("Enable killstreaks");
-			this.configValues.disableItemBreaking = this.getConfig().getBoolean("Disable item breaking");
-			this.configValues.kitMenuOnJoin = this.getConfig().getBoolean("Kit menu on join");
-			this.configValues.removeItemsOnCreateKit = this.getConfig().getBoolean("Clear items on kit creation");
-			this.configValues.kitParticleEffects = this.getConfig().getBoolean("Kit particle effects");
-			this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
-			this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
-			this.configValues.dropItemsOnFullInventory = this.getConfig().getBoolean("Drop items on full inventory");
-			this.configValues.removeKitOnDeath = this.getConfig().getBoolean("Remove kit on death");
+		this.configValues.opBypass = this.getConfig().getBoolean("Op bypass");
+		this.configValues.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
+		this.configValues.multiInvsPlugin = this.getConfig().getString("Multiple world inventories plugin");
+		this.configValues.multiInvs = this.getConfig().getBoolean("Multi-inventories");
+		if (!this.configValues.multiInvs && this.getServer().getPluginManager().isPluginEnabled(this.getConfig().getString("Multiple world inventories plugin"))) {
+			this.configValues.multiInvs = true;
+			this.getConfig().set("Multi-inventories", true);
+		}
+		this.cmdValues.pvpKits = this.getConfig().getBoolean("Enable kits command");
+		this.cmdValues.createKits = this.getConfig().getBoolean("Enable create kits command");
+		this.cmdValues.deleteKits = this.getConfig().getBoolean("Enable delete kits command");
+		this.cmdValues.renameKits = this.getConfig().getBoolean("Enable rename kits command");
+		this.cmdValues.createUKits = this.getConfig().getBoolean("Enable create user kits command");
+		this.cmdValues.deleteUKits = this.getConfig().getBoolean("Enable delete user kits command");
+		this.cmdValues.renameUKits = this.getConfig().getBoolean("Enable rename user kits command");
+		this.cmdValues.refillKits = this.getConfig().getBoolean("Enable refill command");
+		this.cmdValues.previewKit = this.getConfig().getBoolean("Enable preview kit command");
+		this.configValues.strSignKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign"));
+		this.configValues.strSignKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign"));
+		this.configValues.strSignValidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign valid"));
+		this.configValues.strSignInvalidKit = Utilities.replaceChatColour(this.getConfig().getString("Kit sign invalid"));
+		this.configValues.strSignValidKitList = Utilities.replaceChatColour(this.getConfig().getString("Kit list sign valid"));
+		this.configValues.strSignRefill = Utilities.replaceChatColour(this.getConfig().getString("Refill sign"));
+		this.configValues.strSignRefillValid = Utilities.replaceChatColour(this.getConfig().getString("Refill sign valid"));
+		this.configValues.kitCooldown = this.getConfig().getBoolean("Kit cooldown enabled");
+		this.configValues.listKitsOnJoin = this.getConfig().getBoolean("List kits on join");
+		this.configValues.kitListMode = this.getConfig().getString("Kit list mode");
+		this.configValues.sortAlphabetically = this.getConfig().getBoolean("Sort kits alphabetically");
+		this.configValues.kitListPermissionsJoin = this.getConfig().getBoolean("Use permissions on join");
+		this.configValues.kitListPermissions = this.getConfig().getBoolean("Use permissions for kit list");
+		this.configValues.removeItemsOnLeave = this.getConfig().getBoolean("Remove items on leave");
+		this.configValues.dropItemsOnDeath = this.getConfig().getBoolean("Drop items on death");
+		this.configValues.dropItems = this.getConfig().getBoolean("Drop items");
+		this.configValues.dropAnimations = this.getConfig().getIntegerList("Drop animations");
+		this.configValues.allowPickingUpItems = this.getConfig().getBoolean("Allow picking up items");
+		this.configValues.clearInvOnReload = this.getConfig().getBoolean("Clear inventories on reload");
+		this.configValues.oneKitPerLife = this.getConfig().getBoolean("One kit per life");
+		this.configValues.checkForUpdates = this.getConfig().getBoolean("Check for updates");
+		this.configValues.automaticUpdates = this.getConfig().getBoolean("Automatically update");
+		this.configValues.removePotionEffectsOnLeave = this.getConfig().getBoolean("Remove potion effects on leave");
+		this.configValues.rightClickCompass = this.getConfig().getBoolean("Set compass target to nearest player");
+		this.configValues.quickSoup = this.getConfig().getBoolean("Quick soup");
+		this.configValues.quickSoupHeal = Math.ceil(this.getConfig().getDouble("Quick soup heal") * 2) / 2;
+		this.configValues.quickSoupKitOnly = this.getConfig().getBoolean("Requires kit to use refill");
+		this.configValues.banBlockBreakingAndPlacing = this.getConfig().getBoolean("Disable block placing and breaking");
+		this.configValues.disableDeathMessages = this.getConfig().getBoolean("Disable death messages");
+		this.configValues.lockHunger = this.getConfig().getBoolean("Lock hunger level");
+		this.configValues.hungerLock = this.getConfig().getInt("Hunger lock");
+		this.configValues.customMessages = this.getConfig().getString("Custom message");
+		this.configValues.commandToRun = this.getConfig().getString("Command to run when changing kits");
+		this.configValues.disableGamemode = this.getConfig().getBoolean("Disable gamemode while using a kit");
+		this.configValues.killstreaks = this.getConfig().getBoolean("Enable killstreaks");
+		this.configValues.disableItemBreaking = this.getConfig().getBoolean("Disable item breaking");
+		this.configValues.kitMenuOnJoin = this.getConfig().getBoolean("Kit menu on join");
+		this.configValues.removeItemsOnCreateKit = this.getConfig().getBoolean("Clear items on kit creation");
+		this.configValues.kitParticleEffects = this.getConfig().getBoolean("Kit particle effects");
+		this.configValues.showKitPreview = this.getConfig().getBoolean("Show kit preview");
+		this.configValues.replaceItems = this.getConfig().getBoolean("Replace items when selecting a kit");
+		this.configValues.dropItemsOnFullInventory = this.getConfig().getBoolean("Drop items on full inventory");
+		this.configValues.removeKitOnDeath = this.getConfig().getBoolean("Remove kit on death");
+		this.configValues.decreaseScoreOnAutoUnlock = this.getConfig().getBoolean("Decrease score on auto unlock");
+		this.configValues.decreaseScoreOnDeath = this.getConfig().getBoolean("Decrease score on death");
+		this.configValues.commandsToRunOnDeath = this.getConfig().getStringList("Commands to run on death");
 
-			this.configValues.guiTitle = Utilities.replaceChatColour(this.getConfig().getString("GUI.Title"));
-			this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
-			if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54) {
-				this.configValues.guiSize = 54;
-				this.getConfig().set("GUI.Size", 54);
-			}
-			this.configValues.guiItemID = this.getConfig().getInt("GUI.Page button.ID");
-			this.configValues.guiItemData = (short) this.getConfig().getInt("GUI.Page button.Data value");
+		this.configValues.guiTitle = Utilities.replaceChatColour(this.getConfig().getString("GUI.Title"));
+		this.configValues.guiSize = this.getConfig().getInt("GUI.Size");
+		if (this.configValues.guiSize <= 0 || this.configValues.guiSize % 9 != 0 || this.configValues.guiSize > 54) {
+			this.configValues.guiSize = 54;
+			this.getConfig().set("GUI.Size", 54);
+		}
+		this.configValues.guiItemID = this.getConfig().getInt("GUI.Page button.ID");
+		this.configValues.guiItemData = (short) this.getConfig().getInt("GUI.Page button.Data value");
+		this.configValues.guiOnRespawn = this.getConfig().getBoolean("GUI.Show on respawn");
 
+		this.configValues.scores = this.getConfig().getBoolean("Enable score");
+		this.configValues.scoreIncrement = this.getConfig().getInt("Score per kill");
+		this.configValues.scoreFormat = this.getConfig().getString("Score chat prefix");
+		this.configValues.maxScore = this.getConfig().getInt("Max score");
+		this.saveConfig();
 
-			this.configValues.scores = this.getConfig().getBoolean("Enable score");
-			this.configValues.scoreIncrement = this.getConfig().getInt("Score per kill");
-			String scoreChatPrefix = this.getConfig().getString("Score chat prefix");
-			if (!scoreChatPrefix.contains("<score>")) {
-				this.getConfig().set("Score chat prefix", "&6[&a<score>&6]");
-			}
-			this.configValues.scoreFormat = this.getConfig().getString("Score chat prefix");
-			this.configValues.maxScore = this.getConfig().getInt("Max score");
-
-			this.saveConfig();
-			this.loadMySQL();
-			this.loadPvPKits();
-			this.loadUserKits();
-			this.loadScores();
-			this.loadEconomy();
-			this.loadKillstreaks();
-
-			if (this.configValues.kitCooldown) {
-				this.cooldownTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
-					public void run() {
-						boolean hasBeenModified = false;
-						for (Map.Entry<String, Object> configEntrySet : getCooldownConfig().getValues(false).entrySet()) {
-							Map<String, Object> playerMap = null;
-							if (configEntrySet.getValue() instanceof ConfigurationSection)
-								playerMap = ((ConfigurationSection) configEntrySet.getValue()).getValues(false);
-							else if (configEntrySet.getValue() instanceof Map)
-								playerMap = (Map<String, Object>) configEntrySet.getValue();
-							if (playerMap != null) {
-								for (Map.Entry<String, Object> entrySet : playerMap.entrySet()) {
-									String strValue = entrySet.getValue().toString();
-									if (Utilities.isLong(strValue)) {
-										Kit targetKit = kitList.get(entrySet.getKey());
-										if (targetKit != null) {
-											long kitCooldown = targetKit.getCooldown();
-											long playerCooldown = Long.parseLong(strValue);
-											if (System.currentTimeMillis() - playerCooldown >= kitCooldown * 1000) {
-												getCooldownConfig().set(configEntrySet.getKey() + "." + entrySet.getKey(), null);
-												if (playerMap.size() == 1)
-													getCooldownConfig().set(configEntrySet.getKey(), null);
-												hasBeenModified = true;
-											}
+		this.loadMySQL();
+		this.loadEconomy();
+		this.loadKillstreaks();
+		this.loadPvPKits();
+		this.loadScores();
+		this.loadUnlockedKits();
+		this.loadUserKits();
+		if (this.configValues.kitCooldown) {
+			this.cooldownTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
+				public void run() {
+					boolean hasBeenModified = false;
+					for (Entry<String, Object> configEntrySet : getCooldownConfig().getValues(false).entrySet()) {
+						Map<String, Object> playerMap = null;
+						if (configEntrySet.getValue() instanceof ConfigurationSection)
+							playerMap = ((ConfigurationSection) configEntrySet.getValue()).getValues(false);
+						else if (configEntrySet.getValue() instanceof Map)
+							playerMap = (Map<String, Object>) configEntrySet.getValue();
+						if (playerMap != null) {
+							for (Entry<String, Object> entrySet : playerMap.entrySet()) {
+								String strValue = entrySet.getValue().toString();
+								if (Utilities.isNumber(Long.class, strValue)) {
+									Kit targetKit = kitList.get(entrySet.getKey());
+									if (targetKit != null) {
+										long kitCooldown = targetKit.getCooldown();
+										long playerCooldown = Long.parseLong(strValue);
+										if (System.currentTimeMillis() - playerCooldown >= kitCooldown * 1000) {
+											getCooldownConfig().set(configEntrySet.getKey() + "." + entrySet.getKey(), null);
+											if (playerMap.size() == 1)
+												getCooldownConfig().set(configEntrySet.getKey(), null);
+											hasBeenModified = true;
 										}
 									}
 								}
 							}
 						}
-						if (hasBeenModified) saveCooldownConfig();
 					}
-				}, 1200L, 1200L).getTaskId();
-			}
-			this.convertOldConfigCooldowns();
-		} catch (Exception ex) {
-			throw ex;
+					if (hasBeenModified) saveCooldownConfig();
+				}
+			}, 1200L, 1200L).getTaskId();
 		}
+		this.convertOldConfigCooldowns();
 	}
 
 	private void loadMySQL() {
 		if (KingKitsSQL.isOpen()) KingKitsSQL.closeConnection();
 		KingKitsSQL.sqlEnabled = this.getConfig().getBoolean("MySQL.Enabled", false);
-		this.kingKitsSQL = new KingKitsSQL(this.getConfig().getString("MySQL.Host", "127.0.0.1"), this.getConfig().getInt("MySQL.Port", 3306), this.getConfig().getString("MySQL.Username", "root"), this.getConfig().getString("MySQL.Password", ""), this.getConfig().getString("MySQL.Database", "kingkits"), this.getConfig().getString("MySQL.Table prefix", "kk_"));
+		this.kingKitsSQL = new KingKitsSQL(this.getConfig().getString("MySQL.Host", "localhost"), this.getConfig().getInt("MySQL.Port", 3306), this.getConfig().getString("MySQL.Username", "root"), this.getConfig().getString("MySQL.Password", ""), this.getConfig().getString("MySQL.Database", "kingkits"), this.getConfig().getString("MySQL.Table prefix", "kk_"));
 	}
 
 	private void loadPvPKits() {
@@ -493,11 +471,13 @@ public class KingKits extends JavaPlugin {
 			this.getKitsConfig().addDefault("First run", true);
 			if (this.getKitsConfig().getBoolean("First run")) {
 				Kit defaultKit = new Kit("Default").setRealName("Default").setCommands(Arrays.asList("feed <player>", "tell <player> &6You have been fed for using the default kit."));
-				List<ItemStack> defaultKitItems = new ArrayList<ItemStack>(), defaultKitArmour = new ArrayList<ItemStack>();
+				List<ItemStack> defaultKitItems = new ArrayList<>(), defaultKitArmour = new ArrayList<>();
 
 				ItemStack defaultSword = new ItemStack(Material.IRON_SWORD);
 				defaultSword.addEnchantment(Enchantment.DURABILITY, 3);
-				defaultKitItems.add(Utilities.ItemUtils.setLores(Utilities.ItemUtils.setName(defaultSword, "Default Kit Sword"), Arrays.asList("&6Iron Slayer")));
+				defaultKitItems.add(Utilities.ItemUtils.setLore(Utilities.ItemUtils.setName(defaultSword, "Default Kit Sword"), new ArrayList<String>() {{
+					this.add("&6Slay your enemies!");
+				}}));
 				defaultKitItems.add(new ItemStack(Material.GOLDEN_APPLE, 2));
 				defaultKitArmour.add(new ItemStack(Material.IRON_HELMET));
 				defaultKitArmour.add(Utilities.ItemUtils.setDye(new ItemStack(Material.LEATHER_CHESTPLATE), 10040115));
@@ -507,7 +487,8 @@ public class KingKits extends JavaPlugin {
 
 				defaultKit.setItems(defaultKitItems);
 				defaultKit.setArmour(defaultKitArmour);
-				defaultKit.setPotionEffects(Arrays.asList(new PotionEffect(PotionEffectType.SPEED, 200, 1)));
+				defaultKit.setDescription(new ArrayList<>(Arrays.asList("The default KingKits", "amazingly powerful kit!")));
+				defaultKit.setPotionEffects(Collections.singletonList(new PotionEffect(PotionEffectType.SPEED, 200, 1)));
 
 				this.getKitsConfig().addDefault("Default", defaultKit.serialize());
 				this.getKitsConfig().set("First run", false);
@@ -549,11 +530,11 @@ public class KingKits extends JavaPlugin {
 
 			this.userKitList.clear();
 			this.convertOldConfigUserKits();
-			List<String> userList = new ArrayList<String>(this.getUserKitsConfig().getKeys(false));
+			List<String> userList = new ArrayList<>(this.getUserKitsConfig().getKeys(false));
 			for (String strPlayerUUID : userList) {
 				UUID playerUUID = Utilities.isUUID(strPlayerUUID) ? UUID.fromString(strPlayerUUID) : null;
 				if (playerUUID == null) continue;
-				List<Kit> userKits = new ArrayList<Kit>();
+				List<Kit> userKits = new ArrayList<>();
 				try {
 					for (Map.Entry<String, Object> kitEntry : this.getUserKitsConfig().getConfigurationSection(strPlayerUUID).getValues(false).entrySet()) {
 						try {
@@ -565,8 +546,7 @@ public class KingKits extends JavaPlugin {
 							else if (objKitConfigSection instanceof Map)
 								kit = Kit.deserialize((Map<String, Object>) objKitConfigSection);
 							if (kit != null) userKits.add(kit.setRealName(kitName).setUserKit(true));
-						} catch (Exception ex) {
-							continue;
+						} catch (Exception ignored) {
 						}
 					}
 				} catch (Exception ex) {
@@ -589,11 +569,11 @@ public class KingKits extends JavaPlugin {
 			this.saveScoresConfig();
 
 			Map<String, Object> scoresMap = this.getScoresConfig().getConfigurationSection("Scores").getValues(true);
-			List<String> unconvertedScores = new ArrayList<String>();
+			List<String> unconvertedScores = new ArrayList<>();
 			for (Entry<String, Object> scoreEntry : scoresMap.entrySet()) {
 				if (!Utilities.isUUID(scoreEntry.getKey())) unconvertedScores.add(scoreEntry.getKey());
 			}
-			boolean hasConverted = false;
+			boolean hasConverted;
 			try {
 				Map<String, UUID> uuidList = UUIDFetcher.lookupNames(unconvertedScores);
 				for (Entry<String, UUID> uuidEntry : uuidList.entrySet()) {
@@ -610,7 +590,7 @@ public class KingKits extends JavaPlugin {
 				if (hasConverted) this.getScoresConfig().set("Scores." + unconvertedPlayer, null);
 			}
 			this.saveScoresConfig();
-			this.playerScores = new HashMap<UUID, Object>();
+			this.playerScores = new HashMap<>();
 			for (Entry<String, Object> mapEntry : scoresMap.entrySet()) {
 				if (Utilities.isUUID(mapEntry.getKey()))
 					this.playerScores.put(UUID.fromString(mapEntry.getKey()), mapEntry.getValue());
@@ -689,6 +669,12 @@ public class KingKits extends JavaPlugin {
 		this.saveKillstreaksConfig();
 	}
 
+	private void loadUnlockedKits() {
+		this.getUnlockedKitsConfig().options().header("KingKits players' unlocked kits");
+		this.getUnlockedKitsConfig().options().copyHeader(true);
+		this.saveUnlockedKitsConfig();
+	}
+
 	public boolean checkConfig() {
 		String scoreChatPrefix = this.getConfig().getString("Score chat prefix");
 		if (!scoreChatPrefix.contains("<score>")) {
@@ -702,30 +688,34 @@ public class KingKits extends JavaPlugin {
 	private void setupPermissions(boolean unregisterFirst) {
 		if (unregisterFirst) {
 			try {
-				List<String> kitNames = new ArrayList<String>(this.getKitsConfig().getKeys(false));
-				for (int pos = 0; pos < kitNames.size(); pos++) {
-					String kit = kitNames.get(pos);
+				List<String> kitNames = new ArrayList<>(this.getKitsConfig().getKeys(false));
+				for (String kit : kitNames) {
 					if (kit.contains(" ")) kit = kit.split(" ")[0];
 					try {
-						this.getServer().getPluginManager().removePermission(new Permission("kingkits.kits." + kit.toLowerCase()));
-					} catch (Exception ex) {
+						this.getServer().getPluginManager().removePermission("kingkits.kits." + kit.toLowerCase());
+						this.getServer().getPluginManager().removePermission("kingkits.free." + kit.toLowerCase());
+					} catch (Exception ignored) {
 					}
 				}
-			} catch (Exception ex) {
+			} catch (Exception ignored) {
 			}
 		}
 		try {
-			List<String> kitNames = new ArrayList<String>(this.getKitsConfig().getKeys(false));
-			for (int pos = 0; pos < kitNames.size(); pos++) {
-				String kit = kitNames.get(pos);
+			List<String> kitNames = new ArrayList<>(this.getKitsConfig().getKeys(false));
+			for (String kit : kitNames) {
 				if (kit.contains(" ")) kit = kit.split(" ")[0];
 				try {
 					this.getServer().getPluginManager().addPermission(new Permission("kingkits.kits." + kit.toLowerCase()));
 				} catch (Exception ex) {
-					this.getLogger().info("Couldn't register the permission node: kingkits.kits." + kit.toLowerCase());
+					this.getLogger().log(Level.WARNING, "Couldn't register the permission node: kingkits.kits." + kit.toLowerCase(), ex);
+				}
+				try {
+					this.getServer().getPluginManager().addPermission(new Permission("kingkits.free." + kit.toLowerCase()));
+				} catch (Exception ex) {
+					this.getLogger().log(Level.WARNING, "Couldn't register the permission node: kingkits.free." + kit.toLowerCase(), ex);
 				}
 			}
-		} catch (Exception ex) {
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -734,9 +724,8 @@ public class KingKits extends JavaPlugin {
 		String message = this.getEconomyConfig().getString("Message");
 		String currency = this.getEconomyConfig().getString("Currency");
 		if (amount == 1) {
-			if (currency.contains("s")) {
-				if (currency.lastIndexOf('s') == message.length()) currency = this.replaceLast(currency, "s", "");
-			}
+			if (currency.contains("s") && currency.lastIndexOf('s') == message.length())
+				currency = this.replaceLast(currency, "s", "");
 		}
 		message = message.replace("<currency>", currency);
 		message = message.replace("<money>", String.valueOf(amount));
@@ -744,7 +733,7 @@ public class KingKits extends JavaPlugin {
 	}
 
 	public List<String> getConfigKitList() {
-		List<String> configKeys = new ArrayList<String>(this.getKitsConfig().getKeys(false));
+		List<String> configKeys = new ArrayList<>(this.getKitsConfig().getKeys(false));
 		configKeys.remove("First run");
 		return configKeys;
 	}
@@ -754,8 +743,8 @@ public class KingKits extends JavaPlugin {
 			Object objCooldownPlayer = this.getCooldownConfig().get(playerUUID.toString());
 			Map<String, Object> playerKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
 			if (playerKitCooldowns.containsKey(kitName)) {
-				String strPlayerCooldown = playerKitCooldowns.get(kitName) != null ? playerKitCooldowns.get(kitName).toString() : null;
-				if (!Utilities.isLong(strPlayerCooldown)) {
+				String strPlayerCooldown = playerKitCooldowns.get(kitName) != null ? playerKitCooldowns.get(kitName).toString() : "0";
+				if (!Utilities.isNumber(Long.class, strPlayerCooldown)) {
 					this.getCooldownConfig().set(playerUUID.toString() + "." + kitName, null);
 					this.saveCooldownConfig();
 				} else {
@@ -767,13 +756,13 @@ public class KingKits extends JavaPlugin {
 	}
 
 	public Map<String, Long> getCooldowns(UUID playerUUID) {
-		Map<String, Long> kitCooldowns = new HashMap<String, Long>();
+		Map<String, Long> kitCooldowns = new HashMap<>();
 		if (playerUUID != null && this.getCooldownConfig().contains(playerUUID.toString())) {
 			Object objCooldownPlayer = this.getCooldownConfig().get(playerUUID.toString());
 			Map<String, Object> configKitCooldowns = objCooldownPlayer instanceof ConfigurationSection ? ((ConfigurationSection) objCooldownPlayer).getValues(false) : (objCooldownPlayer instanceof Map ? (Map) objCooldownPlayer : new HashMap<String, Object>());
 			for (Entry<String, Object> kitEntry : configKitCooldowns.entrySet()) {
 				String strPlayerCooldown = kitEntry.getValue().toString();
-				if (!Utilities.isLong(strPlayerCooldown)) {
+				if (!Utilities.isNumber(Long.class, strPlayerCooldown)) {
 					this.getCooldownConfig().set(playerUUID.toString() + "." + strPlayerCooldown, null);
 					this.saveCooldownConfig();
 				} else {
@@ -785,12 +774,12 @@ public class KingKits extends JavaPlugin {
 	}
 
 	public List<String> getKitList() {
-		return new ArrayList<String>(this.kitList.keySet());
+		return new ArrayList<>(this.kitList.keySet());
 	}
 
 	public List<String> getKitList(UUID playerUUID) {
 		List<Kit> kitList = this.userKitList.get(playerUUID);
-		List<String> strKitList = new ArrayList<String>();
+		List<String> strKitList = new ArrayList<>();
 		if (kitList != null) {
 			for (Kit kit : kitList) {
 				if (kit != null) strKitList.add(kit.getRealName());
@@ -804,9 +793,8 @@ public class KingKits extends JavaPlugin {
 		String message = this.getEconomyConfig().getString("Money per kill message");
 		String currency = this.getEconomyConfig().getString("Currency");
 		if (amount == 1) {
-			if (currency.contains("s")) {
-				if (currency.lastIndexOf('s') == message.length() - 1) currency = this.replaceLast(currency, "s", "");
-			}
+			if (currency.contains("s") && currency.lastIndexOf('s') == message.length() - 1)
+				currency = this.replaceLast(currency, "s", "");
 		}
 		message = message.replace("<currency>", currency);
 		message = message.replace("<money>", String.valueOf(amount));
@@ -840,160 +828,183 @@ public class KingKits extends JavaPlugin {
 	}
 
 	private FileConfiguration kitsConfig = null;
-	private File customKitsConfig = null;
+	private File kitsConfigFile = null;
 
 	public void reloadKitsConfig() {
-		if (this.customKitsConfig == null) this.customKitsConfig = new File(this.getDataFolder(), "kits.yml");
+		if (this.kitsConfigFile == null) this.kitsConfigFile = new File(this.getDataFolder(), "kits.yml");
 		try {
-			this.kitsConfig = loadConfigSafely(this.customKitsConfig);
+			this.kitsConfig = loadConfigSafely(this.kitsConfigFile);
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			if (this.customKitsConfig.exists()) {
+			if (this.kitsConfigFile.exists()) {
 				File kitDestination = new File(this.getDataFolder(), "kits.broken.yml");
 				if (kitDestination.exists()) {
 					try {
 						kitDestination.delete();
-					} catch (Exception ex2) {
+					} catch (Exception ignored) {
 					}
 				}
-				FileUtil.copy(this.customKitsConfig, kitDestination);
+				FileUtil.copy(this.kitsConfigFile, kitDestination);
 				try {
-					this.customKitsConfig.delete();
-				} catch (Exception ex2) {
+					this.kitsConfigFile.delete();
+				} catch (Exception ignored) {
 				}
 			}
 			try {
-				this.customKitsConfig.createNewFile();
-				this.kitsConfig = loadConfigSafely(this.customKitsConfig);
-			} catch (Exception ex2) {
+				this.kitsConfigFile.createNewFile();
+				this.kitsConfig = loadConfigSafely(this.kitsConfigFile);
+			} catch (Exception ignored) {
 			}
 		}
 	}
 
 	public FileConfiguration getKitsConfig() {
-		if (this.kitsConfig == null || this.customKitsConfig == null) this.reloadKitsConfig();
+		if (this.kitsConfig == null || this.kitsConfigFile == null) this.reloadKitsConfig();
 		return this.kitsConfig;
 	}
 
 	public void saveKitsConfig() {
-		if (this.kitsConfig == null || this.customKitsConfig == null) return;
+		if (this.kitsConfig == null || this.kitsConfigFile == null) return;
 		try {
-			this.getKitsConfig().save(this.customKitsConfig);
+			this.getKitsConfig().save(this.kitsConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the Kits config as " + this.customKitsConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the Kits config as " + this.kitsConfigFile.getName(), ex);
 		}
 	}
 
 	private FileConfiguration scoresConfig = null;
-	private File customScoresConfig = null;
+	private File scoresConfigFile = null;
 
 	public void reloadScoresConfig() {
-		if (this.customScoresConfig == null) this.customScoresConfig = new File(this.getDataFolder(), "scores.yml");
-		this.scoresConfig = loadConfigSafely(this.customScoresConfig);
+		if (this.scoresConfigFile == null) this.scoresConfigFile = new File(this.getDataFolder(), "scores.yml");
+		this.scoresConfig = loadConfigSafely(this.scoresConfigFile);
 	}
 
 	public FileConfiguration getScoresConfig() {
-		if (this.scoresConfig == null || this.customScoresConfig == null) this.reloadScoresConfig();
+		if (this.scoresConfig == null || this.scoresConfigFile == null) this.reloadScoresConfig();
 		return this.scoresConfig;
 	}
 
 	public void saveScoresConfig() {
-		if (this.scoresConfig == null || this.customScoresConfig == null) return;
+		if (this.scoresConfig == null || this.scoresConfigFile == null) return;
 		try {
-			this.getScoresConfig().save(this.customScoresConfig);
+			this.getScoresConfig().save(this.scoresConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the Scores config as " + this.customScoresConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the Scores config as " + this.scoresConfigFile.getName(), ex);
 		}
 	}
 
 	private FileConfiguration economyConfig = null;
-	private File customEconomyConfig = null;
+	private File economyConfigFile = null;
 
 	public void reloadEconomyConfig() {
-		if (this.customEconomyConfig == null) this.customEconomyConfig = new File(this.getDataFolder(), "economy.yml");
-		this.economyConfig = loadConfigSafely(this.customEconomyConfig);
+		if (this.economyConfigFile == null) this.economyConfigFile = new File(this.getDataFolder(), "economy.yml");
+		this.economyConfig = loadConfigSafely(this.economyConfigFile);
 	}
 
 	public FileConfiguration getEconomyConfig() {
-		if (this.economyConfig == null || this.customEconomyConfig == null) this.reloadEconomyConfig();
+		if (this.economyConfig == null || this.economyConfigFile == null) this.reloadEconomyConfig();
 		return this.economyConfig;
 	}
 
 	public void saveEconomyConfig() {
-		if (this.economyConfig == null || this.customEconomyConfig == null) return;
+		if (this.economyConfig == null || this.economyConfigFile == null) return;
 		try {
-			this.getEconomyConfig().save(this.customEconomyConfig);
+			this.getEconomyConfig().save(this.economyConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the Economy config as " + this.customEconomyConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the Economy config as " + this.economyConfigFile.getName(), ex);
 		}
 	}
 
 	private FileConfiguration killstreaksConfig = null;
-	private File customKillstreaksConfig = null;
+	private File killstreaksConfigFile = null;
 
 	public void reloadKillstreaksConfig() {
-		if (this.customKillstreaksConfig == null)
-			this.customKillstreaksConfig = new File(this.getDataFolder(), "killstreaks.yml");
-		this.killstreaksConfig = loadConfigSafely(this.customKillstreaksConfig);
+		if (this.killstreaksConfigFile == null)
+			this.killstreaksConfigFile = new File(this.getDataFolder(), "killstreaks.yml");
+		this.killstreaksConfig = loadConfigSafely(this.killstreaksConfigFile);
 	}
 
 	public FileConfiguration getKillstreaksConfig() {
-		if (this.killstreaksConfig == null || this.customKillstreaksConfig == null) this.reloadKillstreaksConfig();
+		if (this.killstreaksConfig == null || this.killstreaksConfigFile == null) this.reloadKillstreaksConfig();
 		return this.killstreaksConfig;
 	}
 
 	public void saveKillstreaksConfig() {
-		if (this.killstreaksConfig == null || this.customKillstreaksConfig == null) return;
+		if (this.killstreaksConfig == null || this.killstreaksConfigFile == null) return;
 		try {
-			this.getKillstreaksConfig().save(this.customKillstreaksConfig);
+			this.getKillstreaksConfig().save(this.killstreaksConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the Killstreaks config as " + this.customKillstreaksConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the Killstreaks config as " + this.killstreaksConfigFile.getName(), ex);
 		}
 	}
 
 	private FileConfiguration cooldownConfig = null;
-	private File customCooldownConfig = null;
+	private File cooldownConfigFile = null;
 
 	public void reloadCooldownConfig() {
-		if (this.customCooldownConfig == null)
-			this.customCooldownConfig = new File(this.getDataFolder(), "cooldown.yml");
-		this.cooldownConfig = loadConfigSafely(this.customCooldownConfig);
+		if (this.cooldownConfigFile == null)
+			this.cooldownConfigFile = new File(this.getDataFolder(), "cooldown.yml");
+		this.cooldownConfig = loadConfigSafely(this.cooldownConfigFile);
 	}
 
 	public FileConfiguration getCooldownConfig() {
-		if (this.cooldownConfig == null || this.customCooldownConfig == null) this.reloadCooldownConfig();
+		if (this.cooldownConfig == null || this.cooldownConfigFile == null) this.reloadCooldownConfig();
 		return this.cooldownConfig;
 	}
 
 	public void saveCooldownConfig() {
-		if (this.cooldownConfig == null || this.customCooldownConfig == null) return;
+		if (this.cooldownConfig == null || this.cooldownConfigFile == null) return;
 		try {
-			this.cooldownConfig.save(this.customCooldownConfig);
+			this.cooldownConfig.save(this.cooldownConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the cooldown config as " + this.customCooldownConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the cooldown config as " + this.cooldownConfigFile.getName(), ex);
 		}
 	}
 
 	private FileConfiguration userKitsConfig = null;
-	private File customUserKitsConfig = null;
+	private File userKitsConfigFile = null;
 
 	public void reloadUserKitsConfig() {
-		if (this.customUserKitsConfig == null)
-			this.customUserKitsConfig = new File(this.getDataFolder(), "userkits.yml");
-		this.userKitsConfig = loadConfigSafely(this.customUserKitsConfig);
+		if (this.userKitsConfigFile == null)
+			this.userKitsConfigFile = new File(this.getDataFolder(), "userkits.yml");
+		this.userKitsConfig = loadConfigSafely(this.userKitsConfigFile);
 	}
 
 	public FileConfiguration getUserKitsConfig() {
-		if (this.userKitsConfig == null || this.customUserKitsConfig == null) this.reloadUserKitsConfig();
+		if (this.userKitsConfig == null || this.userKitsConfigFile == null) this.reloadUserKitsConfig();
 		return this.userKitsConfig;
 	}
 
 	public void saveUserKitsConfig() {
-		if (this.userKitsConfig == null || this.customUserKitsConfig == null) return;
+		if (this.userKitsConfig == null || this.userKitsConfigFile == null) return;
 		try {
-			this.userKitsConfig.save(this.customUserKitsConfig);
+			this.userKitsConfig.save(this.userKitsConfigFile);
 		} catch (IOException ex) {
-			this.getLogger().log(Level.SEVERE, "Could not save the user kits config as " + this.customUserKitsConfig.getName(), ex);
+			this.getLogger().log(Level.SEVERE, "Could not save the user kits config as " + this.userKitsConfigFile.getName(), ex);
+		}
+	}
+
+	private FileConfiguration unlockedKitsConfig = null;
+	private File unlockedKitsConfigFile = null;
+
+	public void reloadUnlockedKitsConfig() {
+		if (this.unlockedKitsConfigFile == null)
+			this.unlockedKitsConfigFile = new File(this.getDataFolder(), "unlockedkits.yml");
+		this.unlockedKitsConfig = loadConfigSafely(this.unlockedKitsConfigFile);
+	}
+
+	public FileConfiguration getUnlockedKitsConfig() {
+		if (this.unlockedKitsConfig == null || this.unlockedKitsConfigFile == null) this.reloadUnlockedKitsConfig();
+		return this.unlockedKitsConfig;
+	}
+
+	public void saveUnlockedKitsConfig() {
+		if (this.unlockedKitsConfig == null || this.unlockedKitsConfigFile == null) return;
+		try {
+			this.unlockedKitsConfig.save(this.unlockedKitsConfigFile);
+		} catch (IOException ex) {
+			this.getLogger().log(Level.SEVERE, "Could not save the unlocked kits config as " + this.unlockedKitsConfigFile.getName(), ex);
 		}
 	}
 
@@ -1009,17 +1020,15 @@ public class KingKits extends JavaPlugin {
 	}
 
 	private void convertOldConfigUserKits() {
-		List<String> keyList = new ArrayList<String>(this.getUserKitsConfig().getKeys(false));
-		Map<String, UUID> addMap = new HashMap<String, UUID>();
-		List<String> checkList = new ArrayList<String>();
+		List<String> keyList = new ArrayList<>(this.getUserKitsConfig().getKeys(false));
+		Map<String, UUID> addMap = new HashMap<>();
+		List<String> checkList = new ArrayList<>();
 
-		for (int i = 0; i < keyList.size(); i++) {
-			String strPlayerName = keyList.get(i);
+		for (String strPlayerName : keyList) {
 			if (strPlayerName != null && !Utilities.isUUID(strPlayerName)) checkList.add(strPlayerName);
 		}
 		try {
-			Map<String, UUID> resultMap = UUIDFetcher.lookupNames(checkList);
-			addMap.putAll(resultMap);
+			addMap.putAll(UUIDFetcher.lookupNames(checkList));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -1037,17 +1046,15 @@ public class KingKits extends JavaPlugin {
 	}
 
 	private void convertOldConfigCooldowns() {
-		List<String> keyList = new ArrayList<String>(this.getCooldownConfig().getKeys(false));
-		Map<String, UUID> addMap = new HashMap<String, UUID>();
-		List<String> checkList = new ArrayList<String>();
+		List<String> keyList = new ArrayList<>(this.getCooldownConfig().getKeys(false));
+		Map<String, UUID> addMap = new HashMap<>();
+		List<String> checkList = new ArrayList<>();
 
-		for (int i = 0; i < keyList.size(); i++) {
-			String strPlayerName = keyList.get(i);
+		for (String strPlayerName : keyList) {
 			if (strPlayerName != null && !Utilities.isUUID(strPlayerName)) checkList.add(strPlayerName);
 		}
 		try {
-			Map<String, UUID> resultMap = UUIDFetcher.lookupNames(checkList);
-			addMap.putAll(resultMap);
+			addMap.putAll(UUIDFetcher.lookupNames(checkList));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -1076,20 +1083,20 @@ public class KingKits extends JavaPlugin {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Cannot load " + configFile, ex);
 			if (configFile.exists()) {
 				String filePath = configFile.getAbsolutePath();
-				String brokenFilePath = filePath.substring(0, filePath.indexOf(".yml")) + "-" + System.currentTimeMillis() + ".yml.broken";
+				String brokenFilePath = (filePath.contains(".yml") ? filePath.substring(0, filePath.indexOf(".yml")) : filePath) + "-" + System.currentTimeMillis() + ".yml.broken";
 				File configDestination = new File(brokenFilePath);
 				try {
 					FileInputStream configFileInputStream = new FileInputStream(configFile);
 					Files.copy(configFileInputStream, configDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
 					configFileInputStream.close();
 					configFile.delete();
-				} catch (Exception ex2) {
+				} catch (Exception ignored) {
 				}
 			}
 			try {
 				configFile.createNewFile();
 				return customLoadConfiguration(configFile);
-			} catch (Exception ex2) {
+			} catch (Exception ignored) {
 			}
 		}
 		return YamlConfiguration.loadConfiguration(new File(getInstance().getDataFolder(), "temp" + System.currentTimeMillis() + ".yml"));
@@ -1101,4 +1108,5 @@ public class KingKits extends JavaPlugin {
 		config.load(file);
 		return config;
 	}
+
 }

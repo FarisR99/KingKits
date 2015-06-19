@@ -1,8 +1,6 @@
 package com.faris.kingkits.listener.command;
 
-import com.faris.kingkits.KingKits;
-import com.faris.kingkits.KingKitsAPI;
-import com.faris.kingkits.Kit;
+import com.faris.kingkits.*;
 import com.faris.kingkits.helper.Lang;
 import com.faris.kingkits.helper.Utilities;
 import com.faris.kingkits.listener.event.custom.PlayerKitEvent;
@@ -18,26 +16,16 @@ import java.util.UUID;
 
 public class SetKit {
 
-	public static void setKingKit(Player player, String kitName, boolean sendMessages) throws Exception {
-		final Kit kit = setKit(player, sendMessages, kitName);
-		if (kit != null) {
-			KingKits pl = KingKits.getInstance();
-			if (kit.hasCooldown() && !player.hasPermission(pl.permissions.kitBypassCooldown)) {
-				final UUID playerUUID = player.getUniqueId();
-				final String newKitName = kit.getRealName();
-				pl.getCooldownConfig().set(playerUUID.toString() + "." + newKitName, System.currentTimeMillis());
-				pl.saveCooldownConfig();
-			}
-		}
+	public static boolean setKit(Player player, String kitName, boolean sendMessages) throws Exception {
+		return setKit(player, sendMessages, kitName, true) != null;
 	}
 
-
-	public static boolean setKit(Player player, String kitName, boolean sendMessages) throws Exception {
-		return setKit(player, sendMessages, kitName) != null;
+	public static boolean setKit(Player player, String kitName, boolean sendMessages, boolean useEconomy) {
+		return setKit(player, sendMessages, kitName, useEconomy) != null;
 	}
 
 	@SuppressWarnings("deprecation")
-	public static Kit setKit(Player player, boolean sendMessages, String kitName) throws Exception {
+	public static Kit setKit(Player player, boolean sendMessages, String kitName, boolean useEconomy) {
 		if (player == null || kitName == null) return null;
 		KingKits plugin = KingKits.getInstance();
 		if (Utilities.inPvPWorld(player)) {
@@ -65,15 +53,15 @@ public class SetKit {
 					playerKitEvent.setCommands(newKit.getCommands());
 					player.getServer().getPluginManager().callEvent(playerKitEvent);
 					if (!playerKitEvent.isCancelled()) {
-						if (plugin.configValues.vaultValues.useEconomy && plugin.configValues.vaultValues.useCostPerKit) {
+						if (useEconomy && plugin.configValues.vaultValues.useEconomy && plugin.configValues.vaultValues.useCostPerKit && !player.hasPermission("kingkits.free." + newKit.getRealName().toLowerCase())) {
 							try {
-								net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) plugin.vault.getEconomy();
+								net.milkbowl.vault.economy.Economy economy = (net.milkbowl.vault.economy.Economy) Vault.getEconomy();
 								double kitCost = newKit.getCost();
-								if (kitCost > 0D) {
-									if (economy.hasAccount(player.getName())) {
-										if (economy.getBalance(player.getName()) >= kitCost) {
-											economy.withdrawPlayer(player.getName(), kitCost);
-											player.sendMessage(ChatColor.GREEN + plugin.getEconomyMessage(kitCost));
+								if (economy != null && kitCost > 0D) {
+									if (economy.hasAccount(player)) {
+										if (economy.getBalance(player) >= kitCost) {
+											economy.withdrawPlayer(player, kitCost);
+											player.sendMessage(ChatColor.GREEN + plugin.getEconomyMessage(kitCost).replace("<name>", newKit.getName()));
 										} else {
 											if (sendMessages) Lang.sendMessage(player, Lang.KIT_NOT_ENOUGH_MONEY);
 											return null;
@@ -84,6 +72,7 @@ public class SetKit {
 									}
 								}
 							} catch (Exception ex) {
+								ex.printStackTrace();
 							}
 						}
 
@@ -91,7 +80,7 @@ public class SetKit {
 						for (PotionEffect potionEffect : player.getActivePotionEffects())
 							player.removePotionEffect(potionEffect.getType());
 
-						List<ItemStack> droppedItems = new ArrayList<ItemStack>();
+						List<ItemStack> droppedItems = new ArrayList<>();
 						if (plugin.configValues.replaceItems) {
 							player.getInventory().clear();
 							player.getInventory().setArmorContents(null);
@@ -106,36 +95,33 @@ public class SetKit {
 											droppedItems.add(kitItem.getValue());
 										}
 									}
-								} catch (Exception ex) {
-									continue;
+								} catch (Exception ignored) {
 								}
 							}
 						} else {
 							List<ItemStack> kitItems = playerKitEvent.getKitContents();
-							for (int i = 0; i < kitItems.size(); i++) {
+							for (ItemStack kitItem : kitItems) {
 								try {
-									ItemStack kitItem = kitItems.get(i);
 									if (kitItem != null && kitItem.getType() != Material.AIR) {
 										droppedItems.addAll(player.getInventory().addItem(kitItem).values());
 									}
-								} catch (Exception ex) {
-									continue;
+								} catch (Exception ignored) {
 								}
 							}
 						}
 
 						List<ItemStack> armourItems = playerKitEvent.getKitArmour();
-						List<ItemStack> leftOverArmour = new ArrayList<ItemStack>();
+						List<ItemStack> leftOverArmour = new ArrayList<>();
 						for (ItemStack armourItem : armourItems) {
 							if (armourItem != null) {
 								String strArmourType = armourItem.getType().toString().toLowerCase();
-								if (strArmourType.endsWith("helmet") && (plugin.configValues.replaceItems ? true : Utilities.isItemNull(player.getInventory().getHelmet())))
+								if (strArmourType.endsWith("helmet") && (plugin.configValues.replaceItems || Utilities.isItemNull(player.getInventory().getHelmet())))
 									player.getInventory().setHelmet(armourItem);
-								else if (strArmourType.endsWith("chestplate") && (plugin.configValues.replaceItems ? true : Utilities.isItemNull(player.getInventory().getChestplate())))
+								else if (strArmourType.endsWith("chestplate") && (plugin.configValues.replaceItems || Utilities.isItemNull(player.getInventory().getChestplate())))
 									player.getInventory().setChestplate(armourItem);
-								else if ((strArmourType.endsWith("leggings") || strArmourType.endsWith("pants")) && (plugin.configValues.replaceItems ? true : Utilities.isItemNull(player.getInventory().getLeggings())))
+								else if ((strArmourType.endsWith("leggings") || strArmourType.endsWith("pants")) && (plugin.configValues.replaceItems || Utilities.isItemNull(player.getInventory().getLeggings())))
 									player.getInventory().setLeggings(armourItem);
-								else if (strArmourType.endsWith("boots") && (plugin.configValues.replaceItems ? true : Utilities.isItemNull(player.getInventory().getBoots())))
+								else if (strArmourType.endsWith("boots") && (plugin.configValues.replaceItems || Utilities.isItemNull(player.getInventory().getBoots())))
 									player.getInventory().setBoots(armourItem);
 								else if ((plugin.configValues.replaceItems || (!strArmourType.endsWith("helmet") && !strArmourType.endsWith("chestplate") && !strArmourType.endsWith("leggings") && !strArmourType.endsWith("pants") && !strArmourType.endsWith("boots"))) && player.getInventory().getHelmet() == null)
 									leftOverArmour.add(armourItem);
@@ -182,7 +168,7 @@ public class SetKit {
 							cmdToRun = cmdToRun.replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName());
 							player.getServer().dispatchCommand(player.getServer().getConsoleSender(), cmdToRun);
 						}
-						if (plugin.configValues.customMessages != "" && plugin.configValues.customMessages != "''")
+						if (!plugin.configValues.customMessages.equals("") && !plugin.configValues.customMessages.equals("''"))
 							player.sendMessage(r(plugin.configValues.customMessages).replace("<player>", player.getName()).replace("<displayname>", player.getDisplayName()).replace("<kit>", kitName));
 						if (plugin.configValues.kitParticleEffects)
 							player.playEffect(player.getLocation().add(0, 1, 0), Effect.ENDER_SIGNAL, (byte) 0);
@@ -203,8 +189,25 @@ public class SetKit {
 		return null;
 	}
 
-	private static String r(String val) {
-		return Utilities.replaceChatColour(val);
+	public static void setKitWithDelay(Player player, String kitName, boolean sendMessages) {
+		setKitWithDelay(player, kitName, sendMessages, true);
+	}
+
+	public static void setKitWithDelay(Player player, String kitName, boolean sendMessages, boolean useEconomy) {
+		final Kit kit = setKit(player, sendMessages, kitName, useEconomy);
+		if (kit != null) {
+			KingKits pl = KingKits.getInstance();
+			if (kit.hasCooldown() && !player.hasPermission(Permissions.KIT_COOLDOWN_BYPASS)) {
+				final UUID playerUUID = player.getUniqueId();
+				final String newKitName = kit.getRealName();
+				pl.getCooldownConfig().set(playerUUID.toString() + "." + newKitName, System.currentTimeMillis());
+				pl.saveCooldownConfig();
+			}
+		}
+	}
+
+	private static String r(String message) {
+		return Utilities.replaceChatColour(message);
 	}
 
 }
