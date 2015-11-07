@@ -17,6 +17,7 @@ public final class Reflection {
 	private static String _versionString;
 	
 	private Reflection() {
+		
 	}
 	
 	/**
@@ -27,7 +28,10 @@ public final class Reflection {
 	 */
 	public synchronized static String getVersion() {
 		if (_versionString == null) {
-			if (Bukkit.getServer() == null) return null;
+			if (Bukkit.getServer() == null) {
+				// The server hasn't started, static initializer call?
+				return null;
+			}
 			String name = Bukkit.getServer().getClass().getPackage().getName();
 			_versionString = name.substring(name.lastIndexOf('.') + 1) + ".";
 		}
@@ -38,11 +42,11 @@ public final class Reflection {
 	/**
 	 * Stores loaded classes from the {@code net.minecraft.server} package.
 	 */
-	private static final Map<String, Class<?>> _loadedNMSClasses = new HashMap<>();
+	private static final Map<String, Class<?>> _loadedNMSClasses = new HashMap<String, Class<?>>();
 	/**
 	 * Stores loaded classes from the {@code org.bukkit.craftbukkit} package (and subpackages).
 	 */
-	private static final Map<String, Class<?>> _loadedOBCClasses = new HashMap<>();
+	private static final Map<String, Class<?>> _loadedOBCClasses = new HashMap<String, Class<?>>();
 	
 	/**
 	 * Gets a {@link Class} object representing a type contained within the {@code net.minecraft.server} versioned package.
@@ -52,8 +56,10 @@ public final class Reflection {
 	 * @return The class instance representing the specified NMS class, or {@code null} if it could not be loaded.
 	 */
 	public synchronized static Class<?> getNMSClass(String className) {
-		if (_loadedNMSClasses.containsKey(className)) return _loadedNMSClasses.get(className);
-
+		if (_loadedNMSClasses.containsKey(className)) {
+			return _loadedNMSClasses.get(className);
+		}
+		
 		String fullName = "net.minecraft.server." + getVersion() + className;
 		Class<?> clazz = null;
 		try {
@@ -75,8 +81,10 @@ public final class Reflection {
 	 * @return The class instance representing the specified OBC class, or {@code null} if it could not be loaded.
 	 */
 	public synchronized static Class<?> getOBCClass(String className) {
-		if (_loadedOBCClasses.containsKey(className)) return _loadedOBCClasses.get(className);
-
+		if (_loadedOBCClasses.containsKey(className)) {
+			return _loadedOBCClasses.get(className);
+		}
+		
 		String fullName = "org.bukkit.craftbukkit." + getVersion() + className;
 		Class<?> clazz = null;
 		try {
@@ -131,7 +139,7 @@ public final class Reflection {
 	public synchronized static Field getField(Class<?> clazz, String name) {
 		Map<String, Field> loaded;
 		if (!_loadedFields.containsKey(clazz)) {
-			loaded = new HashMap<>();
+			loaded = new HashMap<String, Field>();
 			_loadedFields.put(clazz, loaded);
 		} else {
 			loaded = _loadedFields.get(clazz);
@@ -181,19 +189,23 @@ public final class Reflection {
 	 * @param args The formal argument types of the method.
 	 * @return A method object with the specified name declared by the specified class.
 	 */
-	public synchronized static Method getMethod(Class<?> clazz, String name, Class<?>... args) {
+	public synchronized static Method getMethod(Class<?> clazz, String name,
+												Class<?>... args) {
 		if (!_loadedMethods.containsKey(clazz)) {
 			_loadedMethods.put(clazz, new HashMap<String, Map<ArrayWrapper<Class<?>>, Method>>());
 		}
 		
 		Map<String, Map<ArrayWrapper<Class<?>>, Method>> loadedMethodNames = _loadedMethods.get(clazz);
-		if (!loadedMethodNames.containsKey(name))
+		if (!loadedMethodNames.containsKey(name)) {
 			loadedMethodNames.put(name, new HashMap<ArrayWrapper<Class<?>>, Method>());
-
+		}
+		
 		Map<ArrayWrapper<Class<?>>, Method> loadedSignatures = loadedMethodNames.get(name);
-		ArrayWrapper<Class<?>> wrappedArg = new ArrayWrapper<>(args);
-		if (loadedSignatures.containsKey(wrappedArg)) return loadedSignatures.get(wrappedArg);
-
+		ArrayWrapper<Class<?>> wrappedArg = new ArrayWrapper<Class<?>>(args);
+		if (loadedSignatures.containsKey(wrappedArg)) {
+			return loadedSignatures.get(wrappedArg);
+		}
+		
 		for (Method m : clazz.getMethods())
 			if (m.getName().equals(name) && Arrays.equals(args, m.getParameterTypes())) {
 				m.setAccessible(true);

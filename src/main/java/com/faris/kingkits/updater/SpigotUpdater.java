@@ -59,7 +59,7 @@ public class SpigotUpdater {
 	public String getCurrentVersion() {
 		return this.oldVersion;
 	}
-
+	
 	public UpdateResult getResult() {
 		return this.result;
 	}

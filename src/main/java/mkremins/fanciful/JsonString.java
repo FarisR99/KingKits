@@ -17,31 +17,30 @@ final class JsonString implements JsonRepresentedObject, ConfigurationSerializab
 	private String _value;
 	
 	public JsonString(CharSequence value) {
-		this._value = value == null ? null : value.toString();
-	}
-
-	public String getValue() {
-		return this._value;
+		_value = value == null ? null : value.toString();
 	}
 
 	@Override
 	public void writeJson(JsonWriter writer) throws IOException {
-		writer.value(this.getValue());
+		writer.value(getValue());
+	}
+	
+	public String getValue() {
+		return _value;
 	}
 
-	@Override
 	public Map<String, Object> serialize() {
-		HashMap<String, Object> theSingleValue = new HashMap<>();
-		theSingleValue.put("stringValue", this._value);
+		HashMap<String, Object> theSingleValue = new HashMap<String, Object>();
+		theSingleValue.put("stringValue", _value);
 		return theSingleValue;
-	}
-
-	@Override
-	public String toString() {
-		return this._value;
 	}
 	
 	public static JsonString deserialize(Map<String, Object> map) {
 		return new JsonString(map.get("stringValue").toString());
+	}
+	
+	@Override
+	public String toString() {
+		return _value;
 	}
 }

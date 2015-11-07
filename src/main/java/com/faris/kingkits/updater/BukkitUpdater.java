@@ -22,7 +22,6 @@ import java.util.zip.ZipFile;
  * @author Gravity
  * @version 2.3
  */
-
 public class BukkitUpdater {
 
     /* Constants */
@@ -739,4 +738,5 @@ public class BukkitUpdater {
 	private void runCallback() {
 		this.callback.onFinish(this);
 	}
+
 }

@@ -1,0 +1,96 @@
+# 'Default' kit configuration
+
+# The name of the kit.
+Name: Default
+
+# If 'true', you can type /default to choose the kit instead of /pvpkit Default.
+Command alias: false
+
+# The description of the kit shown in the Kit GUI.
+Description:
+- '&5The default overpowered'
+- '&5amazing kit!'
+
+# The cost of the kit (if Vault is enabled)
+Cost: 0.0
+
+# The cooldown (in seconds) in using this kit.
+Cooldown: 0
+
+# The maximum health a player has when using this kit.
+Max health: 20.0
+
+# The walk speed (maximum 1.0).
+Walk speed: 0.2
+
+# If 'true', items such as swords and armour won't be damaged (broken).
+Breakable items: true
+
+# A list of commands to run when a player uses this kit.
+# <player> - Automatically replaced with the player's username.
+# <kit> - Automatically replaced with this kit's name.
+Commands:
+- broadcast &4<player> &6has chosen the <kit> kit!
+
+# Commands to run when a player reaches a defined killstreak.
+Killstreak commands:
+  Killstreak 10:
+  - broadcast &4<player> &6is on a mad one with a 10 killstreak!
+
+# Position - The position of the kit GUI item in the GUI. Set to -1 for a random order.
+# Item - The item to show in the Kit GUI that represents this kit.
+GUI:
+  Position: -1
+  Item:
+    Type: Diamond Sword
+
+# The items in the kit.
+# Supported enchantments: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
+Items:
+  Slot 0:
+    Type: Iron Sword
+    Name: '&r&lDefault &rkit sword'
+    Lore:
+    - '&6Slay your enemies!'
+    Enchantments:
+      Unbreaking: 3
+  Slot 1:
+    Type: Potion
+    Data: 37
+    Durability: 8229
+    Potion:
+      Type: Heal
+      Level: 1
+      Splash: false
+      Extended: false
+  Slot 8:
+    Type: Golden Apple
+    Durability: 1
+    Amount: 1
+
+# The armour in the kit.
+Armour:
+  Helmet:
+    Type: Skull Item
+    Data: 3
+    Durability: 3
+    Skull: Notch
+  Chestplate:
+    Type: Iron Chestplate
+    Dye:
+      Red: 255
+      Green: 0
+      Blue: 0
+  Leggings:
+    Type: Iron Leggings
+  Boots:
+    Type: Iron Boots
+
+# The potion effects applied to a player when they use this kit.
+# Set Duration to '-1' for infinite time (until they die unless configured not to remove potion effects).
+# Supported potion effects: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+Potion effects:
+  1:
+    Type: Speed
+    Level: 2
+    Duration: 200

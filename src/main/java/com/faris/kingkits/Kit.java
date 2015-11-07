@@ -1,48 +1,49 @@
 package com.faris.kingkits;
 
-import com.faris.kingkits.helper.Utilities;
+import com.faris.kingkits.helper.json.JsonSerializable;
+import com.faris.kingkits.helper.util.*;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
-import org.bukkit.configuration.*;
 import org.bukkit.configuration.serialization.*;
-import org.bukkit.enchantments.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.*;
 
 import java.util.*;
 
-public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
+public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializable {
 
-	private String kitName = "";
-	private String realName = "";
-	private boolean userKit = false;
-	private double kitCost = 0D;
-	private long kitCooldown = 0;
-
-	private List<String> kitCommands = new ArrayList<>();
-	private boolean commandAlias = false;
-
-	private ItemStack guiItem = null;
-	private int guiPosition = -1;
-
-	private Map<Integer, ItemStack> kitItems = new HashMap<>();
-	private List<ItemStack> kitArmour = new ArrayList<>();
-	private List<PotionEffect> potionEffects = new ArrayList<>();
-	private Map<Long, List<String>> killstreakCommands = new HashMap<>();
+	// Kit variables
+	private String kitName;
 	private List<String> kitDescription = new ArrayList<>();
+	private double kitCost = 0D;
+	private double kitCooldown = 0D;
+	private List<String> kitCommands = new ArrayList<>();
+	private boolean userKit = false;
 
-	// Misc
+	// GUI variables
+	private int guiPosition = -1;
+	private ItemStack guiItem = null;
+
+	// Kit contents
+	private Map<Integer, ItemStack> kitItems = new HashMap<>();
+	private ItemStack[] kitArmour = new ItemStack[4];
+	private List<PotionEffect> potionEffects = new ArrayList<>();
+	private Map<Integer, List<String>> killstreakCommands = new LinkedHashMap<>();
+
+	// Other
+	private boolean commandAlias = false;
 	private boolean itemBreaking = true;
-	private int maxHealth = 20;
-	private int requiredScoreToUnlock = -1;
+	private double maxHealth = PlayerUtilities.getDefaultMaxHealth();
+	private float walkSpeed = PlayerUtilities.getDefaultWalkSpeed();
+	private int autoUnlockScore = -1;
 
 	public Kit(String kitName) {
 		Validate.notNull(kitName);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public Kit(String kitName, double kitCost) {
@@ -50,7 +51,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitCost = kitCost;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public Kit(String kitName, Map<Integer, ItemStack> kitItems) {
@@ -59,7 +60,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public Kit(String kitName, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
@@ -70,7 +71,20 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		this.kitName = kitName;
 		this.kitItems = kitItems;
 		this.potionEffects = potionEffects;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
+	}
+
+	public Kit(String kitName, Map<Integer, ItemStack> kitItems, ItemStack[] kitArmour, List<PotionEffect> potionEffects) {
+		Validate.notNull(kitName);
+		Validate.notNull(kitItems);
+		Validate.notNull(kitArmour);
+		Validate.notNull(potionEffects);
+		Validate.notEmpty(kitName);
+		this.kitName = kitName;
+		this.kitItems = kitItems;
+		this.kitArmour = kitArmour;
+		this.potionEffects = potionEffects;
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems) {
@@ -80,7 +94,7 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		this.kitName = kitName;
 		this.kitItems = kitItems;
 		this.kitCost = kitCost;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
@@ -92,26 +106,55 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		this.kitItems = kitItems;
 		this.kitCost = kitCost;
 		this.potionEffects = potionEffects;
-		this.guiItem = new ItemStack(Material.DIAMOND_SWORD, 1);
-	}
-
-	public boolean canBeUnlocked() {
-		return this.requiredScoreToUnlock != -1;
+		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
 	public boolean canItemsBreak() {
 		return this.itemBreaking;
 	}
 
-	public List<ItemStack> getArmour() {
-		return Collections.unmodifiableList(this.kitArmour);
+	@Override
+	public Kit clone() {
+		try {
+			return (Kit) super.clone();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+
+			Kit kit = new Kit(this.kitName);
+			kit.setUserKit(this.isUserKit());
+			kit.setAlias(this.hasCommandAlias());
+			kit.setAutoUnlockScore(this.getAutoUnlockScore());
+			kit.setCost(this.getCost());
+			kit.setCooldown(this.getCooldown());
+			kit.setDescription(this.getDescription());
+			kit.setGuiItem(this.getGuiItem());
+			kit.setGuiPosition(this.getGuiPosition());
+			kit.setItemsBreakable(this.canItemsBreak());
+			kit.setCommands(this.getCommands());
+			kit.setKillstreakCommands(this.getKillstreaks());
+			kit.setMaxHealth(this.getMaxHealth());
+			kit.setWalkSpeed(this.getWalkSpeed());
+			kit.setItems(this.getItems());
+			kit.setArmour(this.getArmour());
+			kit.setPotionEffects(this.getPotionEffects());
+
+			return kit;
+		}
+	}
+
+	public ItemStack[] getArmour() {
+		return Arrays.copyOf(this.kitArmour, this.kitArmour.length);
+	}
+
+	public int getAutoUnlockScore() {
+		return this.autoUnlockScore;
 	}
 
 	public List<String> getCommands() {
 		return this.kitCommands;
 	}
 
-	public long getCooldown() {
+	public double getCooldown() {
 		return this.kitCooldown;
 	}
 
@@ -123,41 +166,24 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this.kitDescription;
 	}
 
-	private int getFreeSlot() {
-		for (int i = 0; i < 36; i++) {
-			if (!this.kitItems.containsKey(i)) return i;
-		}
-		return this.kitItems.size() + 1;
-	}
-
 	public ItemStack getGuiItem() {
 		return this.guiItem;
 	}
 
 	public int getGuiPosition() {
-		return this.guiPosition > 0 ? this.guiPosition : -1;
+		return this.guiPosition;
 	}
 
-	public List<ItemStack> getItems() {
-		return new ArrayList<>(this.kitItems.values());
-	}
-
-	public Map<Integer, ItemStack> getItemsWithSlot() {
+	public Map<Integer, ItemStack> getItems() {
 		return Collections.unmodifiableMap(this.kitItems);
 	}
 
-	public Map<Long, List<String>> getKillstreaks() {
+	public Map<Integer, List<String>> getKillstreaks() {
 		return this.killstreakCommands;
 	}
 
-	public int getMaxHealth() {
+	public double getMaxHealth() {
 		return this.maxHealth;
-	}
-
-	public List<ItemStack> getMergedItems() {
-		List<ItemStack> kitItems = new ArrayList<>(this.kitItems.values());
-		kitItems.addAll(this.kitArmour);
-		return Collections.unmodifiableList(kitItems);
 	}
 
 	public String getName() {
@@ -168,20 +194,16 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return Collections.unmodifiableList(this.potionEffects);
 	}
 
-	public String getRealName() {
-		return this.realName;
+	public float getWalkSpeed() {
+		return this.walkSpeed;
 	}
 
-	public int getUnlockScore() {
-		return this.requiredScoreToUnlock;
-	}
-
-	public boolean hasAlias() {
+	public boolean hasCommandAlias() {
 		return this.commandAlias;
 	}
 
 	public boolean hasCooldown() {
-		return KingKits.getInstance().configValues.kitCooldown && this.kitCooldown > 0;
+		return this.kitCooldown > 0;
 	}
 
 	public boolean hasDescription() {
@@ -197,13 +219,13 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this;
 	}
 
-	public Kit setArmour(List<ItemStack> armour) {
+	public Kit setArmour(ItemStack[] armour) {
 		if (armour != null) this.kitArmour = armour;
 		return this;
 	}
 
-	public Kit setBreakableItems(boolean breakableItems) {
-		this.itemBreaking = breakableItems;
+	public Kit setAutoUnlockScore(int autoUnlockScore) {
+		this.autoUnlockScore = autoUnlockScore < 0 ? -1 : autoUnlockScore;
 		return this;
 	}
 
@@ -213,13 +235,13 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this;
 	}
 
-	public Kit setCooldown(long cooldown) {
-		if (this.kitCooldown >= 0L) this.kitCooldown = cooldown;
+	public Kit setCooldown(double cooldown) {
+		if (this.kitCooldown >= 0D) this.kitCooldown = cooldown;
 		return this;
 	}
 
 	public Kit setCost(double cost) {
-		this.kitCost = cost;
+		this.kitCost = Math.abs(cost);
 		return this;
 	}
 
@@ -238,25 +260,22 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this;
 	}
 
-	public Kit setItems(List<ItemStack> items) {
-		if (items != null) {
-			this.kitItems = new HashMap<>();
-			for (int i = 0; i < items.size(); i++) this.kitItems.put(i, items.get(i));
-		}
-		return this;
-	}
-
 	public Kit setItems(Map<Integer, ItemStack> items) {
 		if (items != null) this.kitItems = items;
 		return this;
 	}
 
-	public Kit setKillstreaks(Map<Long, List<String>> killstreaks) {
+	public Kit setItemsBreakable(boolean breakableItems) {
+		this.itemBreaking = breakableItems;
+		return this;
+	}
+
+	public Kit setKillstreakCommands(Map<Integer, List<String>> killstreaks) {
 		if (killstreaks != null) this.killstreakCommands = killstreaks;
 		return this;
 	}
 
-	public Kit setMaxHealth(int maxHealth) {
+	public Kit setMaxHealth(double maxHealth) {
 		this.maxHealth = maxHealth;
 		return this;
 	}
@@ -274,156 +293,14 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this;
 	}
 
-	public Kit setRealName(String realName) {
-		Validate.notNull(realName);
-		this.realName = realName;
+	public Kit setUserKit(boolean isUserKit) {
+		this.userKit = isUserKit;
 		return this;
 	}
 
-	public void setUnlockScore(int unlockThreshold) {
-		this.requiredScoreToUnlock = unlockThreshold;
-	}
-
-	public Kit setUserKit(boolean userKit) {
-		this.userKit = userKit;
+	public Kit setWalkSpeed(float speed) {
+		this.walkSpeed = Math.min(Math.max(speed, 0.01F), 1F);
 		return this;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public Map<String, Object> serialize() {
-		Map<String, Object> serializedKit = new HashMap<>();
-		serializedKit.put("Name", this.kitName != null ? this.kitName : "Kit" + new Random().nextInt());
-		serializedKit.put("Cost", this.kitCost);
-		serializedKit.put("Cooldown", this.kitCooldown);
-		if (!this.userKit) serializedKit.put("Command alias", false);
-		serializedKit.put("Commands", this.kitCommands);
-		serializedKit.put("Description", this.kitDescription);
-		serializedKit.put("Item breaking", this.itemBreaking);
-		serializedKit.put("Max health", this.maxHealth);
-		serializedKit.put("GUI Position", this.guiPosition);
-		if (this.requiredScoreToUnlock != -1) serializedKit.put("Score for auto-unlock", this.requiredScoreToUnlock);
-
-		// GUI Item
-		if (this.guiItem != null) {
-			Map<String, Object> guiItemMap = new HashMap<>();
-			guiItemMap.put("Type", this.guiItem.getType().toString());
-			guiItemMap.put("Amount", this.guiItem.getAmount());
-			guiItemMap.put("Data", this.guiItem.getDurability());
-			// Dye colour
-			int dyeColour = Utilities.ItemUtils.getDye(this.guiItem);
-			if (dyeColour > 0)
-				guiItemMap.put("Dye", dyeColour);
-			// Skull skin
-			if (this.guiItem.getItemMeta() instanceof SkullMeta) {
-				SkullMeta skullMeta = (SkullMeta) this.guiItem.getItemMeta();
-				if (skullMeta.getOwner() != null) guiItemMap.put("Skin", skullMeta.getOwner());
-			}
-			// Enchantments
-			Map<String, Integer> enchantmentMap = new HashMap<>();
-			for (Map.Entry<Enchantment, Integer> entrySet : this.guiItem.getEnchantments().entrySet())
-				enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
-			if (!enchantmentMap.isEmpty()) guiItemMap.put("Enchantments", enchantmentMap);
-			// Lores
-			if (this.guiItem.hasItemMeta() && this.guiItem.getItemMeta().hasLore())
-				guiItemMap.put("Lore", this.guiItem.getItemMeta().getLore());
-			serializedKit.put("GUI Item", guiItemMap);
-		}
-
-		// Items
-		if (this.kitItems != null && !this.kitItems.isEmpty()) {
-			Map<String, Object> itemsMap = new HashMap<>();
-			for (int i = 0; i < 36; i++) {
-				ItemStack kitItem = this.kitItems.size() > i ? this.kitItems.get(i) : null;
-				if (kitItem != null && kitItem.getType() != Material.AIR) {
-					Map<String, Object> kitItemMap = new LinkedHashMap<>();
-					kitItemMap.put("Type", kitItem.getType().toString());
-					String itemName = kitItem.hasItemMeta() && kitItem.getItemMeta().hasDisplayName() ? kitItem.getItemMeta().getDisplayName() : null;
-					if (itemName != null) kitItemMap.put("Name", Utilities.replaceBukkitColour(itemName));
-					kitItemMap.put("Amount", kitItem.getAmount());
-					kitItemMap.put("Data", kitItem.getDurability());
-					if (kitItem.getItemMeta() instanceof LeatherArmorMeta) {
-						kitItemMap.put("Dye", Utilities.ItemUtils.getDye(kitItem));
-					}
-					if (kitItem.getItemMeta() instanceof SkullMeta) {
-						SkullMeta skullMeta = (SkullMeta) kitItem.getItemMeta();
-						if (skullMeta.getOwner() != null) kitItemMap.put("Skin", skullMeta.getOwner());
-					}
-					Map<String, Integer> enchantmentMap = new HashMap<>();
-					for (Map.Entry<Enchantment, Integer> entrySet : kitItem.getEnchantments().entrySet())
-						enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
-					if (!enchantmentMap.isEmpty()) kitItemMap.put("Enchantments", enchantmentMap);
-					if (kitItem.hasItemMeta() && kitItem.getItemMeta().hasLore())
-						kitItemMap.put("Lore", Utilities.replaceBukkitColours(kitItem.getItemMeta().getLore()));
-					itemsMap.put("Slot " + i, kitItemMap);
-				}
-			}
-			serializedKit.put("Items", itemsMap);
-		}
-
-		// Armour
-		if (this.kitArmour != null && !this.kitArmour.isEmpty()) {
-			Map<String, Object> armourMap = new HashMap<>();
-			for (ItemStack kitArmour : this.kitArmour)
-				if (kitArmour != null) {
-					Map<String, Object> kitArmourMap = new HashMap<>();
-					String armourName = kitArmour.hasItemMeta() && kitArmour.getItemMeta().hasDisplayName() ? kitArmour.getItemMeta().getDisplayName() : null;
-					if (armourName != null) kitArmourMap.put("Name", Utilities.replaceBukkitColour(armourName));
-					kitArmourMap.put("Type", kitArmour.getType().toString());
-					kitArmourMap.put("Data", kitArmour.getDurability());
-					int dyeColour = Utilities.ItemUtils.getDye(kitArmour);
-					if (dyeColour > 0)
-						kitArmourMap.put("Dye", dyeColour);
-					if (kitArmour.getItemMeta() instanceof SkullMeta) {
-						SkullMeta skullMeta = (SkullMeta) kitArmour.getItemMeta();
-						if (skullMeta.getOwner() != null) kitArmourMap.put("Skin", skullMeta.getOwner());
-					}
-					Map<String, Integer> enchantmentMap = new HashMap<>();
-					for (Map.Entry<Enchantment, Integer> entrySet : kitArmour.getEnchantments().entrySet())
-						enchantmentMap.put(entrySet.getKey().getName(), entrySet.getValue());
-					if (!enchantmentMap.isEmpty()) kitArmourMap.put("Enchantments", enchantmentMap);
-					if (kitArmour.hasItemMeta() && kitArmour.getItemMeta().hasLore())
-						kitArmourMap.put("Lore", Utilities.replaceBukkitColours(kitArmour.getItemMeta().getLore()));
-					String[] armourNameSplit = kitArmour.getType().toString().contains("_") ? kitArmour.getType().toString().split("_") : null;
-					String armourNameKey = armourNameSplit != null && armourNameSplit.length > 1 ? WordUtils.capitalize(armourNameSplit[1].toLowerCase()) : WordUtils.capitalizeFully(kitArmour.getType().toString().toLowerCase()).replace("_", " ");
-					armourMap.put(armourNameKey, kitArmourMap);
-				}
-			serializedKit.put("Armour", armourMap);
-		}
-
-		// Potion effects
-		if (this.potionEffects != null && !this.potionEffects.isEmpty()) {
-			Map<String, Object> potionEffectsMap = new HashMap<>();
-			for (PotionEffect potionEffect : this.potionEffects) {
-				Map<String, Integer> potionEffectMap = new HashMap<>();
-				potionEffectMap.put("Level", potionEffect.getAmplifier() + 1);
-				potionEffectMap.put("Duration", potionEffect.getDuration() / 20);
-				potionEffectsMap.put(WordUtils.capitalizeFully(potionEffect.getType().getName().toLowerCase().replace("_", " ")), potionEffectMap);
-			}
-			if (!potionEffectsMap.isEmpty()) serializedKit.put("Potion Effects", potionEffectsMap);
-		}
-
-		if (this.killstreakCommands != null && !this.killstreakCommands.isEmpty()) {
-			Map<String, Object> killstreakCmds = new HashMap<>();
-			for (Map.Entry<Long, List<String>> killstreakEntry : this.killstreakCommands.entrySet()) {
-				if (killstreakEntry.getValue() != null && !killstreakEntry.getValue().isEmpty()) {
-					killstreakCmds.put("Killstreak " + killstreakEntry.getKey(), killstreakEntry.getValue());
-				}
-			}
-			if (!killstreakCmds.isEmpty()) serializedKit.put("Killstreaks", killstreakCmds);
-		}
-
-		return serializedKit;
-	}
-
-	@Override
-	public Kit clone() {
-		return new Kit(this.kitName).setRealName(this.realName).setCooldown(this.kitCooldown).setCommands(this.kitCommands).setGuiItem(this.guiItem).setPotionEffects(this.potionEffects).setCost(this.kitCost).setItems(this.kitItems).setArmour(this.kitArmour);
-	}
-
-	@Override
-	public ListIterator<ItemStack> iterator() {
-		return this.getMergedItems().listIterator();
 	}
 
 	@Override
@@ -431,265 +308,204 @@ public class Kit implements Iterable<ItemStack>, ConfigurationSerializable {
 		return this.serialize().toString();
 	}
 
-	public static Kit deserialize(Map<String, Object> kitSection) throws NullPointerException, ClassCastException {
-		Kit kit = null;
-		if (kitSection.containsKey("Name")) {
-			try {
-				String kitName = getObject(kitSection, "Name", String.class);
-				kit = new Kit(kitName);
-				if (kitSection.containsKey("Cost")) kit.setCost(getObject(kitSection, "Cost", Double.class));
-				if (kitSection.containsKey("Cooldown")) kit.setCooldown(getObject(kitSection, "Cooldown", Long.class));
-				if (kitSection.containsKey("Command alias"))
-					kit.setAlias(Boolean.valueOf(getObject(kitSection, "Command alias", String.class)));
-				if (kitSection.containsKey("Commands"))
-					kit.setCommands(getObject(kitSection, "Commands", List.class));
-				if (kitSection.containsKey("Description"))
-					kit.setDescription(getObject(kitSection, "Description", List.class));
-				if (kitSection.containsKey("Item breaking"))
-					kit.setBreakableItems(Boolean.valueOf(getObject(kitSection, "Item breaking", String.class)));
-				if (kitSection.containsKey("Max health"))
-					kit.setMaxHealth(getObject(kitSection, "Max health", Integer.class));
-				if (kitSection.containsKey("GUI Position"))
-					kit.setGuiPosition(getObject(kitSection, "GUI Position", Integer.class));
-				if (kitSection.containsKey("Score for auto-unlock"))
-					kit.setUnlockScore(getObject(kitSection, "Score for auto-unlock", Integer.class));
-				if (kitSection.containsKey("GUI Item")) {
-					Map<String, Object> guiItemMap = getValues(kitSection, "GUI Item");
-					ItemStack guiItem = null;
-					if (guiItemMap.containsKey("Type")) {
-						String strType = (guiItemMap.get("Type") != null ? guiItemMap.get("Type") : "").toString();
-						Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType.toUpperCase());
-						if (itemType == null || itemType == Material.AIR) itemType = Material.DIAMOND_SWORD;
-						int itemAmount = getObject(guiItemMap, "Amount", Integer.class, 1);
-						short itemData = getObject(guiItemMap, "Data", Short.class, (short) 0);
-						guiItem = new ItemStack(itemType, itemAmount, itemData);
-						if (guiItemMap.containsKey("Dye")) {
-							int itemDye = getObject(guiItemMap, "Dye", Integer.class);
-							if (itemDye > 0) Utilities.ItemUtils.setDye(guiItem, itemDye);
-						}
-						if (guiItemMap.containsKey("Skin") && guiItem.getItemMeta() instanceof SkullMeta) {
-							SkullMeta skullMeta = (SkullMeta) guiItem.getItemMeta();
-							skullMeta.setOwner(getObject(guiItemMap, "Skin", String.class));
-							guiItem.setItemMeta(skullMeta);
-						}
-						if (guiItemMap.containsKey("Enchantments")) {
-							Map<String, Object> guiItemEnchantments = getValues(guiItemMap, "Enchantments");
-							for (Map.Entry<String, Object> entrySet : guiItemEnchantments.entrySet()) {
-								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(entrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(entrySet.getKey()));
-								if (enchantmentType != null) {
-									String enchantmentValue = entrySet.getValue().toString();
-									int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
-									guiItem.addUnsafeEnchantment(enchantmentType, enchantmentLevel);
-								}
-							}
-						}
-						if (guiItemMap.containsKey("Lore")) {
-							List<String> guiItemLore = getObject(guiItemMap, "Lore", List.class);
-							ItemMeta guiItemMeta = guiItem.getItemMeta();
-							if (guiItemMeta != null) {
-								guiItemMeta.setLore(Utilities.replaceChatColours(guiItemLore));
-								guiItem.setItemMeta(guiItemMeta);
-							}
-						}
-					}
-					if (guiItem != null) kit.setGuiItem(guiItem);
-				}
-				if (kitSection.containsKey("Items")) {
-					Map<String, Object> itemsMap = getValues(kitSection, "Items");
-					Map<Integer, ItemStack> kitItems = new HashMap<Integer, ItemStack>() {
-						{
-							for (int i = 0; i < 36; i++) {
-								this.put(i, new ItemStack(Material.AIR));
-							}
-						}
-					};
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> serializedMap = new LinkedHashMap<>();
+		serializedMap.put("Name", this.kitName);
+		serializedMap.put("Command alias", this.commandAlias);
+		serializedMap.put("Description", ChatUtilities.replaceChatColours(this.kitDescription));
+		serializedMap.put("Cost", this.kitCost);
+		serializedMap.put("Cooldown", this.kitCooldown);
+		serializedMap.put("Max health", this.maxHealth);
+		serializedMap.put("Walk speed", this.walkSpeed);
+		serializedMap.put("Auto-unlock score", this.autoUnlockScore);
+		serializedMap.put("Breakable items", this.itemBreaking);
+		serializedMap.put("Commands", this.kitCommands);
+		serializedMap.put("Killstreak commands", new LinkedHashMap<String, List<String>>() {{
+			for (Map.Entry<Integer, List<String>> killstreakCommandsEntry : killstreakCommands.entrySet())
+				this.put("Killstreak " + killstreakCommandsEntry.getKey(), killstreakCommandsEntry.getValue());
+		}});
+		serializedMap.put("GUI", new LinkedHashMap<String, Object>() {{
+			this.put("Position", guiPosition);
+			this.put("Item", ItemUtilities.serializeItem(guiItem));
+		}});
+		serializedMap.put("Items", new LinkedHashMap<String, Map<String, Object>>() {{
+			for (Map.Entry<Integer, ItemStack> itemEntry : kitItems.entrySet()) {
+				if (!ItemUtilities.isNull(itemEntry.getValue()))
+					this.put("Slot " + itemEntry.getKey(), ItemUtilities.serializeItem(itemEntry.getValue()));
+			}
+		}});
+		serializedMap.put("Armour", new LinkedHashMap<String, Map<String, Object>>() {{
+			if (!ItemUtilities.isNull(kitArmour[3])) this.put("Helmet", ItemUtilities.serializeItem(kitArmour[3]));
+			if (!ItemUtilities.isNull(kitArmour[2])) this.put("Chestplate", ItemUtilities.serializeItem(kitArmour[2]));
+			if (!ItemUtilities.isNull(kitArmour[1])) this.put("Leggings", ItemUtilities.serializeItem(kitArmour[1]));
+			if (!ItemUtilities.isNull(kitArmour[0])) this.put("Boots", ItemUtilities.serializeItem(kitArmour[0]));
+		}});
+		serializedMap.put("Potion effects", new LinkedHashMap<Integer, Map<String, Object>>() {{
+			for (int i = 0; i < potionEffects.size(); i++)
+				this.put((i + 1), serializePotionEffect(potionEffects.get(i)));
+		}});
+		return serializedMap;
+	}
 
-					for (Map.Entry<String, Object> entrySet : itemsMap.entrySet()) {
-						String strSlot = entrySet.getKey();
-						if (strSlot.contains(" ")) {
-							String[] slotSplit = strSlot.split(" ");
-							if (slotSplit[0].equals("Slot") && Utilities.isNumber(Integer.class, slotSplit[1])) {
-								Map<String, Object> kitMap = getValues(entrySet);
-
-								String strType = kitMap.containsKey("Type") ? getObject(kitMap, "Type", String.class) : Material.AIR.toString();
-								Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
-								if (itemType == null) continue;
-								String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
-								int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
-								short itemData = kitMap.containsKey("Data") ? getObject(kitMap, "Data", Short.class) : (short) 0;
-
-								ItemStack kitItem = new ItemStack(itemType, itemAmount, itemData);
-								if (itemName != null && !itemName.isEmpty()) {
-									ItemMeta itemMeta = kitItem.getItemMeta();
-									if (itemMeta != null) {
-										itemMeta.setDisplayName(Utilities.replaceChatColour(itemName));
-										kitItem.setItemMeta(itemMeta);
-									}
-								}
-								if (kitMap.containsKey("Dye")) {
-									int itemDye = getObject(kitMap, "Dye", Integer.class);
-									if (itemDye > 0) Utilities.ItemUtils.setDye(kitItem, itemDye);
-								}
-								if (kitMap.containsKey("Skin") && kitItem.getItemMeta() instanceof SkullMeta) {
-									SkullMeta skullMeta = (SkullMeta) kitItem.getItemMeta();
-									skullMeta.setOwner(getObject(kitMap, "Skin", String.class));
-									kitItem.setItemMeta(skullMeta);
-								}
-								if (kitMap.containsKey("Enchantments")) {
-									Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
-									for (Map.Entry<String, Object> enchantmentEntrySet : guiItemEnchantments.entrySet()) {
-										Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
-										if (enchantmentType != null) {
-											String enchantmentValue = enchantmentEntrySet.getValue().toString();
-											int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
-											kitItem.addUnsafeEnchantment(enchantmentType, enchantmentLevel);
-										}
-									}
-								}
-								if (kitMap.containsKey("Lore")) {
-									List<String> guiItemLore = getObject(kitMap, "Lore", List.class);
-									ItemMeta guiItemMeta = kitItem.getItemMeta();
-									if (guiItemMeta != null) {
-										guiItemMeta.setLore(Utilities.replaceChatColours(guiItemLore));
-										kitItem.setItemMeta(guiItemMeta);
-									}
-								}
-								try {
-									kitItems.put(Integer.parseInt(slotSplit[1]), kitItem);
-								} catch (Exception ex) {
-									System.out.println("Could not register the item at slot " + slotSplit[1] + " in the kit '" + kitName + "' due to a(n) " + ex.getClass().getSimpleName() + " error.");
-								}
+	public static Kit deserialize(Map<String, Object> serializedKit) {
+		Kit deserializedKit = null;
+		if (serializedKit != null && serializedKit.get("Name") != null) {
+			deserializedKit = new Kit(ObjectUtilities.getObject(serializedKit, String.class, "Name"));
+			if (serializedKit.containsKey("Command alias"))
+				deserializedKit.setAlias(ObjectUtilities.getObject(serializedKit, Boolean.class, "Command alias", false));
+			if (serializedKit.containsKey("Description"))
+				deserializedKit.setDescription(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Description")));
+			if (serializedKit.containsKey("Cost"))
+				deserializedKit.setCost(ObjectUtilities.getObject(serializedKit, Double.class, "Cost", 0D));
+			if (serializedKit.containsKey("Cooldown"))
+				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Double.class, "Cooldown", 0D));
+			if (serializedKit.containsKey("Max health"))
+				deserializedKit.setMaxHealth(ObjectUtilities.getObject(serializedKit, Double.class, "Max health", PlayerUtilities.getDefaultMaxHealth()));
+			if (serializedKit.containsKey("Walk speed"))
+				deserializedKit.setWalkSpeed(ObjectUtilities.getObject(serializedKit, Float.class, "Walk speed", PlayerUtilities.getDefaultWalkSpeed()));
+			if (serializedKit.containsKey("Auto-unlock score"))
+				deserializedKit.setAutoUnlockScore(ObjectUtilities.getObject(serializedKit, Integer.class, "Auto-unlock score", -1));
+			if (serializedKit.containsKey("Breakable items"))
+				deserializedKit.setItemsBreakable(ObjectUtilities.getObject(serializedKit, Boolean.class, "Breakable items", true));
+			if (serializedKit.containsKey("Commands"))
+				deserializedKit.setCommands(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Commands", new ArrayList())));
+			if (serializedKit.containsKey("Killstreak commands")) {
+				Map<Integer, List<String>> killstreaksCommands = new HashMap<>();
+				Map<String, Object> killstreakMap = ObjectUtilities.getMap(serializedKit.get("Killstreak commands"));
+				for (Map.Entry<String, Object> killstreakEntry : killstreakMap.entrySet()) {
+					try {
+						if (killstreakEntry.getValue() instanceof List) {
+							String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring(11) : killstreakEntry.getKey();
+							if (Utilities.isNumber(Integer.class, strKillstreak)) {
+								int killstreak = Integer.parseInt(strKillstreak);
+								List<String> commands = Utilities.toStringList((List) killstreakEntry.getValue());
+								if (commands != null && !commands.isEmpty())
+									killstreaksCommands.put(killstreak, commands);
+							}
+						} else if (killstreakEntry.getValue() instanceof String) {
+							String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring(11) : killstreakEntry.getKey();
+							if (Utilities.isNumber(Integer.class, strKillstreak)) {
+								int killstreak = Integer.parseInt(strKillstreak);
+								String command = (String) killstreakEntry.getValue();
+								if (command != null && !command.isEmpty())
+									killstreaksCommands.put(killstreak, new ArrayList<>(Collections.singletonList(command)));
 							}
 						}
-					}
-					kit.setItems(kitItems);
-				}
-				if (kitSection.containsKey("Armour")) {
-					Map<String, Object> armourItemsMap = getValues(kitSection, "Armour");
-					List<ItemStack> kitArmour = new ArrayList<>();
-					for (Map.Entry<String, Object> entrySet : armourItemsMap.entrySet()) {
-						Map<String, Object> kitMap = getValues(entrySet);
-						String strType = getObject(kitMap, "Type", String.class);
-						Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
-						if (itemType == null) continue;
-						String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
-						String strItemDye = kitMap.containsKey("Dye") ? kitMap.get("Dye").toString() : "-1";
-						int itemDye = Utilities.isNumber(Integer.class, strItemDye) ? Integer.parseInt(strItemDye) : Utilities.getDye(strItemDye);
-						int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
-						short itemData = kitMap.containsKey("Data") ? getObject(kitMap, "Data", Short.class) : (short) 0;
-						ItemStack kitArmourItem = new ItemStack(itemType, itemAmount);
-						kitArmourItem.setDurability(itemData);
-						if (itemName != null && !itemName.isEmpty()) {
-							ItemMeta itemMeta = kitArmourItem.getItemMeta();
-							if (itemMeta != null) {
-								itemMeta.setDisplayName(Utilities.replaceChatColour(itemName));
-								kitArmourItem.setItemMeta(itemMeta);
-							}
-						}
-						if (itemDye != -1) {
-							ItemMeta itemMeta = kitArmourItem.getItemMeta();
-							if (itemMeta != null && itemMeta instanceof LeatherArmorMeta) {
-								LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
-								leatherArmorMeta.setColor(Color.fromRGB(itemDye));
-								kitArmourItem.setItemMeta(leatherArmorMeta);
-							}
-						}
-						if (kitMap.containsKey("Skin") && kitArmourItem.getItemMeta() instanceof SkullMeta) {
-							SkullMeta skullMeta = (SkullMeta) kitArmourItem.getItemMeta();
-							skullMeta.setOwner(getObject(kitMap, "Skin", String.class));
-							kitArmourItem.setItemMeta(skullMeta);
-						}
-						if (kitMap.containsKey("Enchantments")) {
-							Map<String, Object> kitArmourEnchantments = getValues(kitMap, "Enchantments");
-							for (Map.Entry<String, Object> enchantmentEntrySet : kitArmourEnchantments.entrySet()) {
-								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
-								if (enchantmentType != null) {
-									String enchantmentValue = enchantmentEntrySet.getValue().toString();
-									int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
-									kitArmourItem.addUnsafeEnchantment(enchantmentType, enchantmentLevel);
-								}
-							}
-						}
-						if (kitMap.containsKey("Lore")) {
-							List<String> armourItemLore = getObject(kitMap, "Lore", List.class);
-							ItemMeta armourItemMeta = kitArmourItem.getItemMeta();
-							if (armourItemMeta != null) {
-								armourItemMeta.setLore(Utilities.replaceChatColours(armourItemLore));
-								kitArmourItem.setItemMeta(armourItemMeta);
-							}
-						}
-						kitArmour.add(kitArmourItem);
-					}
-					kit.setArmour(kitArmour);
-				}
-				if (kitSection.containsKey("Potion Effects")) {
-					List<PotionEffect> potionEffectList = new ArrayList<>();
-					Map<String, Object> potionEffectsMap = getValues(kitSection, "Potion Effects");
-					if (potionEffectsMap != null) {
-						for (Map.Entry<String, Object> potionEntrySet : potionEffectsMap.entrySet()) {
-							PotionEffectType effectType = Utilities.isNumber(Integer.class, potionEntrySet.getKey()) ? PotionEffectType.getById(Integer.parseInt(potionEntrySet.getKey())) : PotionEffectType.getByName(Utilities.getPotionName(potionEntrySet.getKey()));
-							if (effectType != null && (potionEntrySet.getValue() instanceof ConfigurationSection || potionEntrySet.getValue() instanceof Map)) {
-								Map<String, Object> potionEntrySetMap = getValues(potionEntrySet);
-								int potionLevel = potionEntrySetMap.containsKey("Level") ? getObject(potionEntrySetMap, "Level", Integer.class) : 1;
-								if (potionLevel > 0) potionLevel--;
-								int potionDuration = potionEntrySetMap.containsKey("Duration") ? getObject(potionEntrySetMap, "Duration", Integer.class) : Integer.MAX_VALUE;
-								try {
-									potionEffectList.add(new PotionEffect(effectType, potionDuration == -1 ? Integer.MAX_VALUE : potionDuration * 20, potionLevel));
-								} catch (Exception ex) {
-									potionEffectList.add(new PotionEffect(effectType, Integer.MAX_VALUE, potionLevel));
-								}
-							}
-						}
-						kit.setPotionEffects(potionEffectList);
+					} catch (Exception ignored) {
 					}
 				}
-				if (kitSection.containsKey("Killstreaks")) {
-					Map<Long, List<String>> killstreakCmds = new HashMap<>();
-					Map<String, Object> killstreakMap = getValues(kitSection, "Killstreaks");
-					if (killstreakMap != null) {
-						for (Map.Entry<String, Object> killstreakEntry : killstreakMap.entrySet()) {
-							if (killstreakEntry.getValue() instanceof List) {
-								String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring("Killstreak ".length(), killstreakEntry.getKey().length()) : killstreakEntry.getKey();
-								if (Utilities.isNumber(Long.class, strKillstreak)) {
-									try {
-										long killstreak = Long.parseLong(strKillstreak);
-										List<String> cmds = (List<String>) killstreakEntry.getValue();
-										if (cmds != null && !cmds.isEmpty()) killstreakCmds.put(killstreak, cmds);
-									} catch (Exception ignored) {
-									}
-								}
+				deserializedKit.setKillstreakCommands(killstreaksCommands);
+			}
+			if (serializedKit.containsKey("GUI")) {
+				Map<String, Object> guiSection = ObjectUtilities.getMap(serializedKit.get("GUI"));
+				if (guiSection.containsKey("Position"))
+					deserializedKit.setGuiPosition(ObjectUtilities.getObject(guiSection, Integer.class, "Position", -1));
+				if (guiSection.containsKey("Item")) {
+					ItemStack guiItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(guiSection.get("Item")));
+					if (guiItem == null) guiItem = new ItemStack(Material.DIAMOND_SWORD);
+					ItemMeta guiItemMeta = guiItem.getItemMeta();
+					if (guiItemMeta != null) {
+						List<String> guiItemLore = guiItemMeta.getLore();
+						if (guiItemLore != null) {
+							for (int i = 0; i < guiItemLore.size(); i++) {
+								String guiItemLoreLine = guiItemLore.get(i);
+								guiItemLoreLine = guiItemLoreLine.replace("<cooldown>", String.valueOf(deserializedKit.getCooldown()));
+								guiItemLoreLine = guiItemLoreLine.replace("<cost>", String.valueOf(deserializedKit.getCost()));
+								guiItemLoreLine = guiItemLoreLine.replace("<maxhealth>", String.valueOf(deserializedKit.getMaxHealth()));
+								guiItemLoreLine = guiItemLoreLine.replace("<walkspeed>", String.valueOf(deserializedKit.getWalkSpeed()));
+								guiItemLore.set(i, guiItemLoreLine);
 							}
+							guiItemMeta.setLore(guiItemLore);
+							guiItem.setItemMeta(guiItemMeta);
 						}
-						kit.setKillstreaks(killstreakCmds);
+					}
+					deserializedKit.setGuiItem(guiItem);
+				}
+			}
+			if (serializedKit.containsKey("Items")) {
+				Map<Integer, ItemStack> kitItems = new LinkedHashMap<>();
+				Map<String, Object> itemsSection = ObjectUtilities.getMap(serializedKit.get("Items"));
+				for (Map.Entry<String, Object> itemEntry : itemsSection.entrySet()) {
+					ItemStack deserializedItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(itemEntry.getValue()));
+					if (deserializedItem != null) {
+						String strSlot = itemEntry.getKey().startsWith("Slot ") ? itemEntry.getKey().substring(5) : itemEntry.getKey();
+						if (Utilities.isNumber(Integer.class, strSlot)) {
+							int slotNumber = Integer.parseInt(strSlot);
+							if (slotNumber >= 0) kitItems.put(slotNumber, deserializedItem);
+						}
 					}
 				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
+				deserializedKit.setItems(kitItems);
+			}
+			if (serializedKit.containsKey("Armour")) {
+				ItemStack[] kitArmour = new ItemStack[4];
+				Map<String, Object> armourSection = ObjectUtilities.getMap(serializedKit.get("Armour"));
+				if (armourSection.containsKey("Helmet")) {
+					ItemStack helmetItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(armourSection.get("Helmet")));
+					if (helmetItem != null) kitArmour[3] = helmetItem;
+				}
+				if (armourSection.containsKey("Chestplate")) {
+					ItemStack chestplateItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(armourSection.get("Chestplate")));
+					if (chestplateItem != null) kitArmour[2] = chestplateItem;
+				}
+				if (armourSection.containsKey("Leggings")) {
+					ItemStack leggingsItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(armourSection.get("Leggings")));
+					if (leggingsItem != null) kitArmour[1] = leggingsItem;
+				}
+				if (armourSection.containsKey("Boots")) {
+					ItemStack bootsItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(armourSection.get("Boots")));
+					if (bootsItem != null) kitArmour[0] = bootsItem;
+				}
+				deserializedKit.setArmour(kitArmour);
+			}
+			if (serializedKit.containsKey("Potion effects")) {
+				Map<String, Object> potionEffectsSection = ObjectUtilities.getMap(serializedKit.get("Potion effects"));
+				List<PotionEffect> potionEffects = new ArrayList<>();
+				for (Object potionEffectSection : potionEffectsSection.values()) {
+					Map<String, Object> serializedPotionEffect = ObjectUtilities.getMap(potionEffectSection);
+					PotionEffect deserializedPotionEffect = deserializePotionEffect(serializedPotionEffect);
+					if (deserializedPotionEffect != null) potionEffects.add(deserializedPotionEffect);
+				}
+				deserializedKit.setPotionEffects(potionEffects);
 			}
 		}
-		return kit;
+		return deserializedKit;
 	}
 
-	public static <T> T getObject(Map<String, Object> map, String key, Class<T> unused) throws ClassCastException {
-		return getObject(map, key, unused, null);
+	@Override
+	public String serializeToJson() {
+		return Utilities.getGsonParser().toJson(this);
 	}
 
-	public static <T> T getObject(Map<String, Object> map, String key, Class<T> unused, T defaultValue) throws ClassCastException {
-		Object value = map.containsKey(key) ? map.get(key) : null;
-		return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : (unused == Double.class ? (T) ((Double) Double.parseDouble(value.toString())) : (unused.isInstance(value) ? (T) value : defaultValue))))) : defaultValue;
+	public static Kit deserializeFromJson(String serializedKitToJson) {
+		return Utilities.getGsonParser().fromJson(new JsonPrimitive(serializedKitToJson), Kit.class); // Utilities.getGsonParser().fromJson(Utilities.getGsonParser().fromJson(serializedKitToJson, JsonObject.class), Kit.class);
 	}
 
-	public static Map<String, Object> getValues(Map<String, Object> mainMap, String key) {
-		Object object = mainMap != null ? mainMap.get(key) : null;
-		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
+	public static Map<String, Object> serializePotionEffect(PotionEffect potionEffect) {
+		Map<String, Object> serializedPotionEffect = new LinkedHashMap<>();
+		if (potionEffect != null) {
+			serializedPotionEffect.put("Type", StringUtilities.capitalizeFully(potionEffect.getType().getName().replace('_', ' ')));
+			serializedPotionEffect.put("Level", potionEffect.getAmplifier());
+			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1 : potionEffect.getDuration());
+			if (!potionEffect.isAmbient()) serializedPotionEffect.put("Ambient", false);
+			if (!potionEffect.hasParticles()) serializedPotionEffect.put("Particles", false);
+		}
+		return serializedPotionEffect;
 	}
 
-	public static Map<String, Object> getValues(Object object) {
-		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
-	}
-
-	public static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {
-		return entrySet != null ? getValues(entrySet.getValue()) : null;
+	public static PotionEffect deserializePotionEffect(Map<String, Object> serializedPotion) {
+		if (serializedPotion != null && serializedPotion.containsKey("Type")) {
+			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
+			if (potionEffectType != null) {
+				int level = ObjectUtilities.getObject(serializedPotion, Integer.class, "Level", 0);
+				int duration = ObjectUtilities.getObject(serializedPotion, Integer.class, "Duration", -1);
+				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
+				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
+				return new PotionEffect(potionEffectType, duration != -1 ? duration * 20 : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles);
+			}
+		}
+		return null;
 	}
 
 }

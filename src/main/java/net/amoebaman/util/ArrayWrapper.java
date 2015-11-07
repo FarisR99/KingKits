@@ -19,16 +19,16 @@ import java.util.Collection;
  */
 public final class ArrayWrapper<E> {
 
-	private E[] _array;
-
 	/**
 	 * Creates an array wrapper with some elements.
 	 *
 	 * @param elements The elements of the array.
 	 */
 	public ArrayWrapper(E... elements) {
-		this.setArray(elements);
+		setArray(elements);
 	}
+	
+	private E[] _array;
 	
 	/**
 	 * Retrieves a reference to the wrapped array instance.
@@ -36,7 +36,17 @@ public final class ArrayWrapper<E> {
 	 * @return The array wrapped by this instance.
 	 */
 	public E[] getArray() {
-		return this._array;
+		return _array;
+	}
+	
+	/**
+	 * Set this wrapper to wrap a new array instance.
+	 *
+	 * @param array The new wrapped array.
+	 */
+	public void setArray(E[] array) {
+		Validate.notNull(array, "The array must not be null.");
+		_array = array;
 	}
 	
 	/**
@@ -47,7 +57,10 @@ public final class ArrayWrapper<E> {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ArrayWrapper && Arrays.equals(this._array, ((ArrayWrapper) other)._array);
+		if (!(other instanceof ArrayWrapper)) {
+			return false;
+		}
+		return Arrays.equals(_array, ((ArrayWrapper) other)._array);
 	}
 
 	/**
@@ -58,17 +71,7 @@ public final class ArrayWrapper<E> {
 	 */
 	@Override
 	public int hashCode() {
-		return Arrays.hashCode(this._array);
-	}
-
-	/**
-	 * Set this wrapper to wrap a new array instance.
-	 *
-	 * @param array The new wrapped array.
-	 */
-	public void setArray(E[] array) {
-		Validate.notNull(array, "The array must not be null.");
-		this._array = array;
+		return Arrays.hashCode(_array);
 	}
 
 	/**

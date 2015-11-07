@@ -21,10 +21,10 @@ public abstract class TextualComponent implements Cloneable {
 		ConfigurationSerialization.registerClass(TextualComponent.ArbitraryTextTypeComponent.class);
 		ConfigurationSerialization.registerClass(TextualComponent.ComplexTextTypeComponent.class);
 	}
-
+	
 	@Override
 	public String toString() {
-		return this.getReadableString();
+		return getReadableString();
 	}
 	
 	/**
@@ -78,50 +78,46 @@ public abstract class TextualComponent implements Cloneable {
 	 * Exception validating done is on keys and values.
 	 */
 	private static final class ArbitraryTextTypeComponent extends TextualComponent implements ConfigurationSerializable {
-		private String _key;
-		private String _value;
 
 		public ArbitraryTextTypeComponent(String key, String value) {
-			this.setKey(key);
-			this.setValue(value);
-		}
-
-		@Override
-		public TextualComponent clone() throws CloneNotSupportedException {
-			// Since this is a private and final class, we can just reinstantiate this class instead of casting super.clone
-			return new ArbitraryTextTypeComponent(this.getKey(), this.getValue());
+			setKey(key);
+			setValue(value);
 		}
 		
 		@Override
 		public String getKey() {
-			return this._key;
-		}
-
-		@Override
-		public String getReadableString() {
-			return this.getValue();
-		}
-
-		public String getValue() {
-			return this._value;
+			return _key;
 		}
 
 		public void setKey(String key) {
 			Preconditions.checkArgument(key != null && !key.isEmpty(), "The key must be specified.");
-			this._key = key;
+			_key = key;
+		}
+		
+		public String getValue() {
+			return _value;
 		}
 
 		public void setValue(String value) {
 			Preconditions.checkArgument(value != null, "The value must be specified.");
-			this._value = value;
+			_value = value;
+		}
+
+		private String _key;
+		private String _value;
+		
+		@Override
+		public TextualComponent clone() throws CloneNotSupportedException {
+			// Since this is a private and final class, we can just reinstantiate this class instead of casting super.clone
+			return new ArbitraryTextTypeComponent(getKey(), getValue());
 		}
 
 		@Override
 		public void writeJson(JsonWriter writer) throws IOException {
-			writer.name(this.getKey()).value(getValue());
+			writer.name(getKey()).value(getValue());
 		}
 
-		@Override
+		@SuppressWarnings("serial")
 		public Map<String, Object> serialize() {
 			return new HashMap<String, Object>() {{
 				put("key", getKey());
@@ -132,6 +128,11 @@ public abstract class TextualComponent implements Cloneable {
 		public static ArbitraryTextTypeComponent deserialize(Map<String, Object> map) {
 			return new ArbitraryTextTypeComponent(map.get("key").toString(), map.get("value").toString());
 		}
+
+		@Override
+		public String getReadableString() {
+			return getValue();
+		}
 	}
 	
 	/**
@@ -139,66 +140,63 @@ public abstract class TextualComponent implements Cloneable {
 	 * Exception validating done is on keys and values.
 	 */
 	private static final class ComplexTextTypeComponent extends TextualComponent implements ConfigurationSerializable {
-		private String _key;
-		private Map<String, String> _value;
 
 		public ComplexTextTypeComponent(String key, Map<String, String> values) {
-			this.setKey(key);
-			this.setValue(values);
-		}
-
-		@Override
-		public TextualComponent clone() throws CloneNotSupportedException {
-			// Since this is a private and final class, we can just reinstantiate this class instead of casting super.clone
-			return new ComplexTextTypeComponent(this.getKey(), this.getValue());
+			setKey(key);
+			setValue(values);
 		}
 		
 		@Override
 		public String getKey() {
-			return this._key;
-		}
-
-		@Override
-		public String getReadableString() {
-			return this.getKey();
-		}
-
-		public Map<String, String> getValue() {
-			return this._value;
+			return _key;
 		}
 
 		public void setKey(String key) {
 			Preconditions.checkArgument(key != null && !key.isEmpty(), "The key must be specified.");
-			this._key = key;
+			_key = key;
+		}
+		
+		public Map<String, String> getValue() {
+			return _value;
 		}
 
 		public void setValue(Map<String, String> value) {
 			Preconditions.checkArgument(value != null, "The value must be specified.");
-			this._value = value;
+			_value = value;
+		}
+
+		private String _key;
+		private Map<String, String> _value;
+		
+		@Override
+		public TextualComponent clone() throws CloneNotSupportedException {
+			// Since this is a private and final class, we can just reinstantiate this class instead of casting super.clone
+			return new ComplexTextTypeComponent(getKey(), getValue());
 		}
 
 		@Override
 		public void writeJson(JsonWriter writer) throws IOException {
-			writer.name(this.getKey());
+			writer.name(getKey());
 			writer.beginObject();
-			for (Map.Entry<String, String> jsonPair : this._value.entrySet()) {
+			for (Map.Entry<String, String> jsonPair : _value.entrySet()) {
 				writer.name(jsonPair.getKey()).value(jsonPair.getValue());
 			}
 			writer.endObject();
 		}
 		
-		@Override
+		@SuppressWarnings("serial")
 		public Map<String, Object> serialize() {
 			return new java.util.HashMap<String, Object>() {{
 				put("key", getKey());
-				for (Map.Entry<String, String> valEntry : getValue().entrySet())
+				for (Map.Entry<String, String> valEntry : getValue().entrySet()) {
 					put("value." + valEntry.getKey(), valEntry.getValue());
+				}
 			}};
 		}
 		
 		public static ComplexTextTypeComponent deserialize(Map<String, Object> map) {
 			String key = null;
-			Map<String, String> value = new HashMap<>();
+			Map<String, String> value = new HashMap<String, String>();
 			for (Map.Entry<String, Object> valEntry : map.entrySet()) {
 				if (valEntry.getKey().equals("key")) {
 					key = (String) valEntry.getValue();
@@ -207,6 +205,11 @@ public abstract class TextualComponent implements Cloneable {
 				}
 			}
 			return new ComplexTextTypeComponent(key, value);
+		}
+		
+		@Override
+		public String getReadableString() {
+			return getKey();
 		}
 	}
 	

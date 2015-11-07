@@ -28,7 +28,7 @@ import static mkremins.fanciful.TextualComponent.rawText;
  * <p>
  * This class follows the builder pattern, allowing for method chaining.
  * It is set up such that invocations of property-setting methods will affect the current editing component,
- * and a call to {@link #then()} or {@link #then(String)} or {@link #then(TextualComponent)} will append a new editing component to the end of the message,
+ * and a call to {@link #then()} or {@link #then(Object)} will append a new editing component to the end of the message,
  * optionally initializing it with text. Further property-setting method calls will affect that editing component.
  * </p>
  */
@@ -38,18 +38,18 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		ConfigurationSerialization.registerClass(FancyMessage.class);
 	}
 
-	private static Constructor<?> nmsPacketPlayOutChatConstructor;
-
 	private List<MessagePart> messageParts;
 	private String jsonString;
 	private boolean dirty;
 
+	private static Constructor<?> nmsPacketPlayOutChatConstructor;
+
 	@Override
 	public FancyMessage clone() throws CloneNotSupportedException {
 		FancyMessage instance = (FancyMessage) super.clone();
-		instance.messageParts = new ArrayList<>(this.messageParts.size());
-		for (int i = 0; i < this.messageParts.size(); i++) {
-			instance.messageParts.add(i, this.messageParts.get(i).clone());
+		instance.messageParts = new ArrayList<MessagePart>(messageParts.size());
+		for (int i = 0; i < messageParts.size(); i++) {
+			instance.messageParts.add(i, messageParts.get(i).clone());
 		}
 		instance.dirty = false;
 		instance.jsonString = null;
@@ -66,10 +66,10 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	}
 
 	public FancyMessage(final TextualComponent firstPartText) {
-		this.messageParts = new ArrayList<>();
-		this.messageParts.add(new MessagePart(firstPartText));
-		this.jsonString = null;
-		this.dirty = false;
+		messageParts = new ArrayList<MessagePart>();
+		messageParts.add(new MessagePart(firstPartText));
+		jsonString = null;
+		dirty = false;
 
 		if (nmsPacketPlayOutChatConstructor == null) {
 			try {
@@ -97,9 +97,9 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage text(String text) {
-		MessagePart latest = this.latest();
+		MessagePart latest = latest();
 		latest.text = rawText(text);
-		this.dirty = true;
+		dirty = true;
 		return this;
 	}
 
@@ -110,9 +110,9 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage text(TextualComponent text) {
-		MessagePart latest = this.latest();
+		MessagePart latest = latest();
 		latest.text = text;
-		this.dirty = true;
+		dirty = true;
 		return this;
 	}
 
@@ -124,9 +124,11 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @throws IllegalArgumentException If the specified {@code ChatColor} enumeration value is not a color (but a format value).
 	 */
 	public FancyMessage color(final ChatColor color) {
-		if (!color.isColor()) throw new IllegalArgumentException(color.name() + " is not a color");
+		if (!color.isColor()) {
+			throw new IllegalArgumentException(color.name() + " is not a color");
+		}
 		latest().color = color;
-		this.dirty = true;
+		dirty = true;
 		return this;
 	}
 
@@ -139,10 +141,12 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage style(ChatColor... styles) {
 		for (final ChatColor style : styles) {
-			if (!style.isFormat()) throw new IllegalArgumentException(style.name() + " is not a style");
+			if (!style.isFormat()) {
+				throw new IllegalArgumentException(style.name() + " is not a style");
+			}
 		}
 		latest().styles.addAll(Arrays.asList(styles));
-		this.dirty = true;
+		dirty = true;
 		return this;
 	}
 
@@ -153,7 +157,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage file(final String path) {
-		this.onClick("open_file", path);
+		onClick("open_file", path);
 		return this;
 	}
 
@@ -164,7 +168,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage link(final String url) {
-		this.onClick("open_url", url);
+		onClick("open_url", url);
 		return this;
 	}
 
@@ -176,7 +180,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage suggest(final String command) {
-		this.onClick("suggest_command", command);
+		onClick("suggest_command", command);
 		return this;
 	}
 	
@@ -189,7 +193,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage insert(final String command) {
 		latest().insertionData = command;
-		this.dirty = true;
+		dirty = true;
 		return this;
 	}
 
@@ -201,7 +205,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage command(final String command) {
-		this.onClick("run_command", command);
+		onClick("run_command", command);
 		return this;
 	}
 
@@ -213,7 +217,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage achievementTooltip(final String name) {
-		this.onHover("show_achievement", new JsonString("achievement." + name));
+		onHover("show_achievement", new JsonString("achievement." + name));
 		return this;
 	}
 
@@ -227,7 +231,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	public FancyMessage achievementTooltip(final Achievement which) {
 		try {
 			Object achievement = Reflection.getMethod(Reflection.getOBCClass("CraftStatistic"), "getNMSAchievement", Achievement.class).invoke(null, which);
-			return this.achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Achievement"), "name").get(achievement));
+			return achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Achievement"), "name").get(achievement));
 		} catch (IllegalAccessException e) {
 			Bukkit.getLogger().log(Level.WARNING, "Could not access method.", e);
 			return this;
@@ -250,11 +254,12 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage statisticTooltip(final Statistic which) {
 		Type type = which.getType();
-		if (type != Type.UNTYPED)
+		if (type != Type.UNTYPED) {
 			throw new IllegalArgumentException("That statistic requires an additional " + type + " parameter!");
+		}
 		try {
 			Object statistic = Reflection.getMethod(Reflection.getOBCClass("CraftStatistic"), "getNMSStatistic", Statistic.class).invoke(null, which);
-			return this.achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
+			return achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
 		} catch (IllegalAccessException e) {
 			Bukkit.getLogger().log(Level.WARNING, "Could not access method.", e);
 			return this;
@@ -278,12 +283,15 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage statisticTooltip(final Statistic which, Material item) {
 		Type type = which.getType();
-		if (type == Type.UNTYPED) throw new IllegalArgumentException("That statistic needs no additional parameter!");
-		if ((type == Type.BLOCK && item.isBlock()) || type == Type.ENTITY)
+		if (type == Type.UNTYPED) {
+			throw new IllegalArgumentException("That statistic needs no additional parameter!");
+		}
+		if ((type == Type.BLOCK && item.isBlock()) || type == Type.ENTITY) {
 			throw new IllegalArgumentException("Wrong parameter type for that statistic - needs " + type + "!");
+		}
 		try {
 			Object statistic = Reflection.getMethod(Reflection.getOBCClass("CraftStatistic"), "getMaterialStatistic", Statistic.class, Material.class).invoke(null, which, item);
-			return this.achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
+			return achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
 		} catch (IllegalAccessException e) {
 			Bukkit.getLogger().log(Level.WARNING, "Could not access method.", e);
 			return this;
@@ -307,12 +315,15 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage statisticTooltip(final Statistic which, EntityType entity) {
 		Type type = which.getType();
-		if (type == Type.UNTYPED) throw new IllegalArgumentException("That statistic needs no additional parameter!");
-		if (type != Type.ENTITY)
+		if (type == Type.UNTYPED) {
+			throw new IllegalArgumentException("That statistic needs no additional parameter!");
+		}
+		if (type != Type.ENTITY) {
 			throw new IllegalArgumentException("Wrong parameter type for that statistic - needs " + type + "!");
+		}
 		try {
 			Object statistic = Reflection.getMethod(Reflection.getOBCClass("CraftStatistic"), "getEntityStatistic", Statistic.class, EntityType.class).invoke(null, which, entity);
-			return this.achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
+			return achievementTooltip((String) Reflection.getField(Reflection.getNMSClass("Statistic"), "name").get(statistic));
 		} catch (IllegalAccessException e) {
 			Bukkit.getLogger().log(Level.WARNING, "Could not access method.", e);
 			return this;
@@ -333,7 +344,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage itemTooltip(final String itemJSON) {
-		this.onHover("show_item", new JsonString(itemJSON)); // Seems a bit hacky, considering we have a JSON object as a parameter
+		onHover("show_item", new JsonString(itemJSON)); // Seems a bit hacky, considering we have a JSON object as a parameter
 		return this;
 	}
 
@@ -347,7 +358,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	public FancyMessage itemTooltip(final ItemStack itemStack) {
 		try {
 			Object nmsItem = Reflection.getMethod(Reflection.getOBCClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).invoke(null, itemStack);
-			return this.itemTooltip(Reflection.getMethod(Reflection.getNMSClass("ItemStack"), "save", Reflection.getNMSClass("NBTTagCompound")).invoke(nmsItem, Reflection.getNMSClass("NBTTagCompound").newInstance()).toString());
+			return itemTooltip(Reflection.getMethod(Reflection.getNMSClass("ItemStack"), "save", Reflection.getNMSClass("NBTTagCompound")).invoke(nmsItem, Reflection.getNMSClass("NBTTagCompound").newInstance()).toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return this;
@@ -363,7 +374,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage tooltip(final String text) {
-		this.onHover("show_text", new JsonString(text));
+		onHover("show_text", new JsonString(text));
 		return this;
 	}
 
@@ -375,7 +386,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage tooltip(final Iterable<String> lines) {
-		this.tooltip(ArrayWrapper.toArray(lines, String.class));
+		tooltip(ArrayWrapper.toArray(lines, String.class));
 		return this;
 	}
 
@@ -390,9 +401,11 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < lines.length; i++) {
 			builder.append(lines[i]);
-			if (i != lines.length - 1) builder.append('\n');
+			if (i != lines.length - 1) {
+				builder.append('\n');
+			}
 		}
-		this.tooltip(builder.toString());
+		tooltip(builder.toString());
 		return this;
 	}
 
@@ -411,7 +424,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 				throw new IllegalArgumentException("The tooltip text cannot have a tooltip.");
 			}
 		}
-		this.onHover("show_text", text);
+		onHover("show_text", text);
 		return this;
 	}
 
@@ -424,7 +437,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 */
 	public FancyMessage formattedTooltip(FancyMessage... lines) {
 		if (lines.length < 1) {
-			this.onHover(null, null); // Clear tooltip
+			onHover(null, null); // Clear tooltip
 			return this;
 		}
 
@@ -439,15 +452,19 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 					} else if (component.hoverActionData != null && component.hoverActionName != null) {
 						throw new IllegalArgumentException("The tooltip text cannot have a tooltip.");
 					}
-					if (component.hasText()) result.messageParts.add(component.clone());
+					if (component.hasText()) {
+						result.messageParts.add(component.clone());
+					}
 				}
-				if (i != lines.length - 1) result.messageParts.add(new MessagePart(rawText("\n")));
+				if (i != lines.length - 1) {
+					result.messageParts.add(new MessagePart(rawText("\n")));
+				}
 			} catch (CloneNotSupportedException e) {
 				Bukkit.getLogger().log(Level.WARNING, "Failed to clone object", e);
 				return this;
 			}
 		}
-		return this.formattedTooltip(result.messageParts.isEmpty() ? null : result); // Throws NPE if size is 0, intended
+		return formattedTooltip(result.messageParts.isEmpty() ? null : result); // Throws NPE if size is 0, intended
 	}
 
 	/**
@@ -458,7 +475,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage formattedTooltip(final Iterable<FancyMessage> lines) {
-		return this.formattedTooltip(ArrayWrapper.toArray(lines, FancyMessage.class));
+		return formattedTooltip(ArrayWrapper.toArray(lines, FancyMessage.class));
 	}
 
 	/**
@@ -468,13 +485,29 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage translationReplacements(final String... replacements) {
-		for (String str : replacements) this.latest().translationReplacements.add(new JsonString(str));
-		this.dirty = true;
+		for (String str : replacements) {
+			latest().translationReplacements.add(new JsonString(str));
+		}
+		dirty = true;
 		
 		return this;
 	}
-
 	/*
+	
+	/**
+	 * If the text is a translatable key, and it has replaceable values, this function can be used to set the replacements that will be used in the message.
+	 * @param replacements The replacements, in order, that will be used in the language-specific message.
+	 * @return This builder instance.
+	 */   /* ------------
+	public FancyMessage translationReplacements(final Iterable<? extends CharSequence> replacements){
+		for(CharSequence str : replacements){
+			latest().translationReplacements.add(new JsonString(str));
+		}
+		
+		return this;
+	}
+	
+	*/
 	
 	/**
 	 * If the text is a translatable key, and it has replaceable values, this function can be used to set the replacements that will be used in the message.
@@ -483,8 +516,11 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage translationReplacements(final FancyMessage... replacements) {
-		Collections.addAll(this.latest().translationReplacements, replacements);
-		this.dirty = true;
+		for (FancyMessage str : replacements) {
+			latest().translationReplacements.add(str);
+		}
+		
+		dirty = true;
 		
 		return this;
 	}
@@ -496,7 +532,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage translationReplacements(final Iterable<FancyMessage> replacements) {
-		return this.translationReplacements(ArrayWrapper.toArray(replacements, FancyMessage.class));
+		return translationReplacements(ArrayWrapper.toArray(replacements, FancyMessage.class));
 	}
 	
 	/**
@@ -507,7 +543,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage then(final String text) {
-		return this.then(rawText(text));
+		return then(rawText(text));
 	}
 
 	/**
@@ -518,9 +554,11 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage then(final TextualComponent text) {
-		if (!this.latest().hasText()) throw new IllegalStateException("previous message part has no text");
-		this.messageParts.add(new MessagePart(text));
-		this.dirty = true;
+		if (!latest().hasText()) {
+			throw new IllegalStateException("previous message part has no text");
+		}
+		messageParts.add(new MessagePart(text));
+		dirty = true;
 		return this;
 	}
 
@@ -531,19 +569,23 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return This builder instance.
 	 */
 	public FancyMessage then() {
-		if (!this.latest().hasText()) throw new IllegalStateException("previous message part has no text");
-		this.messageParts.add(new MessagePart());
-		this.dirty = true;
+		if (!latest().hasText()) {
+			throw new IllegalStateException("previous message part has no text");
+		}
+		messageParts.add(new MessagePart());
+		dirty = true;
 		return this;
 	}
 
 	@Override
 	public void writeJson(JsonWriter writer) throws IOException {
-		if (this.messageParts.size() == 1) {
-			this.latest().writeJson(writer);
+		if (messageParts.size() == 1) {
+			latest().writeJson(writer);
 		} else {
 			writer.beginObject().name("text").value("").name("extra").beginArray();
-			for (final MessagePart part : this) part.writeJson(writer);
+			for (final MessagePart part : this) {
+				part.writeJson(writer);
+			}
 			writer.endArray().endObject();
 		}
 	}
@@ -555,18 +597,20 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @return The JSON string representing this object.
 	 */
 	public String toJSONString() {
-		if (!this.dirty && this.jsonString != null) return this.jsonString;
+		if (!dirty && jsonString != null) {
+			return jsonString;
+		}
 		StringWriter string = new StringWriter();
 		JsonWriter json = new JsonWriter(string);
 		try {
-			this.writeJson(json);
+			writeJson(json);
 			json.close();
 		} catch (IOException e) {
 			throw new RuntimeException("invalid message");
 		}
-		this.jsonString = string.toString();
-		this.dirty = false;
-		return this.jsonString;
+		jsonString = string.toString();
+		dirty = false;
+		return jsonString;
 	}
 
 	/**
@@ -575,7 +619,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @param player The player who will receive the message.
 	 */
 	public void send(Player player) {
-		this.send(player, toJSONString());
+		send(player, toJSONString());
 	}
 
 	private void send(CommandSender sender, String jsonString) {
@@ -587,7 +631,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		try {
 			Object handle = Reflection.getHandle(player);
 			Object connection = Reflection.getField(handle.getClass(), "playerConnection").get(handle);
-			Reflection.getMethod(connection.getClass(), "sendPacket", Reflection.getNMSClass("Packet")).invoke(connection, this.createChatPacket(jsonString));
+			Reflection.getMethod(connection.getClass(), "sendPacket", Reflection.getNMSClass("Packet")).invoke(connection, createChatPacket(jsonString));
 		} catch (IllegalArgumentException e) {
 			Bukkit.getLogger().log(Level.WARNING, "Argument could not be passed.", e);
 		} catch (IllegalAccessException e) {
@@ -622,7 +666,9 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 				chatSerializerClazz = Reflection.getNMSClass("IChatBaseComponent$ChatSerializer");
 			}
 
-			if (chatSerializerClazz == null) throw new ClassNotFoundException("Can't find the ChatSerializer class");
+			if (chatSerializerClazz == null) {
+				throw new ClassNotFoundException("Can't find the ChatSerializer class");
+			}
 
 			for (Field declaredField : chatSerializerClazz.getDeclaredFields()) {
 				if (Modifier.isFinal(declaredField.getModifiers()) && Modifier.isStatic(declaredField.getModifiers()) && declaredField.getType().getName().endsWith("Gson")) {
@@ -651,7 +697,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @see #toOldMessageFormat()
 	 */
 	public void send(CommandSender sender) {
-		this.send(sender, toJSONString());
+		send(sender, toJSONString());
 	}
 
 	/**
@@ -661,8 +707,10 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * @see #send(CommandSender)
 	 */
 	public void send(final Iterable<? extends CommandSender> senders) {
-		String string = this.toJSONString();
-		for (final CommandSender sender : senders) this.send(sender, string);
+		String string = toJSONString();
+		for (final CommandSender sender : senders) {
+			send(sender, string);
+		}
 	}
 
 	/**
@@ -686,25 +734,27 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		StringBuilder result = new StringBuilder();
 		for (MessagePart part : this) {
 			result.append(part.color == null ? "" : part.color);
-			for (ChatColor formatSpecifier : part.styles) result.append(formatSpecifier);
+			for (ChatColor formatSpecifier : part.styles) {
+				result.append(formatSpecifier);
+			}
 			result.append(part.text);
 		}
 		return result.toString();
 	}
 
 	private MessagePart latest() {
-		return this.messageParts.get(this.messageParts.size() - 1);
+		return messageParts.get(messageParts.size() - 1);
 	}
 
 	private void onClick(final String name, final String data) {
-		final MessagePart latest = this.latest();
+		final MessagePart latest = latest();
 		latest.clickActionName = name;
 		latest.clickActionData = data;
 		dirty = true;
 	}
 
 	private void onHover(final String name, final JsonRepresentedObject data) {
-		final MessagePart latest = this.latest();
+		final MessagePart latest = latest();
 		latest.hoverActionName = name;
 		latest.hoverActionData = data;
 		dirty = true;
@@ -712,8 +762,9 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 
 	// Doc copied from interface
 	public Map<String, Object> serialize() {
-		HashMap<String, Object> map = new HashMap<>();
-		map.put("messageParts", this.messageParts);
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("messageParts", messageParts);
+//		map.put("JSON", toJSONString());
 		return map;
 	}
 
@@ -737,7 +788,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	 * <b>Internally called method. Not for API consumption.</b>
 	 */
 	public Iterator<MessagePart> iterator() {
-		return this.messageParts.iterator();
+		return messageParts.iterator();
 	}
 	
 	private static JsonParser _stringParser = new JsonParser();
@@ -813,5 +864,4 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		}
 		return returnVal;
 	}
-
 }

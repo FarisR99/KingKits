@@ -1,97 +1,116 @@
 package com.faris.kingkits;
 
+import com.faris.kingkits.helper.util.ReflectionUtilities;
+import org.bukkit.*;
 import org.bukkit.permissions.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Permissions {
 
-	private static List<Permission> registeredPermissions = new ArrayList<>();
+	private static Map<String, Permission> permissionList = new HashMap<>();
 
-	public static Permission COMMAND_KK_CONFIG = null;
-	public static Permission COMMAND_KK_RELOAD = null;
-	public static Permission COMMAND_KK_SET_COOLDOWN = null;
+	public static Permission COMMAND_RELOAD = null;
+	public static Permission COMMAND_CONFIG = null;
+	public static Permission COMMAND_KILLSTREAK = null;
+	public static Permission COMMAND_KILLSTREAK_OTHER = null;
 
+	public static Permission COMMAND_KIT = null;
+	public static Permission COMMAND_KIT_OTHER = null;
+	public static Permission COMMAND_KIT_LIST = null;
 	public static Permission COMMAND_KIT_CREATE = null;
 	public static Permission COMMAND_KIT_DELETE = null;
 	public static Permission COMMAND_KIT_RENAME = null;
+	public static Permission COMMAND_KIT_PREVIEW = null;
+	public static Permission COMMAND_KIT_PREVIEW_OTHER = null;
 	public static Permission COMMAND_UKIT_CREATE = null;
 	public static Permission COMMAND_UKIT_DELETE = null;
 	public static Permission COMMAND_UKIT_RENAME = null;
+	public static Permission COMMAND_SOUP_REFILL_SINGLE = null;
+	public static Permission COMMAND_SOUP_REFILL_ALL = null;
 
-	public static Permission COMMAND_PREVIEW_KIT = null;
-	public static Permission COMMAND_PREVIEW_KIT_OTHER = null;
+	public static Permission COMPASS = null;
 
-	public static Permission KIT_USE = null;
-	public static Permission KIT_USE_OTHER = null;
-	public static Permission KIT_LIST = null;
-	public static Permission KIT_LIST_TOOLTIP = null;
-
-	public static Permission SIGN_CREATE = null;
-	public static Permission SIGN_KIT = null;
-	public static Permission SIGN_LIST = null;
-	public static Permission SIGN_REFILL = null;
+	public static Permission SIGN_KIT_CREATE = null;
+	public static Permission SIGN_KIT_LIST_CREATE = null;
+	public static Permission SIGN_REFILL_CREATE = null;
+	public static Permission SIGN_KIT_USE = null;
+	public static Permission SIGN_KIT_LIST_USE = null;
+	public static Permission SIGN_REFILL_USE = null;
 
 	public static Permission SOUP_QUICKSOUP = null;
-	public static Permission SOUP_REFILL_SINGLE = null;
-	public static Permission SOUP_REFILL_ALL = null;
-
-	public static Permission KIT_COOLDOWN_BYPASS = null;
-	public static Permission COMPASS = null;
-	public static Permission COMMAND_KILLSTREAK = null;
-
-	private Permissions() {
-	}
-
-	public static void clearPermissions() {
-		registeredPermissions.clear();
-	}
-
-	public static List<Permission> getPermissions() {
-		return registeredPermissions;
-	}
 
 	public static void initialisePermissions() {
-		COMMAND_KK_CONFIG = registerPermission("kingkits.command.config");
-		COMMAND_KK_RELOAD = registerPermission("kingkits.command.reload");
-		COMMAND_KK_SET_COOLDOWN = registerPermission("kingkits.command.setcooldown");
-		
-		COMMAND_KIT_CREATE = registerPermission("kingkits.kit.create");
-		COMMAND_KIT_DELETE = registerPermission("kingkits.kit.delete");
-		COMMAND_KIT_RENAME = registerPermission("kingkits.kit.rename");
-		COMMAND_UKIT_CREATE = registerPermission("kingkits.kit.ucreate");
-		COMMAND_UKIT_DELETE = registerPermission("kingkits.kit.udelete");
-		COMMAND_UKIT_RENAME = registerPermission("kingkits.kit.urename");
-		
-		COMMAND_PREVIEW_KIT = registerPermission("kingkits.kit.preview");
-		COMMAND_PREVIEW_KIT_OTHER = registerPermission("kingkits.kit.preview.other");
-		
-		KIT_USE = registerPermission("kingkits.kit.use");
-		KIT_USE_OTHER = registerPermission("kingkits.kit.use.other");
-		KIT_LIST = registerPermission("kingkits.kit.list");
-		KIT_LIST_TOOLTIP = registerPermission("kingkits.kit.list.tooltip");
-		
-		SIGN_CREATE = registerPermission("kingkits.kit.sign.create");
-		SIGN_KIT = registerPermission("kingkits.kit.sign.use");
-		SIGN_LIST = registerPermission("kingkits.kit.sign.list");
-		SIGN_REFILL = registerPermission("kingkits.kit.sign.refill");
-		
-		SOUP_QUICKSOUP = registerPermission("kingkits.quicksoup");
-		SOUP_REFILL_SINGLE = registerPermission("kingkits.refill.single");
-		SOUP_REFILL_ALL = registerPermission("kingkits.refill.all");
-		
-		KIT_COOLDOWN_BYPASS = registerPermission("kingkits.kit.cooldown.bypass");
-		COMPASS = registerPermission("kingkits.compass");
-		COMMAND_KILLSTREAK = registerPermission("kingkits.command.killstreak");
+		permissionList.clear();
+
+		registerPermission("COMMAND_RELOAD", "kingkits.command.reload");
+		registerPermission("COMMAND_CONFIG", "kingkits.command.config");
+		registerPermission("COMMAND_KILLSTREAK", "kingkits.command.killstreak");
+		registerPermission("COMMAND_KILLSTREAK_OTHER", "kingkits.command.killstreak.other");
+
+		registerPermission("COMMAND_KIT", "kingkits.command.kit");
+		registerPermission("COMMAND_KIT_OTHER", "kingkits.command.kit.other");
+		registerPermission("COMMAND_KIT_LIST", "kingkits.command.kit.list");
+		registerPermission("COMMAND_KIT_CREATE", "kingkits.command.createkit");
+		registerPermission("COMMAND_KIT_DELETE", "kingkits.command.deletekit");
+		registerPermission("COMMAND_KIT_RENAME", "kingkits.command.renamekit");
+		registerPermission("COMMAND_KIT_PREVIEW", "kingkits.command.previewkit");
+		registerPermission("COMMAND_KIT_PREVIEW_OTHER", "kingkits.command.previewkit.other");
+		registerPermission("COMMAND_UKIT_CREATE", "kingkits.command.createukit");
+		registerPermission("COMMAND_UKIT_DELETE", "kingkits.command.deleteukit");
+		registerPermission("COMMAND_UKIT_RENAME", "kingkits.command.renameukit");
+		registerPermission("COMMAND_SOUP_REFILL_SINGLE", "kingkits.command.refill");
+		registerPermission("COMMAND_SOUP_REFILL_ALL", "kingkits.command.refill.all");
+
+		registerPermission("COMPASS", "kingkits.compass");
+
+		registerPermission("SIGN_KIT_CREATE", "kingkits.sign.kit.create");
+		registerPermission("SIGN_KIT_USE", "kingkits.sign.kit.use");
+		registerPermission("SIGN_KIT_LIST_CREATE", "kingkits.sign.list.create");
+		registerPermission("SIGN_KIT_LIST_USE", "kingkits.sign.list.use");
+		registerPermission("SIGN_REFILL_CREATE", "kingkits.sign.refill.create");
+		registerPermission("SIGN_REFILL_USE", "kingkits.sign.refill.use");
+
+		registerPermission("SOUP_QUICKSOUP", "kingkits.quicksoup");
+
+		for (Permission permission : permissionList.values()) {
+			try {
+				Bukkit.getServer().getPluginManager().addPermission(permission);
+			} catch (Exception ignored) {
+			}
+		}
 	}
 
-	private static Permission registerPermission(String permissionNode) {
-		return permissionNode != null ? registerPermission(new Permission(permissionNode)) : null;
+	public static void deinitialisePermissions() {
+		for (Map.Entry<String, Permission> permissionEntry : permissionList.entrySet()) {
+			try {
+				Bukkit.getServer().getPluginManager().removePermission(permissionEntry.getValue());
+			} catch (Exception ignored) {
+			}
+			try {
+				ReflectionUtilities.FieldAccess permissionField = ReflectionUtilities.getField(Permissions.class, permissionEntry.getKey());
+				if (permissionField == null) continue;
+				permissionField.set(null);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		permissionList.clear();
 	}
 
-	private static Permission registerPermission(Permission permission) {
-		if (!registeredPermissions.contains(permission)) registeredPermissions.add(permission);
+	private static Permission registerPermission(String fieldName, String permissionNode) {
+		if (fieldName == null || permissionNode == null) return null;
+		ReflectionUtilities.FieldAccess permissionField = ReflectionUtilities.getField(Permissions.class, fieldName);
+		if (permissionField == null) return null;
+		Permission permission = new Permission(permissionNode);
+		try {
+			permissionField.set(permission);
+			permissionList.put(permissionField.getField().getName(), permission);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 		return permission;
 	}
 

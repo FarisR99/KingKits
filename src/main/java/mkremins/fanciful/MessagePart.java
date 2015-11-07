@@ -18,8 +18,9 @@ import java.util.logging.Level;
 final class MessagePart implements JsonRepresentedObject, ConfigurationSerializable, Cloneable {
 
 	ChatColor color = ChatColor.WHITE;
-	ArrayList<ChatColor> styles = new ArrayList<>();
-	String clickActionName = null, clickActionData = null, hoverActionName = null;
+	ArrayList<ChatColor> styles = new ArrayList<ChatColor>();
+	String clickActionName = null, clickActionData = null,
+			hoverActionName = null;
 	JsonRepresentedObject hoverActionData = null;
 	TextualComponent text = null;
 	String insertionData = null;
@@ -41,13 +42,13 @@ final class MessagePart implements JsonRepresentedObject, ConfigurationSerializa
 	@SuppressWarnings("unchecked")
 	public MessagePart clone() throws CloneNotSupportedException {
 		MessagePart obj = (MessagePart) super.clone();
-		obj.styles = (ArrayList<ChatColor>) this.styles.clone();
-		if (this.hoverActionData instanceof JsonString) {
-			obj.hoverActionData = new JsonString(((JsonString) this.hoverActionData).getValue());
-		} else if (this.hoverActionData instanceof FancyMessage) {
-			obj.hoverActionData = ((FancyMessage) this.hoverActionData).clone();
+		obj.styles = (ArrayList<ChatColor>) styles.clone();
+		if (hoverActionData instanceof JsonString) {
+			obj.hoverActionData = new JsonString(((JsonString) hoverActionData).getValue());
+		} else if (hoverActionData instanceof FancyMessage) {
+			obj.hoverActionData = ((FancyMessage) hoverActionData).clone();
 		}
-		obj.translationReplacements = (ArrayList<JsonRepresentedObject>) this.translationReplacements.clone();
+		obj.translationReplacements = (ArrayList<JsonRepresentedObject>) translationReplacements.clone();
 		return obj;
 
 	}
@@ -57,7 +58,9 @@ final class MessagePart implements JsonRepresentedObject, ConfigurationSerializa
 	static {
 		ImmutableBiMap.Builder<ChatColor, String> builder = ImmutableBiMap.builder();
 		for (final ChatColor style : ChatColor.values()) {
-			if (!style.isFormat()) continue;
+			if (!style.isFormat()) {
+				continue;
+			}
 
 			String styleName;
 			switch (style) {
@@ -80,48 +83,53 @@ final class MessagePart implements JsonRepresentedObject, ConfigurationSerializa
 	public void writeJson(JsonWriter json) {
 		try {
 			json.beginObject();
-			this.text.writeJson(json);
-			json.name("color").value(this.color.name().toLowerCase());
-			for (final ChatColor style : this.styles) json.name(stylesToNames.get(style)).value(true);
-			if (this.clickActionName != null && this.clickActionData != null) {
+			text.writeJson(json);
+			json.name("color").value(color.name().toLowerCase());
+			for (final ChatColor style : styles) {
+				json.name(stylesToNames.get(style)).value(true);
+			}
+			if (clickActionName != null && clickActionData != null) {
 				json.name("clickEvent")
 						.beginObject()
-						.name("action").value(this.clickActionName)
-						.name("value").value(this.clickActionData)
+						.name("action").value(clickActionName)
+						.name("value").value(clickActionData)
 						.endObject();
 			}
-			if (this.hoverActionName != null && this.hoverActionData != null) {
+			if (hoverActionName != null && hoverActionData != null) {
 				json.name("hoverEvent")
 						.beginObject()
-						.name("action").value(this.hoverActionName)
+						.name("action").value(hoverActionName)
 						.name("value");
-				this.hoverActionData.writeJson(json);
+				hoverActionData.writeJson(json);
 				json.endObject();
 			}
-			if (this.insertionData != null) json.name("insertion").value(this.insertionData);
-			if (this.translationReplacements.size() > 0 && this.text != null && TextualComponent.isTranslatableText(this.text)) {
+			if (insertionData != null) {
+				json.name("insertion").value(insertionData);
+			}
+			if (translationReplacements.size() > 0 && text != null && TextualComponent.isTranslatableText(text)) {
 				json.name("with").beginArray();
-				for (JsonRepresentedObject obj : this.translationReplacements) obj.writeJson(json);
+				for (JsonRepresentedObject obj : translationReplacements) {
+					obj.writeJson(json);
+				}
 				json.endArray();
 			}
 			json.endObject();
-		} catch (IOException ex) {
-			Bukkit.getLogger().log(Level.WARNING, "A problem occured during writing of JSON string", ex);
+		} catch (IOException e) {
+			Bukkit.getLogger().log(Level.WARNING, "A problem occured during writing of JSON string", e);
 		}
 	}
 
-	@Override
 	public Map<String, Object> serialize() {
-		HashMap<String, Object> map = new HashMap<>();
-		map.put("text", this.text);
-		map.put("styles", this.styles);
-		map.put("color", this.color.getChar());
-		map.put("hoverActionName", this.hoverActionName);
-		map.put("hoverActionData", this.hoverActionData);
-		map.put("clickActionName", this.clickActionName);
-		map.put("clickActionData", this.clickActionData);
-		map.put("insertion", this.insertionData);
-		map.put("translationReplacements", this.translationReplacements);
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("text", text);
+		map.put("styles", styles);
+		map.put("color", color.getChar());
+		map.put("hoverActionName", hoverActionName);
+		map.put("hoverActionData", hoverActionData);
+		map.put("clickActionName", clickActionName);
+		map.put("clickActionData", clickActionData);
+		map.put("insertion", insertionData);
+		map.put("translationReplacements", translationReplacements);
 		return map;
 	}
 
