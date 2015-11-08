@@ -318,13 +318,6 @@ public class GuiController implements Controller {
 				return;
 			}
 			if (selectedKit.isUserKit() || (kitPlayer.hasPermission(selectedKit) || kitPlayer.hasUnlocked(selectedKit))) {
-				if (ConfigController.getInstance().isOneKitPerLife()) {
-					if (kitPlayer.hasKit()) {
-						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
-						return;
-					}
-				}
-
 				PlayerPreKitEvent preEvent = new PlayerPreKitEvent(kitPlayer, selectedKit);
 				player.getServer().getPluginManager().callEvent(preEvent);
 				if (preEvent.isCancelled() || preEvent.getKit() == null) {

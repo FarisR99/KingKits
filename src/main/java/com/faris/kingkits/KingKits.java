@@ -42,14 +42,14 @@ public class KingKits extends JavaPlugin {
 		ConfigurationSerialization.registerClass(OfflineKitPlayer.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().contains("Version"))
-			ConfigController.getInstance().migrateOldConfigs();
-		else ConfigController.getInstance().loadConfiguration();
 		try {
 			Messages.initMessages(this);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().contains("Version"))
+			ConfigController.getInstance().migrateOldConfigs();
+		else ConfigController.getInstance().loadConfiguration();
 		SQLController.getInstance();
 		KitController.getInstance().loadKits();
 		PlayerController.getInstance();
