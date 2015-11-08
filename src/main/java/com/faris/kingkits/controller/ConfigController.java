@@ -39,8 +39,6 @@ public class ConfigController implements Controller {
 	private int guiSize = 0;
 	private boolean guiShowOnJoin = false;
 	private boolean guiShowOnRespawn = false;
-	private Material guiItemType = null;
-	private short guiItemData = 0;
 	private ItemStack guiPreviousButton = new ItemStack(Material.STONE_BUTTON);
 	private ItemStack guiNextButton = new ItemStack(Material.STONE_BUTTON);
 
@@ -149,8 +147,6 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Kit GUI.Size", 36, "The size of the GUI inventory.");
 		this.getConfig().addDefault("Kit GUI.Show on join", false, "Set to 'true' if the Kit GUI should open when a player joins.");
 		this.getConfig().addDefault("Kit GUI.Show on respawn", false, "Set to 'true' if the Kit GUI should open when a player respawns.");
-		this.getConfig().addDefault("Kit GUI.GUI Item.Type", "Nothing", "The material of the item that opens the Kit GUI when right clicked.");
-		this.getConfig().addDefault("Kit GUI.GUI Item.Data", (short) 0, "The data value/durability of the item that opens the Kit GUI when right clicked. Set to -1 if the data value should be ignored.");
 		this.getConfig().addDefault("Kit GUI.Next button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Next")));
 		this.getConfig().addDefault("Kit GUI.Previous button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Back")));
 		if (!this.getConfig().contains("Multi-inventories")) this.getConfig().createSection("Multi-inventories");
@@ -228,8 +224,6 @@ public class ConfigController implements Controller {
 		this.guiSize = this.getConfig().getInt("Kit GUI.Size", 36);
 		this.guiShowOnJoin = this.getConfig().getBoolean("Kit GUI.Show on join", false);
 		this.guiShowOnRespawn = this.getConfig().getBoolean("Kit GUI.Show on respawn", false);
-		this.guiItemType = Material.matchMaterial(this.getConfig().getString("Kit GUI.GUI Item.Type", "None"));
-		this.guiItemData = (short) this.getConfig().getInt("Kit GUI.GUI Item.Data", 0);
 		this.guiNextButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Next button")), new ItemStack(Material.STONE_BUTTON));
 		this.guiPreviousButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Previous button")), new ItemStack(Material.STONE_BUTTON));
 		this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
@@ -324,14 +318,6 @@ public class ConfigController implements Controller {
 
 	public int getFoodLevelLock() {
 		return this.foodLevelLock;
-	}
-
-	public short getGuiItemData() {
-		return this.guiItemData;
-	}
-
-	public Material getGuiItemType() {
-		return this.guiItemType;
 	}
 
 	public ItemStack getGuiNextButton() {
@@ -697,15 +683,6 @@ public class ConfigController implements Controller {
 						if (configFile.delete()) {
 							FileConfiguration newConfig = YamlConfiguration.loadConfiguration(configFile);
 							FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
-
-							// TODO: Continue to migrate old messages config to new messages config.
-							newConfig.set("General.Command error", oldConfig.getString("Command.General.Error"));
-							newConfig.set("General.Command permission", oldConfig.getString("Command.General.No permission"));
-							newConfig.set("General.Command usage", oldConfig.getString("Command.General.Usage"));
-							newConfig.set("General.Player not found", oldConfig.getString("Command.General.Not online"));
-							newConfig.set("General.Player command", oldConfig.getString("Command.General.In-game"));
-
-							newConfig.save(configFile);
 
 							plugin.getLogger().info("Successfully converted old messages.yml into new messages.yml.");
 						} else {
