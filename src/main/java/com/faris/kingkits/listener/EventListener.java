@@ -109,7 +109,12 @@ public class EventListener implements Listener {
 			try {
 				if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (event.getItem() != null) {
-						if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
+						if (event.getItem().getType() == ConfigController.getInstance().getGuiItemType() && (ConfigController.getInstance().getGuiItemData() == -1 || event.getItem().getDurability() == ConfigController.getInstance().getGuiItemData())) {
+							if (Utilities.isPvPWorld(player.getWorld())) {
+								GuiController.getInstance().openKitsMenu(player);
+								event.setCancelled(true);
+							}
+						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
 							if (ConfigController.getInstance().canQuickSoup()) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
@@ -142,7 +147,7 @@ public class EventListener implements Listener {
 					}
 				}
 			} catch (Exception ex) {
-				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to execute the quick soup code.", ex);
+				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to execute the item detection code.", ex);
 			}
 
 			if (event.isCancelled()) return;
@@ -165,7 +170,7 @@ public class EventListener implements Listener {
 				if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (Utilities.isPvPWorld(player.getWorld())) {
 						if (event.getClickedBlock().getState() instanceof Sign) {
-							Sign clickedSign = (Sign) event.getClickedBlock();
+							Sign clickedSign = (Sign) event.getClickedBlock().getState();
 							String firstLine = clickedSign.getLine(0);
 
 							if (firstLine.equals(ConfigController.getInstance().getSignsKit()[1])) {
@@ -450,7 +455,6 @@ public class EventListener implements Listener {
 
 				String firstLine = event.getLine(0);
 				if (firstLine.equals(ConfigController.getInstance().getSignsKit()[0])) {
-					event.setCancelled(true);
 					if (player.hasPermission(Permissions.SIGN_KIT_CREATE)) {
 						String strKit = event.getLine(1);
 
@@ -472,19 +476,21 @@ public class EventListener implements Listener {
 						if (kit != null) event.setLine(0, ConfigController.getInstance().getSignsKit()[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "kit");
+						event.setCancelled(true);
 					}
 				} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList()[0])) {
-					event.setCancelled(true);
 					if (player.hasPermission(Permissions.SIGN_KIT_LIST_CREATE)) {
 						event.setLine(0, ConfigController.getInstance().getSignsKitList()[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "kit list");
+						event.setCancelled(true);
 					}
 				} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill()[0])) {
 					if (player.hasPermission(Permissions.SIGN_REFILL_CREATE)) {
 						event.setLine(0, ConfigController.getInstance().getSignsRefill()[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "refill");
+						event.setCancelled(true);
 					}
 				}
 			}
