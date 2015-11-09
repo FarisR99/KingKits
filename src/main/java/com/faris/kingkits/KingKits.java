@@ -218,6 +218,8 @@ public class KingKits extends JavaPlugin {
 
 		this.getServer().getScheduler().cancelTasks(this);
 
+		GuiController.getInstance().shutdownController();
+
 		for (KitPlayer kitPlayer : PlayerController.getInstance().getAllPlayers()) {
 			Player player = kitPlayer.getBukkitPlayer();
 			if (player == null) player = this.getServer().getPlayer(kitPlayer.getUniqueId());
@@ -254,7 +256,6 @@ public class KingKits extends JavaPlugin {
 
 		// Reset all players compasses to spawn.
 		CompassController.getInstance().shutdownController();
-		GuiController.getInstance().shutdownController();
 		KitController.getInstance().shutdownController();
 		PlayerController.getInstance().shutdownController();
 		ConfigController.getInstance().shutdownController();

@@ -52,6 +52,14 @@ public class GuiController implements Controller {
 				Player guiViewer = Bukkit.getServer().getPlayer(guiViewerUUID);
 				if (guiViewer != null) guiViewer.closeInventory();
 			}
+			for (UUID guiViewerUUID : this.guiKits.keySet()) {
+				Player guiViewer = Bukkit.getServer().getPlayer(guiViewerUUID);
+				if (guiViewer != null) guiViewer.closeInventory();
+			}
+			for (UUID guiViewerUUID : this.guiKitPreview.keySet()) {
+				Player guiViewer = Bukkit.getServer().getPlayer(guiViewerUUID);
+				if (guiViewer != null) guiViewer.closeInventory();
+			}
 			this.guiViewers.clear();
 		}
 
@@ -464,7 +472,7 @@ public class GuiController implements Controller {
 			this.availableKits = new ArrayList<>(kits);
 
 			this.page = 1;
-			this.maxPage = this.availableKits.size() > 0 ? (int) ((double) (this.availableKits.size() - 1) / (this.availableKits.size() - 9) + 1) : 1;
+			this.maxPage = !this.availableKits.isEmpty() ? (int) ((double) (this.availableKits.size() - 1) / (this.availableKits.size() - 9)) + 1 : 1;
 		}
 
 		public void fillInventory(Inventory inventory) {
@@ -473,7 +481,10 @@ public class GuiController implements Controller {
 				this.kitsSlot.clear();
 
 				Map<Kit, ItemStack> leftOverKits = new LinkedHashMap<>();
-				for (int i = (this.page - 1) * (inventory.getSize() - 9); i < this.availableKits.size() && i < this.maxPage * (inventory.getSize() - 9); i++) {
+				int minPage = (this.page - 1);
+				int invSize = (inventory.getSize() - 9);
+				int numAvailableKits = this.availableKits.size();
+				for (int i = minPage * invSize; i < numAvailableKits && i < this.maxPage * invSize; i++) {
 					Kit availableKit = this.availableKits.get(i);
 					if (availableKit == null) continue;
 					try {
@@ -531,7 +542,7 @@ public class GuiController implements Controller {
 		}
 
 		public boolean hasNext() {
-			return this.page < this.maxPage - 1;
+			return this.page < this.maxPage;
 		}
 
 		public boolean hasPrevious() {
