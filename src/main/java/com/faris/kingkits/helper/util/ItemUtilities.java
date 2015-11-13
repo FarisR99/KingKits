@@ -1,5 +1,7 @@
 package com.faris.kingkits.helper.util;
 
+import nl.arfie.bukkit.attributes.Attribute;
+import nl.arfie.bukkit.attributes.Attributes;
 import org.bukkit.*;
 import org.bukkit.block.banner.*;
 import org.bukkit.enchantments.*;
@@ -130,15 +132,21 @@ public class ItemUtilities {
 						}
 					}
 				}
-
+				if (serializedItem.get("Attributes") != null) {
+					Map<String, Object> attributesMap = ObjectUtilities.getMap(serializedItem.get("Attributes"));
+					List<Attribute> attributes = new ArrayList<>();
+					for (Object serializedAttribute : attributesMap.values()) {
+						Attribute deserializedAttribute = Attribute.deserialize(ObjectUtilities.getMap(serializedAttribute));
+						if (deserializedAttribute != null) attributes.add(deserializedAttribute);
+					}
+					if (!attributes.isEmpty()) Attributes.apply(deserializedItem, attributes, true);
+				}
 				if (serializedItem.get("Enchantments") != null) {
 					Map<String, Object> enchantmentsMap = ObjectUtilities.getMap(serializedItem.get("Enchantments"));
-					if (enchantmentsMap != null) {
-						for (Map.Entry<String, Object> enchantmentEntry : enchantmentsMap.entrySet()) {
-							Enchantment enchantment = Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntry.getKey()));
-							if (enchantment != null && Utilities.isNumber(Integer.class, enchantmentEntry.getValue()))
-								deserializedItem.addUnsafeEnchantment(enchantment, Integer.parseInt(enchantmentEntry.getValue().toString()));
-						}
+					for (Map.Entry<String, Object> enchantmentEntry : enchantmentsMap.entrySet()) {
+						Enchantment enchantment = Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntry.getKey()));
+						if (enchantment != null && Utilities.isNumber(Integer.class, enchantmentEntry.getValue()))
+							deserializedItem.addUnsafeEnchantment(enchantment, Integer.parseInt(enchantmentEntry.getValue().toString()));
 					}
 				}
 
@@ -384,6 +392,13 @@ public class ItemUtilities {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+			}
+			final List<Attribute> itemAttributes = Attributes.fromStack(itemStack);
+			if (!itemAttributes.isEmpty()) {
+				Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();
+				for (int i = 0; i < itemAttributes.size(); i++)
+					serializedAttributes.put(i, itemAttributes.get(i).serialize());
+				serializedItem.put("Attributes", serializedAttributes);
 			}
 			if (!itemStack.getEnchantments().isEmpty()) {
 				serializedItem.put("Enchantments", new LinkedHashMap<String, Integer>() {{

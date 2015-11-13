@@ -144,17 +144,21 @@ public class CustomConfiguration extends YamlConfiguration {
 	}
 
 	public void set(String key, Object value, String... comments) {
-		if (comments != null) {
-			if (value != null) {
-				List<String> commentsList = new ArrayList<>();
-				for (String comment : comments) {
-					if (comment != null) commentsList.add(comment);
-					else commentsList.add("");
+		if (value != null) {
+			if (comments != null) {
+				if (comments.length > 0) {
+					List<String> commentsList = new ArrayList<>();
+					for (String comment : comments) {
+						if (comment != null) commentsList.add(comment);
+						else commentsList.add("");
+					}
+					this.comments.put(key, commentsList);
+				} else {
+					this.comments.remove(key);
 				}
-				this.comments.put(key, commentsList);
-			} else {
-				this.comments.remove(key);
 			}
+		} else {
+			this.comments.remove(key);
 		}
 		super.set(key, value);
 	}

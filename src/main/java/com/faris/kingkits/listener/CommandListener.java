@@ -64,6 +64,7 @@ public class CommandListener implements CommandExecutor {
 
 								this.plugin.startAutoSaveTask();
 
+								Messages.initMessages(this.plugin);
 								Messages.sendMessage(sender, Messages.COMMAND_RELOAD_SUCCESSFUL, this.plugin.getDescription().getVersion());
 							} catch (Exception ex) {
 								this.plugin.getLogger().log(Level.SEVERE, "Failed to reload the configurations.", ex);
@@ -366,6 +367,35 @@ public class CommandListener implements CommandExecutor {
 								}
 							} else {
 								Messages.sendMessage(sender, Messages.GENERAL_COMMAND_NO_PERMISSION);
+							}
+						} else {
+							Messages.sendMessage(sender, Messages.GENERAL_COMMAND_USAGE, label.toLowerCase(), subCommand.toLowerCase() + " " + (sender instanceof Player ? "[" : "") + "<player>" + (sender instanceof Player ? "]" : ""));
+						}
+						return true;
+					} else if (subCommand.equalsIgnoreCase("kit")) {
+						if (args.length == 1) {
+							if (sender instanceof Player) {
+								Player player = (Player) sender;
+								KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+								if (!PlayerUtilities.checkPlayer(player, kitPlayer)) return true;
+								if (kitPlayer.hasKit())
+									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_SELF_KIT, kitPlayer.getKit().getName() + (kitPlayer.getKit().isUserKit() ? " (User)" : ""));
+								else
+									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_SELF_NO_KIT);
+							} else {
+								Messages.sendMessage(sender, Messages.GENERAL_PLAYER_COMMAND);
+							}
+						} else if (args.length == 2) {
+							Player target = sender.getServer().getPlayer(args[1]);
+							if (target != null) {
+								KitPlayer targetKitPlayer = PlayerController.getInstance().getPlayer(target);
+								if (!PlayerUtilities.checkPlayer(sender, targetKitPlayer)) return true;
+								if (targetKitPlayer.hasKit())
+									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_OTHER_KIT, target.getName(), targetKitPlayer.getKit().getName() + (targetKitPlayer.getKit().isUserKit() ? " (User)" : ""));
+								else
+									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_OTHER_NO_KIT, target.getName());
+							} else {
+								Messages.sendMessage(sender, Messages.GENERAL_PLAYER_NOT_FOUND, args[1]);
 							}
 						} else {
 							Messages.sendMessage(sender, Messages.GENERAL_COMMAND_USAGE, label.toLowerCase(), subCommand.toLowerCase() + " " + (sender instanceof Player ? "[" : "") + "<player>" + (sender instanceof Player ? "]" : ""));

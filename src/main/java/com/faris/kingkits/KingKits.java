@@ -15,6 +15,7 @@ import com.faris.kingkits.storage.DataStorage;
 import com.faris.kingkits.storage.FlatFileStorage;
 import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
+import nl.arfie.bukkit.attributes.Attribute;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.*;
 import org.bukkit.entity.*;
@@ -40,6 +41,7 @@ public class KingKits extends JavaPlugin {
 	public void onEnable() {
 		ConfigurationSerialization.registerClass(Kit.class);
 		ConfigurationSerialization.registerClass(OfflineKitPlayer.class);
+		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
 		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().contains("Version"))
@@ -214,6 +216,7 @@ public class KingKits extends JavaPlugin {
 	public void onDisable() {
 		ConfigurationSerialization.unregisterClass(Kit.class);
 		ConfigurationSerialization.unregisterClass(OfflineKitPlayer.class);
+		ConfigurationSerialization.unregisterClass(Attribute.class);
 		ConfigurationSerialization.unregisterClass(MySQLDetails.class);
 
 		this.getServer().getScheduler().cancelTasks(this);
@@ -250,7 +253,7 @@ public class KingKits extends JavaPlugin {
 				ex.printStackTrace();
 			}
 		}
-		ConfigController.getInstance().savePlayersConfig();
+		if (!ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty()) ConfigController.getInstance().savePlayersConfig();
 
 		Permissions.deinitialisePermissions();
 

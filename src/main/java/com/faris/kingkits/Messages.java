@@ -34,8 +34,8 @@ public enum Messages {
 	COMMAND_KIT_DELETE_USER("Command.Delete user kit.Deleted", "&6Successfully deleted &c%s&6."),
 	COMMAND_KIT_DELETE_ALL_USER("Command.Delete user kit.Deleted all", "&6Successfully deleted &c%d &6user kit(s)."),
 
-	COMMAND_KILLSTREAK_SELF("Command.Killstreak.Self", "&6Killstreak: &b%d"),
-	COMMAND_KILLSTREAK_OTHER("Command.Killstreak.Other", "&6%s's killstreak: &b%d"),
+	COMMAND_KILLSTREAK_SELF("Command.Killstreak.Self", "&6You are on a(n) &b%d &6killstreak."),
+	COMMAND_KILLSTREAK_OTHER("Command.Killstreak.Other", "&6%s is on a(n) &b%d &6killstreak."),
 
 	COMMAND_KIT_LIST_TITLE("Command.Kit.List.Title", "&6Kits (%d):"),
 	COMMAND_KIT_LIST_KITS("Command.Kit.List.Message", "<colour>%s"),
@@ -48,11 +48,16 @@ public enum Messages {
 	COMMAND_REFILL_NOT_ENOUGH_MONEY("Command.Refill.Not enough money", "&aYou do not have enough money to refill your bowl(s)."),
 	COMMAND_REFILL_FULL_INV("Command.Refill.Full inventory", "&cYou have a full inventory!"),
 
-	COMPASS_POINTING_PLAYER("Compass.Player", "&eYour compass is pointing at %s."),
-	COMPASS_POINTING_SPAWN("Compass.Spawn", "&eYour compass is pointing to spawn."),
-
 	COMMAND_SCORE_SELF("Command.Score.Self", "&6Score: &b%d"),
 	COMMAND_SCORE_OTHER("Command.Score.Other", "&6%s's score: &b%d"),
+
+	COMMAND_VIEW_KIT_SELF_KIT("Command.View kit.Self.Has kit", "&6You are using the kit &c%s&6."),
+	COMMAND_VIEW_KIT_SELF_NO_KIT("Command.View kit.Self.No kit", "&6You are not using a kit."),
+	COMMAND_VIEW_KIT_OTHER_KIT("Command.View kit.Other.Has kit", "&6%s is using the kit &c%s&6."),
+	COMMAND_VIEW_KIT_OTHER_NO_KIT("Command.View kit.Other.No kit", "&6%s is using not using a kit."),
+
+	COMPASS_POINTING_PLAYER("Compass.Player", "&eYour compass is pointing at %s."),
+	COMPASS_POINTING_SPAWN("Compass.Spawn", "&eYour compass is pointing to spawn."),
 
 	EVENT_BLOCK_BREAK("Event.Block.Break", "&cYou cannot break blocks here!"),
 	EVENT_BLOCK_PLACE("Event.Block.Place", "&cYou cannot place blocks here!"),

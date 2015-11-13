@@ -16,8 +16,8 @@ commands:
       description: Create a PvP Kit ingame with all the items in your inventory!
       usage: /<command> <name> [<guiItem>]
     deletekit:
-      description: Delete a PvP kit.
-      usage: /<command> <name>
+      description: Delete a(ll) PvP kit(s).
+      usage: /<command> <*|name>
     renamekit:
       description: Rename a PvP kit.
       usage: /<command> <name> <newname>

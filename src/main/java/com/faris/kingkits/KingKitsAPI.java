@@ -114,15 +114,18 @@ public class KingKitsAPI {
 	 * @return Whether a player is using the kit or not.
 	 */
 	public static boolean isUsingKit(String kitName, Player player, boolean allowUserKits) {
-		if (kitName != null && player != null) {
-			String playerKit = getKit(player);
-			if (playerKit != null) {
-				if (!allowUserKits) {
-					KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
-					Kit kit = kitPlayer != null ? kitPlayer.getKit() : null;
-					return kit != null && !kit.isUserKit() && kit.getName().equals(kitName);
+		if (player != null) {
+			KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+			if (kitPlayer != null) {
+				if (kitPlayer.hasKit()) {
+					Kit kit = kitPlayer.getKit();
+					if (!allowUserKits) {
+						return !kit.isUserKit() && kit.getName().equals(kitName);
+					} else {
+						return kitName.equals(kit.getName());
+					}
 				} else {
-					return kitName.equalsIgnoreCase(playerKit);
+					return kitName == null;
 				}
 			}
 		}

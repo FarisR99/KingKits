@@ -5,10 +5,7 @@ import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
 import com.faris.kingkits.api.event.PlayerKitEvent;
 import com.faris.kingkits.api.event.PlayerPreKitEvent;
-import com.faris.kingkits.helper.util.BukkitUtilities;
-import com.faris.kingkits.helper.util.ItemUtilities;
-import com.faris.kingkits.helper.util.PlayerUtilities;
-import com.faris.kingkits.helper.util.Utilities;
+import com.faris.kingkits.helper.util.*;
 import com.faris.kingkits.player.KitPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -77,8 +74,8 @@ public class GuiController implements Controller {
 
 	public void loadInventories() {
 		this.kitsMenuInventory = Bukkit.getServer().createInventory(null, 9, GuiType.GUI_KITS_MENU.getTitle());
-		this.kitsInventory = Bukkit.getServer().createInventory(null, ConfigController.getInstance().getGuiSize(), GuiType.GUI_KITS.getTitle());
-		this.userKitsInventory = Bukkit.getServer().createInventory(null, ConfigController.getInstance().getGuiSize(), GuiType.GUI_USER_KITS.getTitle());
+		this.kitsInventory = Bukkit.getServer().createInventory(null, ConfigController.getInstance().getGuiSize(), StringUtilities.trimString(GuiType.GUI_KITS.getTitle(), 32));
+		this.userKitsInventory = Bukkit.getServer().createInventory(null, ConfigController.getInstance().getGuiSize(), StringUtilities.trimString(GuiType.GUI_USER_KITS.getTitle(), 32));
 		this.previewInventory = Bukkit.getServer().createInventory(null, 36 + 9 + 9, GuiType.GUI_PREVIEW_KIT.getTitle());
 
 		this.kitsMenuInventory.setItem(3, ItemUtilities.renameItem(new ItemStack(Material.EMPTY_MAP), Messages.GUI_KITS_MENU_GLOBAL.getMessage()));
@@ -113,7 +110,7 @@ public class GuiController implements Controller {
 	public Inventory createKitPreviewInventory(Player player, Kit kit) {
 		Inventory kitPreviewInv = null;
 		if (player != null) {
-			kitPreviewInv = Bukkit.getServer().createInventory(player, this.previewInventory.getSize(), this.previewInventory.getTitle().replace("<kit>", Objects.toString(kit)));
+			kitPreviewInv = Bukkit.getServer().createInventory(player, this.previewInventory.getSize(), StringUtilities.trimString(this.previewInventory.getTitle().replace("<kit>", kit != null ? kit.getName() : "null"), 32));
 			kitPreviewInv.setContents(this.previewInventory.getContents());
 
 			if (kit != null) {
@@ -125,8 +122,6 @@ public class GuiController implements Controller {
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 15, kit.getArmour()[2]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 13, kit.getArmour()[1]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 11, kit.getArmour()[0]);
-
-				this.guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(kit.getName()));
 			}
 		} else {
 			kitPreviewInv = Bukkit.getServer().createInventory(null, InventoryType.CHEST);
@@ -158,9 +153,9 @@ public class GuiController implements Controller {
 
 	public void openKitsMenu(Player player) {
 		if (player != null && !this.guiViewers.containsKey(player.getUniqueId())) {
+			player.closeInventory();
 			Inventory inventory = this.createKitsMenuInventory(player);
 			if (inventory != null) {
-				player.closeInventory();
 				this.guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS_MENU);
 				player.openInventory(inventory);
 			} else {
@@ -171,13 +166,14 @@ public class GuiController implements Controller {
 
 	public void openPreviewGUI(Player player, Kit kit) {
 		if (player != null && !this.guiViewers.containsKey(player.getUniqueId())) {
+			player.closeInventory();
 			Inventory inventory = this.createKitPreviewInventory(player, kit);
 			if (inventory != null) {
-				player.closeInventory();
 				this.guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
+				this.guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(kit.getName()));
 				player.openInventory(inventory);
 			} else {
-				this.guiKits.remove(player.getUniqueId());
+				this.guiKitPreview.remove(player.getUniqueId());
 			}
 		}
 	}
@@ -416,13 +412,15 @@ public class GuiController implements Controller {
 				if (allowKitPreview && ConfigController.getInstance().shouldShowKitPreview()) {
 					player.closeInventory();
 					final UUID playerUUID = player.getUniqueId();
-					final Inventory previewKitInventory = createKitPreviewInventory(player, selectedKit);
+					final Inventory previewKitInventory = this.createKitPreviewInventory(player, selectedKit);
+					final Kit finalKit = selectedKit;
 					player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
 						@Override
 						public void run() {
 							if (player.isOnline()) {
 								player.openInventory(previewKitInventory);
 								guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
+								guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName()));
 							} else {
 								guiKits.remove(playerUUID);
 							}
@@ -464,7 +462,7 @@ public class GuiController implements Controller {
 	}
 
 	private static class GuiKits {
-		private int page = 0, maxPage = 1;
+		private int page = 1, maxPage = 1;
 		private List<Kit> availableKits = new ArrayList<>();
 		private Map<Integer, Kit> kitsSlot = new TreeMap<>();
 
@@ -472,7 +470,10 @@ public class GuiController implements Controller {
 			this.availableKits = new ArrayList<>(kits);
 
 			this.page = 1;
-			this.maxPage = !this.availableKits.isEmpty() ? (int) ((double) (this.availableKits.size() - 1) / (this.availableKits.size() - 9)) + 1 : 1;
+			this.maxPage = 1;
+			for (int i = 0; i < this.availableKits.size(); i++) {
+				if (i != 0 && i % (ConfigController.getInstance().getGuiSize() - 9) == 0) this.maxPage++;
+			}
 		}
 
 		public void fillInventory(Inventory inventory) {
@@ -484,11 +485,11 @@ public class GuiController implements Controller {
 				int minPage = (this.page - 1);
 				int invSize = (inventory.getSize() - 9);
 				int numAvailableKits = this.availableKits.size();
-				for (int i = minPage * invSize; i < numAvailableKits && i < this.maxPage * invSize; i++) {
+				for (int i = minPage * invSize; i < numAvailableKits && i < minPage * invSize + invSize; i++) {
 					Kit availableKit = this.availableKits.get(i);
 					if (availableKit == null) continue;
 					try {
-						ItemStack guiItem = availableKit.getGuiItem();
+						ItemStack guiItem = availableKit.getGuiItem().clone();
 						if (!ItemUtilities.hasName(guiItem))
 							ItemUtilities.renameItem(guiItem, "&a" + availableKit.getName());
 						if (availableKit.getGuiPosition() != -1) {
@@ -523,10 +524,10 @@ public class GuiController implements Controller {
 
 					ItemStack button = null;
 					if (i == inventory.getSize() - 9) {
-						button = ConfigController.getInstance().getGuiPreviousButton();
+						button = ConfigController.getInstance().getGuiPreviousButton().clone();
 						inventory.setItem(i, ItemUtilities.hasName(button) ? ItemUtilities.renameItem(button, ItemUtilities.getName(button).replace("<colour>", this.hasPrevious() ? ChatColor.AQUA.toString() : ChatColor.DARK_GRAY.toString())) : button);
 					} else if (i == inventory.getSize() - 1) {
-						button = ConfigController.getInstance().getGuiNextButton();
+						button = ConfigController.getInstance().getGuiNextButton().clone();
 						inventory.setItem(i, ItemUtilities.hasName(button) ? ItemUtilities.renameItem(button, ItemUtilities.getName(button).replace("<colour>", this.hasNext() ? ChatColor.AQUA.toString() : ChatColor.DARK_GRAY.toString())) : button);
 					}
 				}

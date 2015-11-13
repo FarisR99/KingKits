@@ -125,7 +125,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Allow.Block modification", true, "Set to 'false' if you want players to not be able to break/place blocks.");
 		this.getConfig().addDefault("Allow.Death messages", true, "Set to 'false' if you want to disable vanilla death messages.");
 		this.getConfig().addDefault("Allow.Item dropping", false, "Set to 'false' if you want to ban players from dropping items.");
-		this.getConfig().addDefault("Allow.Item dropping on death", false, "Set to 'trufalse' if you want to clear all items dropped when a player dies.");
+		this.getConfig().addDefault("Allow.Item dropping on death", false, "Set to 'false' if you want to clear all items dropped when a player dies.");
 		this.getConfig().addDefault("Allow.Item picking up", true, "Set to 'false' if you want to ban players from picking up items.");
 		this.getConfig().addDefault("Allow.Quick soup", true, "Set to 'false' if you want to disable players from using mushroom stew to heal themselves.");
 		if (!this.getConfig().contains("Command")) {
@@ -690,22 +690,62 @@ public class ConfigController implements Controller {
 				plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not convert old config.yml to new config.yml."), ex);
 			}
 			try {
-				File configFile = new File(dataFolder, "messages.yml");
-				if (configFile.exists()) {
-					File oldConfigFile = new File(oldFolder, "messages.yml");
-					if (FileUtil.copy(configFile, oldConfigFile)) {
-						if (configFile.delete()) {
-							FileConfiguration newConfig = YamlConfiguration.loadConfiguration(configFile);
-							FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
+				File messagesFile = new File(dataFolder, "messages.yml");
+				if (messagesFile.exists()) {
+					File oldMessagesFile = new File(oldFolder, "messages.yml");
+					if (FileUtil.copy(messagesFile, oldMessagesFile)) {
+						if (messagesFile.delete()) {
+							FileConfiguration newMessagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+							FileConfiguration oldMessagesConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
 
 							// TODO: Continue to migrate old messages config to new messages config.
-							newConfig.set("General.Command error", oldConfig.getString("Command.General.Error"));
-							newConfig.set("General.Command permission", oldConfig.getString("Command.General.No permission"));
-							newConfig.set("General.Command usage", oldConfig.getString("Command.General.Usage"));
-							newConfig.set("General.Player not found", oldConfig.getString("Command.General.Not online"));
-							newConfig.set("General.Player command", oldConfig.getString("Command.General.In-game"));
+							newMessagesConfig.set("General.Command error", oldMessagesConfig.getString("Command.General.Error"));
+							newMessagesConfig.set("General.Command permission", oldMessagesConfig.getString("Command.General.No permission"));
+							newMessagesConfig.set("General.Command usage", oldMessagesConfig.getString("Command.General.Usage").replace("%s", "%s %s"));
+							newMessagesConfig.set("General.Player not found", oldMessagesConfig.getString("Command.General.Not online"));
+							newMessagesConfig.set("General.Player command", oldMessagesConfig.getString("Command.General.In-game"));
+							newMessagesConfig.set("Command.Create kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
+							newMessagesConfig.set("Command.Create kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
+							newMessagesConfig.set("Command.Create user kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
+							newMessagesConfig.set("Command.Create user kit.Maximum kits", oldMessagesConfig.getString("Command.Create kit.User.Maximum personal kits"));
+							newMessagesConfig.set("Command.Create user kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
+							newMessagesConfig.set("Command.Delete kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
+							newMessagesConfig.set("Command.Delete user kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
+							newMessagesConfig.set("Command.Kit.List.Title", oldMessagesConfig.getString("General.Kit list title").replace("%s", "%d"));
+							newMessagesConfig.set("Command.Kit.List.No kits", oldMessagesConfig.getString("General.No kits available"));
+							newMessagesConfig.set("Command.Rename kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
+							newMessagesConfig.set("Command.Rename user kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
+							newMessagesConfig.set("Command.Refill.Bowl", oldMessagesConfig.getString("Command.Refill.Bowl"));
+							newMessagesConfig.set("Command.Refill.Not enough money", oldMessagesConfig.getString("Command.Refill.Not enough money"));
+							newMessagesConfig.set("Command.Refill.Full inventory", oldMessagesConfig.getString("Command.Refill.Full inventory"));
+							newMessagesConfig.set("Compass.Player", oldMessagesConfig.getString("Compass.Player"));
+							newMessagesConfig.set("Compass.Spawn", oldMessagesConfig.getString("Compass.Spawn"));
+							newMessagesConfig.set("Kit.Delay", oldMessagesConfig.getString("Kit.Delay"));
+							newMessagesConfig.set("Kit.Illegal characters", oldMessagesConfig.getString("Command.Create kit.Illegal characters"));
+							newMessagesConfig.set("Kit.No permission", oldMessagesConfig.getString("Kit.No permission"));
+							newMessagesConfig.set("Kit.Not enough money", oldMessagesConfig.getString("Kit.Not enough money"));
+							newMessagesConfig.set("Kit.Not found", oldMessagesConfig.getString("Kit.Non-existent"));
+							newMessagesConfig.set("Kit.One per life", oldMessagesConfig.getString("Kit.Already chosen"));
+							newMessagesConfig.set("Kit.Unlocked", oldMessagesConfig.getString("Kit.Unlocked"));
+							newMessagesConfig.set("Sign.Create.No permission", oldMessagesConfig.getString("Sign.Create.No permission"));
+							newMessagesConfig.set("Sign.Create.Incorrectly setup", oldMessagesConfig.getString("Sign.General.Incorrectly set up"));
+							newMessagesConfig.set("Sign.Use.No permission", oldMessagesConfig.getString("Sign.Use.No permission"));
+							newMessagesConfig.set("Time.Second", oldMessagesConfig.getString("Time.Second"));
+							newMessagesConfig.set("Time.Seconds", oldMessagesConfig.getString("Time.Seconds"));
+							newMessagesConfig.set("Time.Minute", oldMessagesConfig.getString("Time.Minute"));
+							newMessagesConfig.set("Time.Minutes", oldMessagesConfig.getString("Time.Minutes"));
+							newMessagesConfig.set("Time.Hour", oldMessagesConfig.getString("Time.Hour"));
+							newMessagesConfig.set("Time.Hours", oldMessagesConfig.getString("Time.Hours"));
+							newMessagesConfig.set("Time.Day", oldMessagesConfig.getString("Time.Day"));
+							newMessagesConfig.set("Time.Days", oldMessagesConfig.getString("Time.Days"));
 
-							newConfig.save(configFile);
+							File oldConfigFile = new File(oldFolder, "config.yml");
+							if (oldConfigFile.exists()) {
+								FileConfiguration oldConfigYml = YamlConfiguration.loadConfiguration(oldConfigFile);
+								newMessagesConfig.set("Kit.Set", oldConfigYml.getString("Custom message"));
+							}
+
+							newMessagesConfig.save(messagesFile);
 
 							plugin.getLogger().info("Successfully converted old messages.yml into new messages.yml.");
 						} else {

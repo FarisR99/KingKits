@@ -88,8 +88,8 @@ public class CommandPvPKit extends KingKitsCommand {
 		}
 		KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 		if (kitPlayer == null) return;
-		KitUtilities.KitSearchResult searchResult = KitUtilities.getKits(strKit);
 		Kit kit = null;
+		KitUtilities.KitSearchResult searchResult = KitUtilities.getKits(strKit, kitPlayer);
 		if (searchResult.hasKit()) {
 			kit = searchResult.getKit();
 		} else if (searchResult.hasOtherKits()) {
@@ -99,7 +99,18 @@ public class CommandPvPKit extends KingKitsCommand {
 				Messages.sendMessage(sender, Messages.KIT_MULTIPLE_FOUND, strKit);
 			}
 		} else {
-			Messages.sendMessage(sender, Messages.KIT_NOT_FOUND, strKit);
+			searchResult = KitUtilities.getKits(strKit);
+			if (searchResult.hasKit()) {
+				kit = searchResult.getKit();
+			} else if (searchResult.hasOtherKits()) {
+				if (searchResult.getOtherKits().size() == 1) {
+					kit = searchResult.getOtherKits().get(0);
+				} else {
+					Messages.sendMessage(sender, Messages.KIT_MULTIPLE_FOUND, strKit);
+				}
+			} else {
+				Messages.sendMessage(sender, Messages.KIT_NOT_FOUND, strKit);
+			}
 		}
 		if (kit != null) {
 			strKit = kit.getName();
@@ -189,11 +200,9 @@ public class CommandPvPKit extends KingKitsCommand {
 					if (!isOther) PlayerUtilities.sendKitDelayMesasge(player, kit, kitTimestamp);
 				}
 			} else {
-				if (ConfigController.getInstance().shouldShowKitPreview()) {
+				Messages.sendMessage(sender, Messages.KIT_NO_PERMISSION, strKit);
+				if (ConfigController.getInstance().shouldShowKitPreview())
 					GuiController.getInstance().openPreviewGUI(player, kit);
-				} else {
-					Messages.sendMessage(sender, Messages.KIT_NO_PERMISSION, strKit);
-				}
 			}
 		}
 	}
