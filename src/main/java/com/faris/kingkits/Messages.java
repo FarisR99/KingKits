@@ -73,7 +73,7 @@ public enum Messages {
 	KIT_ILLEGAL_CHARACTERS("Kit.Illegal characters", "&cThe kit name can only consist of A-Z, 0-1 and underscores."),
 	KIT_MULTIPLE_FOUND("Kit.Multiple found", "&cMultiple kits exist with that name. The kit name is case sensitive."),
 	KIT_NO_PERMISSION("Kit.No permission", "&cYou do not have permission to use &4%s&c."),
-	KIT_NOT_ENOUGH_MONEY("Kit.Not enough money", "&cYou require $%d more to use that kit."),
+	KIT_NOT_ENOUGH_MONEY("Kit.Not enough money", "&cYou require $%f more to use that kit."),
 	KIT_NOT_FOUND("Kit.Not found", "&cA kit with that name does not exist."),
 	KIT_ONE_PER_LIFE("Kit.One per life", "&cYou have already chosen a kit!"),
 	KIT_SET("Kit.Set", "&6You have chosen &4%s&6."),

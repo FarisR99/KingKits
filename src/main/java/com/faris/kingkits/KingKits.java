@@ -58,6 +58,13 @@ public class KingKits extends JavaPlugin {
 		GuiController.getInstance().loadInventories();
 		CompassController.getInstance();
 
+		try {
+			if (Messages.KIT_NOT_ENOUGH_MONEY.getRawMessage().contains("%d"))
+				Messages.KIT_NOT_ENOUGH_MONEY.setMessage(Messages.KIT_NOT_ENOUGH_MONEY.getRawMessage().replace("%d", "%.2f"));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 		this.getServer().getPluginManager().registerEvents((this.eventListener = new EventListener(this)), this);
 
 		if (ConfigController.getInstance().shouldCheckForUpdates()) {
@@ -253,7 +260,8 @@ public class KingKits extends JavaPlugin {
 				ex.printStackTrace();
 			}
 		}
-		if (!ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty()) ConfigController.getInstance().savePlayersConfig();
+		if (!ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty())
+			ConfigController.getInstance().savePlayersConfig();
 
 		Permissions.deinitialisePermissions();
 

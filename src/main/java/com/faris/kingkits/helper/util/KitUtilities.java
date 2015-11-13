@@ -169,7 +169,7 @@ public class KitUtilities {
 							playerBalance -= kit.getCost();
 							PlayerUtilities.setBalance(player, playerBalance);
 						} else {
-							Messages.sendMessage(player, Messages.KIT_NOT_ENOUGH_MONEY, playerBalance - kit.getCost());
+							Messages.sendMessage(player, Messages.KIT_NOT_ENOUGH_MONEY, kit.getCost() - playerBalance);
 							return;
 						}
 					}
