@@ -3,7 +3,6 @@ package com.faris.kingkits.controller;
 import com.faris.easysql.mysql.MySQLDetails;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
-import com.faris.kingkits.Messages;
 import com.faris.kingkits.config.CustomConfiguration;
 import com.faris.kingkits.helper.util.*;
 import com.faris.kingkits.old.OldKit;
@@ -699,7 +698,6 @@ public class ConfigController implements Controller {
 							FileConfiguration newMessagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
 							FileConfiguration oldMessagesConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
 
-							// TODO: Continue to migrate old messages config to new messages config.
 							newMessagesConfig.set("General.Command error", oldMessagesConfig.getString("Command.General.Error"));
 							newMessagesConfig.set("General.Command permission", oldMessagesConfig.getString("Command.General.No permission"));
 							newMessagesConfig.set("General.Command usage", oldMessagesConfig.getString("Command.General.Usage").replace("%s", "%s %s"));
@@ -744,6 +742,13 @@ public class ConfigController implements Controller {
 							if (oldConfigFile.exists()) {
 								FileConfiguration oldConfigYml = YamlConfiguration.loadConfiguration(oldConfigFile);
 								newMessagesConfig.set("Kit.Set", oldConfigYml.getString("Custom message"));
+							}
+							File oldEconomyFile = new File(oldFolder, "economy.yml");
+							if (oldEconomyFile.exists()) {
+								FileConfiguration oldEconomyYml = YamlConfiguration.loadConfiguration(oldEconomyFile);
+								if (oldEconomyYml.contains("Message")) newMessagesConfig.set("Economy.Kit cost", oldEconomyYml.getString("Message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f"));
+								if (oldEconomyYml.contains("Money per death message")) newMessagesConfig.set("Economy.Money per death", oldEconomyYml.getString("Money per death message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<killer>", "%s"));
+								if (oldEconomyYml.contains("Money per kill message")) newMessagesConfig.set("Economy.Money per kill", oldEconomyYml.getString("Money per kill message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<target>", "%s"));
 							}
 
 							newMessagesConfig.save(messagesFile);

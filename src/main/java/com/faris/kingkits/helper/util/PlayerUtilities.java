@@ -48,10 +48,6 @@ public class PlayerUtilities {
 			if (BukkitUtilities.hasPlugin("Vault")) {
 				VaultAPI.giveMoney(player, amount);
 				return true;
-			} else if (BukkitUtilities.hasPlugin("Essentials")) {
-				if (amount > 0D) BukkitUtilities.performCommand("eco give " + player.getName() + " " + amount);
-				else BukkitUtilities.performCommand("eco take " + player.getName() + " " + amount);
-				return true;
 			}
 		}
 		return false;

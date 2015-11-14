@@ -352,6 +352,7 @@ public class GuiController implements Controller {
 						if (playerBalance >= selectedKit.getCost()) {
 							playerBalance -= selectedKit.getCost();
 							PlayerUtilities.setBalance(player, playerBalance);
+							Messages.sendMessage(player, Messages.ECONOMY_COST_PER_KIT, selectedKit.getCost());
 						} else {
 							Messages.sendMessage(player, Messages.KIT_NOT_ENOUGH_MONEY, selectedKit.getCost() - playerBalance);
 							return;

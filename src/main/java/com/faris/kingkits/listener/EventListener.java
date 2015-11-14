@@ -331,10 +331,14 @@ public class EventListener implements Listener {
 					event.getEntity().getServer().dispatchCommand(event.getEntity().getServer().getConsoleSender(), commandToRun.replace("<player>", player.getName()).replace("<killer>", killer != null ? killer.getName() : ""));
 				}
 				if (ConfigController.getInstance().isEconomyEnabled()) {
-					if (ConfigController.getInstance().getMoneyPerDeath() != 0D)
+					if (ConfigController.getInstance().getMoneyPerDeath() != 0D) {
 						PlayerUtilities.incrementMoney(player, ConfigController.getInstance().getMoneyPerDeath());
-					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId()) && ConfigController.getInstance().getMoneyPerKill() != 0D)
+						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_DEATH, ConfigController.getInstance().getMoneyPerDeath(), killer != null ? killer.getName() : "unknown");
+					}
+					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId()) && ConfigController.getInstance().getMoneyPerKill() != 0D) {
 						PlayerUtilities.incrementMoney(killer, ConfigController.getInstance().getMoneyPerKill());
+						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(), player.getName());
+					}
 				}
 			}
 		} catch (Exception ex) {

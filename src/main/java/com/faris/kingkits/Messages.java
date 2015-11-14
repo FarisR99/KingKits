@@ -59,6 +59,10 @@ public enum Messages {
 	COMPASS_POINTING_PLAYER("Compass.Player", "&eYour compass is pointing at %s."),
 	COMPASS_POINTING_SPAWN("Compass.Spawn", "&eYour compass is pointing to spawn."),
 
+	ECONOMY_COST_PER_KIT("Economy.Kit cost", "&a$%.2f was taken from your balance."),
+	ECONOMY_MONEY_PER_DEATH("Economy.Money per death", "'&aYou lost $%.2f for being killed by %s."),
+	ECONOMY_MONEY_PER_KILL("Economy.Money per kill", "&aYou received $%.2f for killing %s."),
+
 	EVENT_BLOCK_BREAK("Event.Block.Break", "&cYou cannot break blocks here!"),
 	EVENT_BLOCK_PLACE("Event.Block.Place", "&cYou cannot place blocks here!"),
 

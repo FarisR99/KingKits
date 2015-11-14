@@ -145,6 +145,7 @@ public class CommandPvPKit extends KingKitsCommand {
 						if (playerBalance >= kit.getCost()) {
 							playerBalance -= kit.getCost();
 							PlayerUtilities.setBalance(player, playerBalance);
+							Messages.sendMessage(player, Messages.ECONOMY_COST_PER_KIT, kit.getCost());
 						} else {
 							Messages.sendMessage(player, Messages.KIT_NOT_ENOUGH_MONEY, kit.getCost() - playerBalance);
 							return;
