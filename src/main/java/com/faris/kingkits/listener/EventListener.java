@@ -74,7 +74,9 @@ public class EventListener implements Listener {
 						player.removePotionEffect(activePotionEffect.getType());
 				}
 				if (kitPlayer != null && kitPlayer.hasKit()) {
-					player.resetMaxHealth();
+					if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+						player.setHealth(PlayerUtilities.getDefaultMaxHealth());
+					player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 					if (kitPlayer.getKit().getWalkSpeed() != PlayerUtilities.getDefaultWalkSpeed())
 						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
 				}
@@ -244,7 +246,7 @@ public class EventListener implements Listener {
 														distance = player.getLocation().distanceSquared(target.getLocation());
 														nearestPlayer = target;
 													} else {
-														double distanceSquared = event.getPlayer().getLocation().distanceSquared(target.getLocation());
+														double distanceSquared = player.getLocation().distanceSquared(target.getLocation());
 														if (distanceSquared <= distance) {
 															distance = distanceSquared;
 															nearestPlayer = target;
@@ -254,11 +256,11 @@ public class EventListener implements Listener {
 											}
 										}
 										if (nearestPlayer != null) {
-											event.getPlayer().setCompassTarget(nearestPlayer.getLocation());
+											player.setCompassTarget(nearestPlayer.getLocation());
 											Messages.sendMessage(player, Messages.COMPASS_POINTING_PLAYER, nearestPlayer.getName());
 											CompassController.getInstance().setTarget(player.getUniqueId(), nearestPlayer.getUniqueId());
 										} else {
-											event.getPlayer().setCompassTarget(player.getWorld().getSpawnLocation());
+											player.setCompassTarget(player.getWorld().getSpawnLocation());
 											Messages.sendMessage(player, Messages.COMPASS_POINTING_SPAWN);
 											CompassController.getInstance().removeTarget(player.getUniqueId());
 										}
@@ -295,7 +297,9 @@ public class EventListener implements Listener {
 						for (PotionEffect activeEffect : player.getActivePotionEffects())
 							player.removePotionEffect(activeEffect.getType());
 
-						player.resetMaxHealth();
+						if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+							player.setHealth(PlayerUtilities.getDefaultMaxHealth());
+						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
@@ -337,12 +341,12 @@ public class EventListener implements Listener {
 				}
 				if (ConfigController.getInstance().isEconomyEnabled()) {
 					if (ConfigController.getInstance().getMoneyPerDeath() != 0D) {
-						PlayerUtilities.incrementMoney(player, ConfigController.getInstance().getMoneyPerDeath());
+						PlayerUtilities.incrementMoney(player, -ConfigController.getInstance().getMoneyPerDeath());
 						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_DEATH, ConfigController.getInstance().getMoneyPerDeath(), killer != null ? killer.getName() : "unknown");
 					}
 					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId()) && ConfigController.getInstance().getMoneyPerKill() != 0D) {
 						PlayerUtilities.incrementMoney(killer, ConfigController.getInstance().getMoneyPerKill());
-						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(), player.getName());
+						Messages.sendMessage(killer, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(), player.getName());
 					}
 				}
 			}
@@ -427,7 +431,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canDropItems() && (!event.getPlayer().isOp() || ConfigController.getInstance().canOpsBypass())) {
+				if (!ConfigController.getInstance().canDropItems() && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
 					if (!ConfigController.getInstance().getDropAnimationItems().contains(event.getItemDrop().getItemStack().getTypeId()))
 						event.setCancelled(true);
 					else event.getItemDrop().remove();
@@ -444,7 +448,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canPickupItems() && (!event.getPlayer().isOp() || ConfigController.getInstance().canOpsBypass())) {
+				if (!ConfigController.getInstance().canPickupItems() && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
 					event.setCancelled(true);
 				}
 			}
@@ -515,10 +519,14 @@ public class EventListener implements Listener {
 			if (!Utilities.isPvPWorld(player.getWorld())) {
 				final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 				if (kitPlayer != null) {
-					if (kitPlayer.hasKit()) event.getPlayer().resetMaxHealth();
+					if (kitPlayer.hasKit()) {
+						if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+							player.setHealth(PlayerUtilities.getDefaultMaxHealth());
+						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+					}
 					kitPlayer.setKit(null);
 
-					if (!ConfigController.getInstance().isMultiInventoriesPluginEnabled() && !event.getPlayer().getServer().getPluginManager().isPluginEnabled(ConfigController.getInstance().getMultiInventoriesPluginName())) {
+					if (!ConfigController.getInstance().isMultiInventoriesPluginEnabled() && !player.getServer().getPluginManager().isPluginEnabled(ConfigController.getInstance().getMultiInventoriesPluginName())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						player.updateInventory();
@@ -527,7 +535,7 @@ public class EventListener implements Listener {
 					}
 				}
 			} else if (ConfigController.getInstance().getPvPWorlds().contains("All") || !Utilities.isPvPWorld(event.getFrom())) {
-				if (!ConfigController.getInstance().isMultiInventoriesPluginEnabled() && !event.getPlayer().getServer().getPluginManager().isPluginEnabled(ConfigController.getInstance().getMultiInventoriesPluginName())) {
+				if (!ConfigController.getInstance().isMultiInventoriesPluginEnabled() && !player.getServer().getPluginManager().isPluginEnabled(ConfigController.getInstance().getMultiInventoriesPluginName())) {
 					player.getInventory().clear();
 					player.getInventory().setArmorContents(null);
 					player.updateInventory();

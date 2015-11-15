@@ -392,7 +392,11 @@ public class GuiController implements Controller {
 						}
 					}
 					player.setWalkSpeed(selectedKit.getWalkSpeed());
+					if (player.getHealth() > selectedKit.getMaxHealth())
+						player.setHealth(selectedKit.getMaxHealth());
 					player.setMaxHealth(selectedKit.getMaxHealth());
+					if (player.getHealth() == PlayerUtilities.getDefaultMaxHealth())
+						player.setHealth(selectedKit.getMaxHealth());
 					player.addPotionEffects(selectedKit.getPotionEffects());
 
 					for (String command : selectedKit.getCommands()) {

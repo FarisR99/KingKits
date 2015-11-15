@@ -15,7 +15,7 @@ Description:
 Cost: 0.0
 
 # The cooldown (in seconds) in using this kit.
-Cooldown: 0
+Cooldown: 0.0
 
 # The maximum health a player has when using this kit.
 Max health: 20.0

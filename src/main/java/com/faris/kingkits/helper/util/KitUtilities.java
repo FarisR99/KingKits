@@ -208,7 +208,11 @@ public class KitUtilities {
 						}
 					}
 					player.setWalkSpeed(kit.getWalkSpeed());
+					if (player.getHealth() > kit.getMaxHealth())
+						player.setHealth(kit.getMaxHealth());
 					player.setMaxHealth(kit.getMaxHealth());
+					if (player.getHealth() == PlayerUtilities.getDefaultMaxHealth())
+						player.setHealth(kit.getMaxHealth());
 					player.addPotionEffects(kit.getPotionEffects());
 
 					for (String command : kit.getCommands()) {

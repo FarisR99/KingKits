@@ -243,8 +243,11 @@ public class KingKits extends JavaPlugin {
 								player.removePotionEffect(potionEffect.getType());
 						}
 						if (ConfigController.getInstance().shouldRemoveItemsOnReload()) {
-							if (kitPlayer.hasKit() && kitPlayer.getKit().getMaxHealth() != PlayerUtilities.getDefaultMaxHealth())
-								player.resetMaxHealth();
+							if (kitPlayer.hasKit() && kitPlayer.getKit().getMaxHealth() != PlayerUtilities.getDefaultMaxHealth()) {
+								if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+									player.setHealth(PlayerUtilities.getDefaultMaxHealth());
+								player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+							}
 							player.getInventory().clear();
 							player.getInventory().setArmorContents(null);
 							player.updateInventory();

@@ -1,5 +1,6 @@
 package com.faris.kingkits;
 
+import com.faris.kingkits.controller.ConfigController;
 import com.faris.kingkits.helper.json.JsonSerializable;
 import com.faris.kingkits.helper.util.*;
 import com.google.gson.JsonPrimitive;
@@ -17,9 +18,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 	// Kit variables
 	private String kitName;
 	private List<String> kitDescription = new ArrayList<>();
-	private double kitCost = 0D;
-	private double kitCooldown = 0D;
-	private List<String> kitCommands = new ArrayList<>();
+	private double kitCost = ConfigController.getInstance().getKitDefaultCost();
+	private double kitCooldown = ConfigController.getInstance().getKitDefaultCooldown();
+	private List<String> kitCommands = ConfigController.getInstance().getKitDefaultCommands();
 	private boolean userKit = false;
 
 	// GUI variables
@@ -33,10 +34,10 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 	private Map<Integer, List<String>> killstreakCommands = new LinkedHashMap<>();
 
 	// Other
-	private boolean commandAlias = false;
-	private boolean itemBreaking = true;
-	private double maxHealth = PlayerUtilities.getDefaultMaxHealth();
-	private float walkSpeed = PlayerUtilities.getDefaultWalkSpeed();
+	private boolean commandAlias = ConfigController.getInstance().getKitDefaultCommandAlias();
+	private boolean itemBreaking = ConfigController.getInstance().getKitDefaultBreakableItems();
+	private double maxHealth = ConfigController.getInstance().getKitDefaultMaxHealth();
+	private float walkSpeed = ConfigController.getInstance().getKitDefaultWalkSpeed();
 	private int autoUnlockScore = -1;
 
 	public Kit(String kitName) {

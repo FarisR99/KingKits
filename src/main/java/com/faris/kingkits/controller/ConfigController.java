@@ -44,6 +44,14 @@ public class ConfigController implements Controller {
 	private ItemStack guiPreviousButton = new ItemStack(Material.STONE_BUTTON);
 	private ItemStack guiNextButton = new ItemStack(Material.STONE_BUTTON);
 
+	private boolean kitDefaultBreakableItems = true;
+	private boolean kitDefaultCommandAlias = false;
+	private List<String> kitDefaultCommands = new ArrayList<>();
+	private double kitDefaultCooldown = 0D;
+	private double kitDefaultCost = 0D;
+	private double kitDefaultMaxHealth = PlayerUtilities.getDefaultMaxHealth();
+	private float kitDefaultWalkSpeed = PlayerUtilities.getDefaultWalkSpeed();
+
 	private boolean multiInventoriesPlugin = false;
 	private String multiInventoriesPluginName = "";
 
@@ -141,10 +149,21 @@ public class ConfigController implements Controller {
 				this.put("Refill", true);
 			}}, "Enable/disable commands.");
 		}
+		if (!this.getConfig().contains("Economy"))
+			this.getConfig().createSection("Economy", "Economy settings", "Note: Vault is required if economy is enabled.");
 		this.getConfig().addDefault("Economy.Enabled", false);
-		this.getConfig().addDefault("Economy.Cost per refill", 2.5D);
-		this.getConfig().addDefault("Economy.Money per kill", 5D);
-		this.getConfig().addDefault("Economy.Money per death", 7.5D);
+		this.getConfig().addDefault("Economy.Cost per refill", 2.5D, "The cost of refilling each empty bowl.");
+		this.getConfig().addDefault("Economy.Money per kill", 5D, "The amount of money to give to a player when they kill another player.");
+		this.getConfig().addDefault("Economy.Money per death", 7.5D, "The amount of money to take when a player dies");
+		if (!this.getConfig().contains("Kit defaults"))
+			this.getConfig().createSection("Kit defaults", "Default kit options");
+		this.getConfig().addDefault("Kit defaults.Breakable items", true, "The value of this is the default value for \"Breakable items\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Command alias", false, "The value of this is the default value for \"Command alias\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Commands", new ArrayList<>(), "The value of this is the default value for \"Commands\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Cooldown", 0D, "The value of this is the default value for \"Cooldown\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Cost", 0D, "The value of this is the default value for \"Cost\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth(), "The value of this is the default value for \"Max health\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Walk speed", PlayerUtilities.getDefaultWalkSpeed(), "The value of this is the default value for \"Walk speed\" of a new kit.");
 		if (!this.getConfig().contains("Kit GUI")) this.getConfig().createSection("Kit GUI", "Kit GUI options");
 		this.getConfig().addDefault("Kit GUI.Size", 36, "The size of the GUI inventory.");
 		this.getConfig().addDefault("Kit GUI.Show on join", false, "Set to 'true' if the Kit GUI should open when a player joins.");
@@ -232,6 +251,13 @@ public class ConfigController implements Controller {
 		this.guiItemData = (short) this.getConfig().getInt("Kit GUI.GUI Item.Data", 0);
 		this.guiNextButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Next button")), new ItemStack(Material.STONE_BUTTON));
 		this.guiPreviousButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Previous button")), new ItemStack(Material.STONE_BUTTON));
+		this.kitDefaultBreakableItems = this.getConfig().getBoolean("Kit defaults.Breakable items", true);
+		this.kitDefaultCommandAlias = this.getConfig().getBoolean("Kit defaults.Command alias", false);
+		this.kitDefaultCommands = this.getConfig().getStringList("Kit defaults.Commands");
+		this.kitDefaultCooldown = this.getConfig().getDouble("Kit defaults.Cooldown", 0D);
+		this.kitDefaultCost = this.getConfig().getDouble("Kit defaults.Cost", 0D);
+		this.kitDefaultMaxHealth = this.getConfig().getDouble("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth());
+		this.kitDefaultWalkSpeed = (float) this.getConfig().getDouble("Kit defaults.Walk speed", (double) PlayerUtilities.getDefaultWalkSpeed());
 		this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
 		this.multiInventoriesPluginName = this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories");
 		this.scoreChatPrefix = ChatUtilities.replaceChatCodes(this.getConfig().getString("Score.Chat prefix", "&6[&a%d&6] &f"));
@@ -344,6 +370,34 @@ public class ConfigController implements Controller {
 
 	public int getGuiSize() {
 		return this.guiSize;
+	}
+
+	public boolean getKitDefaultBreakableItems() {
+		return this.kitDefaultBreakableItems;
+	}
+
+	public boolean getKitDefaultCommandAlias() {
+		return this.kitDefaultCommandAlias;
+	}
+
+	public List<String> getKitDefaultCommands() {
+		return this.kitDefaultCommands;
+	}
+
+	public double getKitDefaultCooldown() {
+		return this.kitDefaultCooldown;
+	}
+
+	public double getKitDefaultCost() {
+		return this.kitDefaultCost;
+	}
+
+	public double getKitDefaultMaxHealth() {
+		return this.kitDefaultMaxHealth;
+	}
+
+	public float getKitDefaultWalkSpeed() {
+		return this.kitDefaultWalkSpeed;
 	}
 
 	public String getKitListMode() {
