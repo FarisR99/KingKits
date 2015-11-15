@@ -73,7 +73,11 @@ public class EventListener implements Listener {
 					for (PotionEffect activePotionEffect : player.getActivePotionEffects())
 						player.removePotionEffect(activePotionEffect.getType());
 				}
-				if (kitPlayer != null && kitPlayer.hasKit()) player.resetMaxHealth();
+				if (kitPlayer != null && kitPlayer.hasKit()) {
+					player.resetMaxHealth();
+					if (kitPlayer.getKit().getWalkSpeed() != PlayerUtilities.getDefaultWalkSpeed())
+						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
+				}
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to reset " + player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " inventory and/or potion effects.", ex);
 			}
@@ -292,6 +296,7 @@ public class EventListener implements Listener {
 							player.removePotionEffect(activeEffect.getType());
 
 						player.resetMaxHealth();
+						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						player.updateInventory();

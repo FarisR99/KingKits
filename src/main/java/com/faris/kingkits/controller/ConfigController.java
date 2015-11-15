@@ -746,9 +746,12 @@ public class ConfigController implements Controller {
 							File oldEconomyFile = new File(oldFolder, "economy.yml");
 							if (oldEconomyFile.exists()) {
 								FileConfiguration oldEconomyYml = YamlConfiguration.loadConfiguration(oldEconomyFile);
-								if (oldEconomyYml.contains("Message")) newMessagesConfig.set("Economy.Kit cost", oldEconomyYml.getString("Message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f"));
-								if (oldEconomyYml.contains("Money per death message")) newMessagesConfig.set("Economy.Money per death", oldEconomyYml.getString("Money per death message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<killer>", "%s"));
-								if (oldEconomyYml.contains("Money per kill message")) newMessagesConfig.set("Economy.Money per kill", oldEconomyYml.getString("Money per kill message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<target>", "%s"));
+								if (oldEconomyYml.contains("Message"))
+									newMessagesConfig.set("Economy.Kit cost", oldEconomyYml.getString("Message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f"));
+								if (oldEconomyYml.contains("Money per death message"))
+									newMessagesConfig.set("Economy.Money per death", oldEconomyYml.getString("Money per death message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<killer>", "%s"));
+								if (oldEconomyYml.contains("Money per kill message"))
+									newMessagesConfig.set("Economy.Money per kill", oldEconomyYml.getString("Money per kill message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<target>", "%s"));
 							}
 
 							newMessagesConfig.save(messagesFile);

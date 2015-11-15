@@ -23,7 +23,7 @@ Max health: 20.0
 # The walk speed (maximum 1.0).
 Walk speed: 0.2
 
-# If 'true', items such as swords and armour won't be damaged (broken).
+# If 'false', items such as swords and armour won't be damaged (broken).
 Breakable items: true
 
 # A list of commands to run when a player uses this kit.
