@@ -395,7 +395,7 @@ public class GuiController implements Controller {
 					if (player.getHealth() > selectedKit.getMaxHealth())
 						player.setHealth(selectedKit.getMaxHealth());
 					player.setMaxHealth(selectedKit.getMaxHealth());
-					if (player.getHealth() == PlayerUtilities.getDefaultMaxHealth())
+					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
 						player.setHealth(selectedKit.getMaxHealth());
 					player.addPotionEffects(selectedKit.getPotionEffects());
 

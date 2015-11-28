@@ -186,7 +186,7 @@ public class CommandPvPKit extends KingKitsCommand {
 					if (player.getHealth() > kit.getMaxHealth())
 						player.setHealth(kit.getMaxHealth());
 					player.setMaxHealth(kit.getMaxHealth());
-					if (player.getHealth() == PlayerUtilities.getDefaultMaxHealth())
+					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
 						player.setHealth(kit.getMaxHealth());
 					player.addPotionEffects(kit.getPotionEffects());
 

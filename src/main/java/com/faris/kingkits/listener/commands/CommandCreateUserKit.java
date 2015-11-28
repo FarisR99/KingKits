@@ -96,6 +96,7 @@ public class CommandCreateUserKit extends KingKitsCommand {
 
 							if (searchResult.hasKit()) {
 								Kit kit = searchResult.getKit();
+								kit.setUserKit(true);
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setItems(kitItems);
 								kit.setArmour(kitArmour);
@@ -104,6 +105,7 @@ public class CommandCreateUserKit extends KingKitsCommand {
 								KitController.getInstance().saveKit(kit, kitPlayer.getUniqueId());
 							} else {
 								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects);
+								kit.setUserKit(true);
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setWalkSpeed(player.getWalkSpeed());
 								kit.setMaxHealth(player.getMaxHealth());

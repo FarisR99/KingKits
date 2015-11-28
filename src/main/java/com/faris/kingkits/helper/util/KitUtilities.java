@@ -40,8 +40,8 @@ public class KitUtilities {
 		List<Kit> kitList = new ArrayList<>();
 		if (kitName != null && kitPlayer != null) {
 			for (Map.Entry<String, Kit> kitEntry : kitPlayer.getKits().entrySet()) {
-				if (kitName.equals(kitEntry.getKey())) exactKit = kitEntry.getValue();
-				else if (kitName.equalsIgnoreCase(kitEntry.getKey())) kitList.add(kitEntry.getValue());
+				if (kitName.equals(kitEntry.getValue().getName())) exactKit = kitEntry.getValue();
+				else if (kitName.equalsIgnoreCase(kitEntry.getValue().getName())) kitList.add(kitEntry.getValue());
 			}
 		}
 		return new KitSearchResult(exactKit, kitList);
@@ -211,7 +211,7 @@ public class KitUtilities {
 					if (player.getHealth() > kit.getMaxHealth())
 						player.setHealth(kit.getMaxHealth());
 					player.setMaxHealth(kit.getMaxHealth());
-					if (player.getHealth() == PlayerUtilities.getDefaultMaxHealth())
+					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
 						player.setHealth(kit.getMaxHealth());
 					player.addPotionEffects(kit.getPotionEffects());
 
