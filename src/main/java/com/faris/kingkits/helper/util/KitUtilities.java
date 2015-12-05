@@ -128,20 +128,24 @@ public class KitUtilities {
 		}
 	}
 
-	public static void setKit(final Player player, Kit kit) {
-		if (player == null || kit == null) return;
+	public static boolean setKit(final Player player, Kit kit) {
+		return setKit(player, kit, false, false, false);
+	}
+
+	public static boolean setKit(final Player player, Kit kit, boolean ignoreOneKitPerLife, boolean ignoreCooldown, boolean ignoreCost) {
+		if (player == null || kit == null) return false;
 		final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
-		if (kitPlayer == null) return;
+		if (kitPlayer == null) return false;
 		try {
 			if (!Utilities.isPvPWorld(player.getWorld())) {
 				Messages.sendMessage(player, Messages.GENERAL_COMMAND_DISABLED);
-				return;
+				return false;
 			}
 			if (kit.isUserKit() || (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit))) {
-				if (ConfigController.getInstance().isOneKitPerLife()) {
+				if (!ignoreOneKitPerLife && ConfigController.getInstance().isOneKitPerLife()) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
-						return;
+						return false;
 					}
 				}
 
@@ -149,12 +153,12 @@ public class KitUtilities {
 				player.getServer().getPluginManager().callEvent(preEvent);
 				if (preEvent.isCancelled() || preEvent.getKit() == null) {
 					player.sendMessage(ChatColor.RED + "A plugin has cancelled the kit selection.");
-					return;
+					return false;
 				} else {
 					kit = preEvent.getKit();
 				}
 				long kitTimestamp = kit.isUserKit() ? -1L : kitPlayer.getKitTimestamp(kit);
-				if (kitTimestamp != -1L) {
+				if (!ignoreCooldown && kitTimestamp != -1L) {
 					if (kit.hasCooldown()) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (kit.getCooldown() * 1_000D)) {
 							kitPlayer.setKitTimestamp(kit, null);
@@ -162,8 +166,8 @@ public class KitUtilities {
 						}
 					}
 				}
-				if (kitTimestamp == -1L) {
-					if (kit.getCost() > 0D) {
+				if (ignoreCooldown || kitTimestamp == -1L) {
+					if (!ignoreCost && kit.getCost() > 0D) {
 						double playerBalance = PlayerUtilities.getBalance(player);
 						if (playerBalance >= kit.getCost()) {
 							playerBalance -= kit.getCost();
@@ -171,7 +175,7 @@ public class KitUtilities {
 							Messages.sendMessage(player, Messages.ECONOMY_COST_PER_KIT, kit.getCost());
 						} else {
 							Messages.sendMessage(player, Messages.KIT_NOT_ENOUGH_MONEY, kit.getCost() - playerBalance);
-							return;
+							return false;
 						}
 					}
 
@@ -235,10 +239,13 @@ public class KitUtilities {
 					GuiController.getInstance().openPreviewGUI(player, kit);
 				} else {
 					Messages.sendMessage(player, Messages.KIT_NO_PERMISSION, kit.getName());
+					return false;
 				}
 			}
+			return true;
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			return false;
 		}
 	}
 

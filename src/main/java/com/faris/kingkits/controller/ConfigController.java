@@ -173,7 +173,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Kit GUI.Next button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Next")));
 		this.getConfig().addDefault("Kit GUI.Previous button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Back")));
 		if (!this.getConfig().contains("Multi-inventories")) this.getConfig().createSection("Multi-inventories");
-		this.getConfig().addDefault("Multi-inventories.Enabled", BukkitUtilities.hasPlugin(this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories")), "Set this to 'false' if this plugin should handle player inventory clearing when a player changes worlds.");
+		this.getConfig().addDefault("Multi-inventories.Enabled", BukkitUtilities.hasPlugin(this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories")), "Set this to 'false' if this plugin should handle player inventory clearing when a player changes worlds. Set to 'true' if this plugin should not handle player inventories when changing worlds.");
 		this.getConfig().addDefault("Multi-inventories.Plugin", "Multiverse-Inventories", "The name of the plugin that handles inventories per world.");
 		this.getConfig().addDefault("Score.Chat prefix", "&6[&a%d&6] &f");
 		this.getConfig().addDefault("Score.Enabled", false);

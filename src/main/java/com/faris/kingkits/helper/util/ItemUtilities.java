@@ -24,9 +24,9 @@ public class ItemUtilities {
 			} else if (materialName.endsWith("_HELMET") || materialName.endsWith("_CHESTPLATE") || materialName.endsWith("_LEGGINGS") || materialName.endsWith("_BOOTS")) {
 				this.add(material);
 			}
-			this.add(Material.FLINT_AND_STEEL);
-			this.add(Material.FISHING_ROD);
 		}
+		this.add(Material.FLINT_AND_STEEL);
+		this.add(Material.FISHING_ROD);
 	}};
 
 	private ItemUtilities() {
