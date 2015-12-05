@@ -163,7 +163,7 @@ public class EventListener implements Listener {
 					if (Utilities.isPvPWorld(player.getWorld())) {
 						if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
 							if (ItemUtilities.getDamageableMaterials().contains(event.getItem().getType())) {
-								event.getItem().setDurability((short) 0);
+								event.getItem().setDurability((short) 1);
 							}
 						}
 					}
@@ -304,6 +304,8 @@ public class EventListener implements Listener {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						player.updateInventory();
+					} else {
+						event.setKeepInventory(true);
 					}
 					kitPlayer.onDeath();
 					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
@@ -361,14 +363,22 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			boolean deathInPvPWorld = Utilities.isPvPWorld(player.getWorld()) || Utilities.isPvPWorld(event.getRespawnLocation().getWorld());
 			if (deathInPvPWorld) {
-				if (ConfigController.getInstance().shouldShowGuiOnRespawn()) {
-					player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (player.isOnline() && Utilities.isPvPWorld(player.getWorld()))
-								GuiController.getInstance().openKitsMenu(player);
-						}
-					}, 5L);
+				KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+				if (kitPlayer != null) {
+					boolean showGUI = true;
+					if (!ConfigController.getInstance().shouldRemoveKitOnDeath()) {
+						if (kitPlayer.getKit() != null) showGUI = false;
+					}
+					if (showGUI && ConfigController.getInstance().shouldShowGuiOnRespawn()) {
+						kitPlayer.setKit(null);
+						player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
+							@Override
+							public void run() {
+								if (player.isOnline() && Utilities.isPvPWorld(player.getWorld()))
+									GuiController.getInstance().openKitsMenu(player);
+							}
+						}, 5L);
+					}
 				}
 			}
 		} catch (Exception ex) {
