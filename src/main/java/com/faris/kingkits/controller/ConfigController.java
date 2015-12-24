@@ -272,7 +272,7 @@ public class ConfigController implements Controller {
 		this.shouldPreventCreative = this.getConfig().getBoolean("Should.Prevent creative", true);
 		this.shouldRemoveKitOnDeath = this.getConfig().getBoolean("Should.Remove kit on death", true);
 		this.shouldRemoveItemsOnLeave = this.getConfig().getBoolean("Should.Remove kit on leave", true);
-		this.shouldRemoveItemsOnReload = this.getConfig().getBoolean("Should.Remove items on reload", true);
+		this.shouldRemoveItemsOnReload = this.getConfig().getBoolean("Should.Remove kit on reload", true);
 		this.shouldRemovePotionEffectsOnLeave = this.getConfig().getBoolean("Should.Remove potion effects on leave", true);
 		this.shouldRemovePotionEffectsOnReload = this.getConfig().getBoolean("Should.Remove potion effects on reload", true);
 		this.shouldSetCompassToNearestPlayer = this.getConfig().getBoolean("Should.Set compass to nearest player", false);
