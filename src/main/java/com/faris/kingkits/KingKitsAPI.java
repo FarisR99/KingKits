@@ -114,15 +114,28 @@ public class KingKitsAPI {
 	 * @return Whether a player is using the kit or not.
 	 */
 	public static boolean isUsingKit(String kitName, Player player, boolean allowUserKits) {
+		return isUsingKit(kitName, player, allowUserKits, false);
+	}
+
+	/**
+	 * Check if a player is using a specified kit (ignore case).
+	 *
+	 * @param kitName The kit's name
+	 * @param player The player
+	 * @param allowUserKits Whether to allow the checking of user kits too
+	 * @param ignoreCase Whether or not to ignore the case of the kit name
+	 * @return Whether a player is using the kit or not.
+	 */
+	public static boolean isUsingKit(String kitName, Player player, boolean allowUserKits, boolean ignoreCase) {
 		if (player != null) {
 			KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (kitPlayer != null) {
 				if (kitPlayer.hasKit()) {
 					Kit kit = kitPlayer.getKit();
 					if (!allowUserKits) {
-						return !kit.isUserKit() && kit.getName().equals(kitName);
+						return !kit.isUserKit() && (ignoreCase ? kit.getName().equalsIgnoreCase(kitName) : kit.getName().equals(kitName));
 					} else {
-						return kitName.equals(kit.getName());
+						return ignoreCase ? kit.getName().equalsIgnoreCase(kitName) : kit.getName().equals(kitName);
 					}
 				} else {
 					return kitName == null;

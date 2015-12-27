@@ -49,6 +49,7 @@ public class ConfigController implements Controller {
 	private List<String> kitDefaultCommands = new ArrayList<>();
 	private double kitDefaultCooldown = 0D;
 	private double kitDefaultCost = 0D;
+	private Map<Integer, List<String>> kitDefaultKillstreakCommands;
 	private double kitDefaultMaxHealth = PlayerUtilities.getDefaultMaxHealth();
 	private float kitDefaultWalkSpeed = PlayerUtilities.getDefaultWalkSpeed();
 
@@ -132,8 +133,8 @@ public class ConfigController implements Controller {
 			this.getConfig().createSection("Allow", "Allow/disallow (enable/disable) various things.");
 		this.getConfig().addDefault("Allow.Block modification", true, "Set to 'false' if you want players to not be able to break/place blocks.");
 		this.getConfig().addDefault("Allow.Death messages", true, "Set to 'false' if you want to disable vanilla death messages.");
-		this.getConfig().addDefault("Allow.Item dropping", false, "Set to 'false' if you want to ban players from dropping items.");
-		this.getConfig().addDefault("Allow.Item dropping on death", false, "Set to 'false' if you want to clear all items dropped when a player dies.");
+		this.getConfig().addDefault("Allow.Item dropping", true, "Set to 'false' if you want to ban players from dropping items.");
+		this.getConfig().addDefault("Allow.Item dropping on death", true, "Set to 'false' if you want to clear all items dropped when a player dies.");
 		this.getConfig().addDefault("Allow.Item picking up", true, "Set to 'false' if you want to ban players from picking up items.");
 		this.getConfig().addDefault("Allow.Quick soup", true, "Set to 'false' if you want to disable players from using mushroom stew to heal themselves.");
 		if (!this.getConfig().contains("Command")) {
@@ -162,6 +163,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Kit defaults.Commands", new ArrayList<>(), "The value of this is the default value for \"Commands\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Cooldown", 0D, "The value of this is the default value for \"Cooldown\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Cost", 0D, "The value of this is the default value for \"Cost\" of a new kit.");
+		this.getConfig().addDefault("Kit defaults.Killstreak commands", new LinkedHashMap<>(), "The value of this is the default value for \"Killstreak commands\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth(), "The value of this is the default value for \"Max health\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Walk speed", PlayerUtilities.getDefaultWalkSpeed(), "The value of this is the default value for \"Walk speed\" of a new kit.");
 		if (!this.getConfig().contains("Kit GUI")) this.getConfig().createSection("Kit GUI", "Kit GUI options");
@@ -173,7 +175,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Kit GUI.Next button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Next")));
 		this.getConfig().addDefault("Kit GUI.Previous button", ItemUtilities.serializeItem(ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "<colour>Back")));
 		if (!this.getConfig().contains("Multi-inventories")) this.getConfig().createSection("Multi-inventories");
-		this.getConfig().addDefault("Multi-inventories.Enabled", BukkitUtilities.hasPlugin(this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories")), "Set this to 'false' if this plugin should handle player inventory clearing when a player changes worlds. Set to 'true' if this plugin should not handle player inventories when changing worlds.");
+		this.getConfig().addDefault("Multi-inventories.Enabled", true, "Set this to 'false' if this plugin should handle player inventory clearing when a player changes worlds. Set to 'true' if this plugin should not handle player inventories when changing worlds.");
 		this.getConfig().addDefault("Multi-inventories.Plugin", "Multiverse-Inventories", "The name of the plugin that handles inventories per world.");
 		this.getConfig().addDefault("Score.Chat prefix", "&6[&a%d&6] &f");
 		this.getConfig().addDefault("Score.Enabled", false);
@@ -187,7 +189,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Should.Prevent creative", false, "If players should be prevented from going into Creative mode when using a kit.");
 		this.getConfig().addDefault("Should.Remove kit on death", true, "If this plugin should clear a player's inventory and their kit status when they die.");
 		this.getConfig().addDefault("Should.Remove kit on leave", true, "If a player's inventory should be cleared when they leave in a PvP world.");
-		this.getConfig().addDefault("Should.Remove items on reload", true, "If this plugin should clear all online players' inventories when this plugin is loaded.");
+		this.getConfig().addDefault("Should.Remove items on reload", false, "If this plugin should clear all online players' inventories when this plugin is loaded.");
 		this.getConfig().addDefault("Should.Remove potion effects on leave", true, "If all potion effects should be removed when a player leaves.");
 		this.getConfig().addDefault("Should.Remove potion effects on reload", true, "If all potion effects should be removed when this plugin is loaded.");
 		this.getConfig().addDefault("Should.Set compass to nearest player", false, "If right clicking a compass targets the nearest player.");
@@ -256,6 +258,7 @@ public class ConfigController implements Controller {
 		this.kitDefaultCommands = this.getConfig().getStringList("Kit defaults.Commands");
 		this.kitDefaultCooldown = this.getConfig().getDouble("Kit defaults.Cooldown", 0D);
 		this.kitDefaultCost = this.getConfig().getDouble("Kit defaults.Cost", 0D);
+		this.kitDefaultKillstreakCommands = this.convertKillstreaksCommands(ObjectUtilities.getMap(this.getConfig().get("Kit defaults.Killstreak commands")));
 		this.kitDefaultMaxHealth = this.getConfig().getDouble("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth());
 		this.kitDefaultWalkSpeed = (float) this.getConfig().getDouble("Kit defaults.Walk speed", (double) PlayerUtilities.getDefaultWalkSpeed());
 		this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
@@ -306,6 +309,33 @@ public class ConfigController implements Controller {
 		}
 
 		this.saveConfig();
+	}
+
+	private Map<Integer, List<String>> convertKillstreaksCommands(Map<String, Object> rawKillstreakCommands) {
+		Map<Integer, List<String>> killstreaksCommands = new LinkedHashMap<>();
+		for (Map.Entry<String, Object> killstreakEntry : rawKillstreakCommands.entrySet()) {
+			try {
+				if (killstreakEntry.getValue() instanceof List) {
+					String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring(11) : killstreakEntry.getKey();
+					if (Utilities.isNumber(Integer.class, strKillstreak)) {
+						int killstreak = Integer.parseInt(strKillstreak);
+						List<String> commands = Utilities.toStringList((List) killstreakEntry.getValue());
+						if (commands != null && !commands.isEmpty())
+							killstreaksCommands.put(killstreak, commands);
+					}
+				} else if (killstreakEntry.getValue() instanceof String) {
+					String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring(11) : killstreakEntry.getKey();
+					if (Utilities.isNumber(Integer.class, strKillstreak)) {
+						int killstreak = Integer.parseInt(strKillstreak);
+						String command = (String) killstreakEntry.getValue();
+						if (command != null && !command.isEmpty())
+							killstreaksCommands.put(killstreak, new ArrayList<>(Collections.singletonList(command)));
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		return killstreaksCommands;
 	}
 
 	public boolean canDropItems() {
@@ -390,6 +420,10 @@ public class ConfigController implements Controller {
 
 	public double getKitDefaultCost() {
 		return this.kitDefaultCost;
+	}
+
+	public Map<Integer, List<String>> getKitDefaultKillstreakCommands() {
+		return this.kitDefaultKillstreakCommands;
 	}
 
 	public double getKitDefaultMaxHealth() {
@@ -557,6 +591,7 @@ public class ConfigController implements Controller {
 	}
 
 	private File configFile = null;
+
 	private CustomConfiguration config = null;
 
 	public CustomConfiguration getConfig() {
@@ -580,6 +615,7 @@ public class ConfigController implements Controller {
 	}
 
 	private File playersFile = null;
+
 	private FileConfiguration playersConfig = null;
 
 	public void deletePlayersConfig() {

@@ -163,7 +163,7 @@ public class EventListener implements Listener {
 					if (Utilities.isPvPWorld(player.getWorld())) {
 						if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
 							if (ItemUtilities.getDamageableMaterials().contains(event.getItem().getType())) {
-								event.getItem().setDurability((short) 1);
+								event.getItem().setDurability((short) 0);
 							}
 						}
 					}
@@ -361,7 +361,7 @@ public class EventListener implements Listener {
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		try {
 			final Player player = event.getPlayer();
-			boolean deathInPvPWorld = Utilities.isPvPWorld(player.getWorld()) || Utilities.isPvPWorld(event.getRespawnLocation().getWorld());
+			boolean deathInPvPWorld = Utilities.isPvPWorld(event.getRespawnLocation().getWorld());
 			if (deathInPvPWorld) {
 				KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 				if (kitPlayer != null) {
@@ -652,7 +652,7 @@ public class EventListener implements Listener {
 									public void run() {
 										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInHand().getType())) {
 											ItemStack itemInHand = damager.getInventory().getItemInHand();
-											itemInHand.setDurability((short) 1);
+											itemInHand.setDurability((short) 0);
 											damager.setItemInHand(itemInHand);
 											damager.updateInventory();
 										}
@@ -673,7 +673,7 @@ public class EventListener implements Listener {
 							for (int armourIndex = 0; armourIndex < armourContents.length; armourIndex++) {
 								ItemStack armour = armourContents[armourIndex];
 								if (ItemUtilities.getDamageableMaterials().contains(damaged.getInventory().getItemInHand().getType())) {
-									armour.setDurability((short) 1);
+									armour.setDurability((short) 0);
 									armourContents[armourIndex] = armour;
 								}
 							}
@@ -703,7 +703,7 @@ public class EventListener implements Listener {
 			public void run() {
 				if (player.isOnline()) {
 					try {
-						if (ConfigController.getInstance().shouldShowGuiOnJoin()) {
+						if (ConfigController.getInstance().shouldShowGuiOnJoin() && Utilities.isPvPWorld(player.getWorld())) {
 							tasksJoinKitMenu.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
 								@SuppressWarnings("deprecation")
 								public void run() {
@@ -726,7 +726,7 @@ public class EventListener implements Listener {
 					if (kitPlayer.isLoaded()) {
 						break;
 					} else if (System.currentTimeMillis() - currentTime > 5_000L) {
-						player.kickPlayer(ChatColor.RED + "Server took too long to respond.");
+						player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond.");
 						return;
 					}
 				}

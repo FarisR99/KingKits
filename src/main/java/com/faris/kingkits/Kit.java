@@ -31,7 +31,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 	private Map<Integer, ItemStack> kitItems = new HashMap<>();
 	private ItemStack[] kitArmour = new ItemStack[4];
 	private List<PotionEffect> potionEffects = new ArrayList<>();
-	private Map<Integer, List<String>> killstreakCommands = new LinkedHashMap<>();
+	private Map<Integer, List<String>> killstreakCommands = ConfigController.getInstance().getKitDefaultKillstreakCommands();
 
 	// Other
 	private boolean commandAlias = ConfigController.getInstance().getKitDefaultCommandAlias();
@@ -349,8 +349,8 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		return serializedMap;
 	}
 
-	public static Kit deserialize(Map<String, Object> serializedKit) {
-		Kit deserializedKit = null;
+	public static Kit deserialize(final Map<String, Object> serializedKit) {
+		final Kit deserializedKit;
 		if (serializedKit != null && serializedKit.get("Name") != null) {
 			deserializedKit = new Kit(ObjectUtilities.getObject(serializedKit, String.class, "Name"));
 			if (serializedKit.containsKey("Command alias"))
@@ -359,8 +359,14 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				deserializedKit.setDescription(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Description")));
 			if (serializedKit.containsKey("Cost"))
 				deserializedKit.setCost(ObjectUtilities.getObject(serializedKit, Double.class, "Cost", 0D));
-			if (serializedKit.containsKey("Cooldown"))
-				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Double.class, "Cooldown", 0D));
+			if (serializedKit.containsKey("Cooldown")) {
+				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Double.class, "Cooldown", 0D, new Runnable() {
+					@Override
+					public void run() {
+						deserializedKit.setCooldown((double) ObjectUtilities.getObject(serializedKit, Long.class, "Cooldown", 0L));
+					}
+				}));
+			}
 			if (serializedKit.containsKey("Max health"))
 				deserializedKit.setMaxHealth(ObjectUtilities.getObject(serializedKit, Double.class, "Max health", PlayerUtilities.getDefaultMaxHealth()));
 			if (serializedKit.containsKey("Walk speed"))
@@ -470,6 +476,8 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				}
 				deserializedKit.setPotionEffects(potionEffects);
 			}
+		} else {
+			deserializedKit = null;
 		}
 		return deserializedKit;
 	}

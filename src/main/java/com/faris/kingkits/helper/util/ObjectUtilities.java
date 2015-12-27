@@ -60,6 +60,25 @@ public class ObjectUtilities {
 		return defaultValue;
 	}
 
+	public static <K, V, T> T getObject(Map<K, V> map, Class<T> unused, K key, T defaultValue, Runnable error) {
+		try {
+			V value = map.get(key);
+			if (value != null) {
+				if (unused == Boolean.class) return unused.cast(Boolean.valueOf(Objects.toString(value)));
+				else if (unused == Byte.class) return unused.cast(Byte.valueOf(Objects.toString(value)));
+				else if (unused == Float.class) return unused.cast(Float.valueOf(Objects.toString(value)));
+				else if (unused == Integer.class) return unused.cast(Integer.valueOf(Objects.toString(value)));
+				else if (unused == Long.class) return unused.cast(Long.valueOf(Objects.toString(value)));
+				else if (unused == Short.class) return unused.cast(Short.valueOf(Objects.toString(value)));
+				else if (unused == String.class) return unused.cast(toString(value));
+				else return unused.cast(value);
+			}
+		} catch (Exception ignored) {
+			error.run();
+		}
+		return defaultValue;
+	}
+
 	public static Map<String, Object> getMap(Object objMap) {
 		if (objMap instanceof ConfigurationSection) {
 			return ((ConfigurationSection) objMap).getValues(false);

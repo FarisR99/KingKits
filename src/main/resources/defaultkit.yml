@@ -35,7 +35,7 @@ Commands:
 # Commands to run when a player reaches a defined killstreak.
 Killstreak commands:
   Killstreak 10:
-  - broadcast &4<player> &6is on a mad one with a 10 killstreak!
+  - broadcast &4<player> &6is on a rampage with a 10 killstreak!
 
 # Position - The position of the kit GUI item in the GUI. Set to -1 for a random order.
 # Item - The item to show in the Kit GUI that represents this kit.

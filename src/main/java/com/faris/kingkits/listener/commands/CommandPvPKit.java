@@ -17,7 +17,8 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.potion.*;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -169,16 +170,16 @@ public class CommandPvPKit extends KingKitsCommand {
 						}
 						player.getInventory().setArmorContents(kit.getArmour());
 					} else {
-						Map<Integer, ItemStack> itemsToDrop = new LinkedHashMap<>();
+						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : kit.getItems().values()) {
-							itemsToDrop.putAll(player.getInventory().addItem(kitItem));
+							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
 						for (ItemStack kitArmour : kit.getArmour()) {
 							if (!ItemUtilities.isNull(kitArmour))
-								itemsToDrop.putAll(player.getInventory().addItem(kitArmour));
+								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
 						}
 						if (ConfigController.getInstance().shouldDropItemsOnFullInventory()) {
-							for (ItemStack itemToDrop : itemsToDrop.values())
+							for (ItemStack itemToDrop : itemsToDrop)
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
 						}
 					}
