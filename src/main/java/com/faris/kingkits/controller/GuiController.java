@@ -229,7 +229,26 @@ public class GuiController implements Controller {
 							if (!PlayerUtilities.checkPlayer(player, kitPlayer)) return;
 							player.closeInventory();
 
-							setKit(clickedKit, player, kitPlayer, true);
+							// TODO: RIGHT CLICK = Preview kits.
+							if (event.getClick() != ClickType.RIGHT) {
+								setKit(clickedKit, player, kitPlayer, true);
+							} else {
+								final UUID playerUUID = player.getUniqueId();
+								final Inventory previewKitInventory = createKitPreviewInventory(player, clickedKit);
+								final Kit finalKit = clickedKit;
+								player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
+									@Override
+									public void run() {
+										if (player.isOnline()) {
+											player.openInventory(previewKitInventory);
+											guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
+											guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName()));
+										} else {
+											guiKits.remove(playerUUID);
+										}
+									}
+								});
+							}
 						} else {
 							if (event.getRawSlot() == event.getInventory().getSize() - 9) {
 								if (guiKit.hasPrevious()) {
@@ -337,7 +356,7 @@ public class GuiController implements Controller {
 				} else {
 					selectedKit = preEvent.getKit();
 				}
-				long kitTimestamp = selectedKit.isUserKit() ? -1L : kitPlayer.getKitTimestamp(selectedKit);
+				long kitTimestamp = selectedKit.isUserKit() || (player.isOp() && ConfigController.getInstance().canOpsBypass()) ? -1L : kitPlayer.getKitTimestamp(selectedKit);
 				if (kitTimestamp != -1L) {
 					if (selectedKit.hasCooldown()) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (selectedKit.getCooldown() * 1_000D)) {
@@ -347,7 +366,7 @@ public class GuiController implements Controller {
 					}
 				}
 				if (kitTimestamp == -1L) {
-					if (selectedKit.getCost() > 0D) {
+					if (selectedKit.getCost() > 0D && (!player.isOp() || !ConfigController.getInstance().canOpsBypass())) {
 						double playerBalance = PlayerUtilities.getBalance(player);
 						if (playerBalance >= selectedKit.getCost()) {
 							playerBalance -= selectedKit.getCost();
@@ -394,9 +413,11 @@ public class GuiController implements Controller {
 					player.setWalkSpeed(selectedKit.getWalkSpeed());
 					if (player.getHealth() > selectedKit.getMaxHealth())
 						player.setHealth(selectedKit.getMaxHealth());
-					player.setMaxHealth(selectedKit.getMaxHealth());
-					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
-						player.setHealth(selectedKit.getMaxHealth());
+					if (ConfigController.getInstance().shouldSetMaxHealth()) {
+						player.setMaxHealth(selectedKit.getMaxHealth());
+						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
+							player.setHealth(selectedKit.getMaxHealth());
+					}
 					player.addPotionEffects(selectedKit.getPotionEffects());
 
 					for (String command : selectedKit.getCommands()) {

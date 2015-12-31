@@ -129,7 +129,7 @@ public class KitUtilities {
 	}
 
 	public static boolean setKit(final Player player, Kit kit) {
-		return setKit(player, kit, false, false, false);
+		return setKit(player, kit, false, player != null && player.isOp() && ConfigController.getInstance().canOpsBypass(), player != null && player.isOp() && ConfigController.getInstance().canOpsBypass());
 	}
 
 	public static boolean setKit(final Player player, Kit kit, boolean ignoreOneKitPerLife, boolean ignoreCooldown, boolean ignoreCost) {
@@ -214,9 +214,11 @@ public class KitUtilities {
 					player.setWalkSpeed(kit.getWalkSpeed());
 					if (player.getHealth() > kit.getMaxHealth())
 						player.setHealth(kit.getMaxHealth());
-					player.setMaxHealth(kit.getMaxHealth());
-					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
-						player.setHealth(kit.getMaxHealth());
+					if (ConfigController.getInstance().shouldSetMaxHealth()) {
+						player.setMaxHealth(kit.getMaxHealth());
+						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
+							player.setHealth(kit.getMaxHealth());
+					}
 					player.addPotionEffects(kit.getPotionEffects());
 
 					for (String command : kit.getCommands()) {

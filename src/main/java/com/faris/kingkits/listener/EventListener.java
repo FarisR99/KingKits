@@ -76,7 +76,8 @@ public class EventListener implements Listener {
 				if (kitPlayer != null && kitPlayer.hasKit()) {
 					if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 						player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-					player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+					if (ConfigController.getInstance().shouldSetMaxHealth())
+						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 					if (kitPlayer.getKit().getWalkSpeed() != PlayerUtilities.getDefaultWalkSpeed())
 						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
 				}
@@ -299,7 +300,8 @@ public class EventListener implements Listener {
 
 						if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 							player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+						if (ConfigController.getInstance().shouldSetMaxHealth())
+							player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
@@ -532,7 +534,8 @@ public class EventListener implements Listener {
 					if (kitPlayer.hasKit()) {
 						if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 							player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+						if (ConfigController.getInstance().shouldSetMaxHealth())
+							player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 					}
 					kitPlayer.setKit(null);
 
@@ -725,8 +728,16 @@ public class EventListener implements Listener {
 				while (true) {
 					if (kitPlayer.isLoaded()) {
 						break;
-					} else if (System.currentTimeMillis() - currentTime > 5_000L) {
-						player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond.");
+					} else if (System.currentTimeMillis() - currentTime > 7_500L) {
+						player.getServer().getScheduler().runTask(plugin, new Runnable() {
+							@Override
+							public void run() {
+								if (player.isOnline()) {
+									player.getServer().broadcastMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
+									player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
+								}
+							}
+						});
 						return;
 					}
 				}

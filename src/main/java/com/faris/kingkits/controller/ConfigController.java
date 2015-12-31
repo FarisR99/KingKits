@@ -70,6 +70,7 @@ public class ConfigController implements Controller {
 	private boolean allowItemDroppingOnDeath = false;
 	private boolean allowOpBypass = true;
 	private boolean allowQuickSoup = true;
+	private boolean allowRightClickPreview = true;
 	private boolean economyEnabled = false;
 	private double economyCostPerRefill = 2.5D;
 	private double economyMoneyPerKill = 5D, economyMoneyPerDeath = 7.5D;
@@ -89,6 +90,7 @@ public class ConfigController implements Controller {
 	private boolean shouldSortKitsAlphanumerically = false;
 	private boolean shouldSetCompassToNearestPlayer = false;
 	private boolean shouldSetDefaultGamemodeOnKitSelection = true;
+	private boolean shouldSetMaxHealth = true;
 	private boolean shouldUsePermissionsForKitList = true;
 
 	private double quickSoupHeal = 5D;
@@ -137,6 +139,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Allow.Item dropping on death", true, "Set to 'false' if you want to clear all items dropped when a player dies.");
 		this.getConfig().addDefault("Allow.Item picking up", true, "Set to 'false' if you want to ban players from picking up items.");
 		this.getConfig().addDefault("Allow.Quick soup", true, "Set to 'false' if you want to disable players from using mushroom stew to heal themselves.");
+		this.getConfig().addDefault("Allow.Right click preview", true, "Set to 'false' if you do not want players to be able to right click a kit in the GUI to preview it.");
 		if (!this.getConfig().contains("Command")) {
 			this.getConfig().set("Command", new LinkedHashMap<String, Boolean>() {{
 				this.put("Kit", true);
@@ -193,6 +196,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Should.Remove potion effects on leave", true, "If all potion effects should be removed when a player leaves.");
 		this.getConfig().addDefault("Should.Remove potion effects on reload", true, "If all potion effects should be removed when this plugin is loaded.");
 		this.getConfig().addDefault("Should.Set compass to nearest player", false, "If right clicking a compass targets the nearest player.");
+		this.getConfig().addDefault("Should.Set max health to kit max health", true, "If this plugin should set the player's max health to the max health set in the kit config.");
 		this.getConfig().addDefault("Should.Set to default gamemode on kit selection", true, "Whether or not to set the player's gamemode to the server's default when they choose a kit.");
 		this.getConfig().addDefault("Should.Show kit preview", true, "If a GUI opens up with a list of all the items in a kit when a player chooses a kit that they do not have permission to use.");
 		this.getConfig().addDefault("Should.Sort kits alphanumerically", false, "If the list of kits should be sorted alphanumerically.");
@@ -231,6 +235,7 @@ public class ConfigController implements Controller {
 		this.allowItemDroppingOnDeath = this.getConfig().getBoolean("Allow.Item dropping on death", true);
 		this.allowItemPicking = this.getConfig().getBoolean("Allow.Item picking up", true);
 		this.allowQuickSoup = this.getConfig().getBoolean("Allow.Quick soup", true);
+		this.allowRightClickPreview = this.getConfig().getBoolean("Allow.Right click preview", true);
 		this.kkCommands = new boolean[]{
 				this.getConfig().getBoolean("Command.Kit", true),
 				this.getConfig().getBoolean("Command.Kit create", true),
@@ -280,6 +285,7 @@ public class ConfigController implements Controller {
 		this.shouldRemovePotionEffectsOnReload = this.getConfig().getBoolean("Should.Remove potion effects on reload", true);
 		this.shouldSetCompassToNearestPlayer = this.getConfig().getBoolean("Should.Set compass to nearest player", false);
 		this.shouldSetDefaultGamemodeOnKitSelection = this.getConfig().getBoolean("Should.Set to default gamemode on kit selection", true);
+		this.shouldSetMaxHealth = this.getConfig().getBoolean("Should.Set max health to kit max health", true);
 		this.shouldShowKitPreview = this.getConfig().getBoolean("Should.Show kit preview", true);
 		this.shouldSortKitsAlphanumerically = this.getConfig().getBoolean("Should.Sort kits alphanumerically", false);
 		this.shouldUsePermissionsForKitList = this.getConfig().getBoolean("Should.Use permissions for kit list", true);
@@ -558,6 +564,18 @@ public class ConfigController implements Controller {
 		return this.shouldRemovePotionEffectsOnReload;
 	}
 
+	public boolean shouldSetCompassToNearestPlayer() {
+		return this.shouldSetCompassToNearestPlayer;
+	}
+
+	public boolean shouldSetDefaultGamemodeOnKitSelection() {
+		return this.shouldSetDefaultGamemodeOnKitSelection;
+	}
+
+	public boolean shouldSetMaxHealth() {
+		return this.shouldSetMaxHealth;
+	}
+
 	public boolean shouldShowDeathMessages() {
 		return this.allowDeathMessages;
 	}
@@ -568,14 +586,6 @@ public class ConfigController implements Controller {
 
 	public boolean shouldShowGuiOnRespawn() {
 		return this.guiShowOnRespawn;
-	}
-
-	public boolean shouldSetCompassToNearestPlayer() {
-		return this.shouldSetCompassToNearestPlayer;
-	}
-
-	public boolean shouldSetDefaultGamemodeOnKitSelection() {
-		return this.shouldSetDefaultGamemodeOnKitSelection;
 	}
 
 	public boolean shouldShowKitPreview() {

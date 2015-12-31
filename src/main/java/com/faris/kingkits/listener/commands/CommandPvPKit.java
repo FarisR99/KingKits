@@ -131,7 +131,7 @@ public class CommandPvPKit extends KingKitsCommand {
 				} else {
 					kit = preEvent.getKit();
 				}
-				long kitTimestamp = kitPlayer.getKitTimestamp(kit);
+				long kitTimestamp = player.isOp() && ConfigController.getInstance().canOpsBypass() ? -1L : kitPlayer.getKitTimestamp(kit);
 				if (kit.hasCooldown()) {
 					if (kitTimestamp != -1L) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (kit.getCooldown() * 1_000D)) {
@@ -141,7 +141,7 @@ public class CommandPvPKit extends KingKitsCommand {
 					}
 				}
 				if (kitTimestamp == -1L) {
-					if (kit.getCost() > 0D) {
+					if (kit.getCost() > 0D && (!player.isOp() || !ConfigController.getInstance().canOpsBypass())) {
 						double playerBalance = PlayerUtilities.getBalance(player);
 						if (playerBalance >= kit.getCost()) {
 							playerBalance -= kit.getCost();
@@ -186,7 +186,7 @@ public class CommandPvPKit extends KingKitsCommand {
 					player.setWalkSpeed(kit.getWalkSpeed());
 					if (player.getHealth() > kit.getMaxHealth())
 						player.setHealth(kit.getMaxHealth());
-					player.setMaxHealth(kit.getMaxHealth());
+					if (ConfigController.getInstance().shouldSetMaxHealth()) player.setMaxHealth(kit.getMaxHealth());
 					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
 						player.setHealth(kit.getMaxHealth());
 					player.addPotionEffects(kit.getPotionEffects());
