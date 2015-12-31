@@ -246,7 +246,7 @@ public class KingKits extends JavaPlugin {
 							if (kitPlayer.hasKit() && kitPlayer.getKit().getMaxHealth() != PlayerUtilities.getDefaultMaxHealth()) {
 								if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 									player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-								player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+								if (ConfigController.getInstance().shouldSetMaxHealth()) player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 							}
 							player.getInventory().clear();
 							player.getInventory().setArmorContents(null);
