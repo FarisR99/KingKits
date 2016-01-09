@@ -19,6 +19,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.potion.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -312,10 +313,23 @@ public class EventListener implements Listener {
 					kitPlayer.onDeath();
 					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
 						kitPlayer.setScore(Math.min(Math.max(kitPlayer.getScore() + ConfigController.getInstance().getScorePerDeath(), 0), ConfigController.getInstance().getMaxScore()));
-
 						final KitPlayer killerPlayer = PlayerController.getInstance().getPlayer(killer);
 						if (killerPlayer != null) {
-							killerPlayer.incrementKillstreak();
+							if (killerPlayer.getKit() != null) {
+								killerPlayer.incrementKillstreak();
+								if (killerPlayer.getKit().getKillstreaks().containsKey(killerPlayer.getKillstreak())) {
+									List<String> killstreakCmds = killerPlayer.getKit().getKillstreaks().get(killerPlayer.getKillstreak());
+									if (killstreakCmds != null) {
+										for (String killstreakCmd : killstreakCmds) {
+											try {
+												killer.getServer().dispatchCommand(killer.getServer().getConsoleSender(), killstreakCmd.replace("<player>", killer.getName()).replace("<username>", killer.getName()).replace("<name>", killer.getName()).replace("<killstreak>", String.valueOf(killerPlayer.getKillstreak())));
+											} catch (Exception ex) {
+												ex.printStackTrace();
+											}
+										}
+									}
+								}
+							}
 							killerPlayer.setScore(Math.min(Math.max(killerPlayer.getScore() + ConfigController.getInstance().getScorePerKill(), 0), ConfigController.getInstance().getMaxScore()));
 							try {
 								for (Kit kit : KitController.getInstance().getKits().values()) {
@@ -733,7 +747,9 @@ public class EventListener implements Listener {
 							@Override
 							public void run() {
 								if (player.isOnline()) {
-									player.getServer().broadcastMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
+									for (Player onlinePlayer : player.getServer().getOnlinePlayers()) {
+										if (onlinePlayer.isOp() || onlinePlayer.hasPermission("*")) onlinePlayer.sendMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
+									}
 									player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
 								}
 							}

@@ -154,12 +154,23 @@ public class GuiController implements Controller {
 	public void openKitsMenu(Player player) {
 		if (player != null && !this.guiViewers.containsKey(player.getUniqueId())) {
 			player.closeInventory();
-			Inventory inventory = this.createKitsMenuInventory(player);
-			if (inventory != null) {
-				this.guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS_MENU);
-				player.openInventory(inventory);
+			KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+			if (kitPlayer != null && kitPlayer.getKits().isEmpty()) {
+				Inventory inventory = this.createKitsInventory(player);
+				if (inventory != null) {
+					this.guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS);
+					player.openInventory(inventory);
+				} else {
+					this.guiKits.remove(player.getUniqueId());
+				}
 			} else {
-				this.guiKits.remove(player.getUniqueId());
+				Inventory inventory = this.createKitsMenuInventory(player);
+				if (inventory != null) {
+					this.guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS_MENU);
+					player.openInventory(inventory);
+				} else {
+					this.guiKits.remove(player.getUniqueId());
+				}
 			}
 		}
 	}
