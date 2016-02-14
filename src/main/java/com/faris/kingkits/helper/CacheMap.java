@@ -50,7 +50,7 @@ public class CacheMap<K, V> {
 		private final long expires;
 
 		public CachedEntry(V value, long expireTime) {
-			this.value = new SoftReference<V>(value);
+			this.value = new SoftReference<>(value);
 			this.expires = expireTime + System.currentTimeMillis();
 		}
 

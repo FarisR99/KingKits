@@ -234,7 +234,7 @@ public class KitUtilities {
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, kit));
 					Messages.sendMessage(player, Messages.KIT_SET, kit.getName());
 				} else {
-					PlayerUtilities.sendKitDelayMesasge(player, kit, kitTimestamp);
+					PlayerUtilities.sendKitDelayMessage(player, kit, kitTimestamp);
 				}
 			} else {
 				if (ConfigController.getInstance().shouldShowKitPreview()) {

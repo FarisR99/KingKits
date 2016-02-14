@@ -358,21 +358,15 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			if (serializedKit.containsKey("Description"))
 				deserializedKit.setDescription(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Description")));
 			if (serializedKit.containsKey("Cost"))
-				deserializedKit.setCost(ObjectUtilities.getObject(serializedKit, Double.class, "Cost", 0D));
-			if (serializedKit.containsKey("Cooldown")) {
-				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Double.class, "Cooldown", 0D, new Runnable() {
-					@Override
-					public void run() {
-						deserializedKit.setCooldown((double) ObjectUtilities.getObject(serializedKit, Long.class, "Cooldown", 0L));
-					}
-				}));
-			}
+				deserializedKit.setCost(ObjectUtilities.getObject(serializedKit, Number.class, "Cost", 0D).doubleValue());
+			if (serializedKit.containsKey("Cooldown"))
+				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Number.class, "Cooldown", 0D).doubleValue());
 			if (serializedKit.containsKey("Max health"))
-				deserializedKit.setMaxHealth(ObjectUtilities.getObject(serializedKit, Double.class, "Max health", PlayerUtilities.getDefaultMaxHealth()));
+				deserializedKit.setMaxHealth(ObjectUtilities.getObject(serializedKit, Number.class, "Max health", PlayerUtilities.getDefaultMaxHealth()).doubleValue());
 			if (serializedKit.containsKey("Walk speed"))
-				deserializedKit.setWalkSpeed(ObjectUtilities.getObject(serializedKit, Float.class, "Walk speed", PlayerUtilities.getDefaultWalkSpeed()));
+				deserializedKit.setWalkSpeed(ObjectUtilities.getObject(serializedKit, Number.class, "Walk speed", PlayerUtilities.getDefaultWalkSpeed()).floatValue());
 			if (serializedKit.containsKey("Auto-unlock score"))
-				deserializedKit.setAutoUnlockScore(ObjectUtilities.getObject(serializedKit, Integer.class, "Auto-unlock score", -1));
+				deserializedKit.setAutoUnlockScore(ObjectUtilities.getObject(serializedKit, Number.class, "Auto-unlock score", -1).intValue());
 			if (serializedKit.containsKey("Breakable items"))
 				deserializedKit.setItemsBreakable(ObjectUtilities.getObject(serializedKit, Boolean.class, "Breakable items", true));
 			if (serializedKit.containsKey("Commands"))
@@ -507,8 +501,8 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		if (serializedPotion != null && serializedPotion.containsKey("Type")) {
 			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
 			if (potionEffectType != null) {
-				int level = ObjectUtilities.getObject(serializedPotion, Integer.class, "Level", 0);
-				int duration = ObjectUtilities.getObject(serializedPotion, Integer.class, "Duration", -1);
+				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
+				int duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).intValue();
 				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
 				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
 				return new PotionEffect(potionEffectType, duration != -1 ? duration * 20 : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles);

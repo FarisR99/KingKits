@@ -76,6 +76,7 @@ public class ConfigController implements Controller {
 	private double economyMoneyPerKill = 5D, economyMoneyPerDeath = 7.5D;
 	private boolean oneKitPerLife = false;
 	private boolean scoreEnabled = false;
+	private boolean shouldAutoRespawn = false;
 	private boolean shouldClearItemsOnKitSelection = true;
 	private boolean shouldDecreaseScoreOnAutoUnlock = false;
 	private boolean shouldDropItemsOnFullInventory = false;
@@ -185,6 +186,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Score.Max", Integer.MAX_VALUE);
 		this.getConfig().addDefault("Score.Per death", 0);
 		this.getConfig().addDefault("Score.Per kill", 2);
+		this.getConfig().addDefault("Should.Auto-respawn", false, "If a player should automatically respawn when they die, without the respawn GUI showing up.");
 		this.getConfig().addDefault("Should.Clear items on kit selection", true, "If the plugin to clear a player's inventory when choosing a kit.");
 		this.getConfig().addDefault("Should.Decrease score on auto-unlock", false, "If a player's score should be reset to 0 when they auto-unlock a kit.");
 		this.getConfig().addDefault("Should.Drop items on full inventory", false, "If items should drop when a player has a full inventory.");
@@ -273,6 +275,7 @@ public class ConfigController implements Controller {
 		this.scoreMax = this.getConfig().getInt("Score.Max", Integer.MAX_VALUE);
 		this.scorePerDeath = this.getConfig().getInt("Score.Per death", 0);
 		this.scorePerKill = this.getConfig().getInt("Score.Per kill", 2);
+		this.shouldAutoRespawn = this.getConfig().getBoolean("Should.Auto-respawn", false);
 		this.shouldClearItemsOnKitSelection = this.getConfig().getBoolean("Should.Clear items on kit selection", true);
 		this.shouldDecreaseScoreOnAutoUnlock = this.getConfig().getBoolean("Should.Decrease score on auto-unlock", false);
 		this.shouldDropItemsOnFullInventory = this.getConfig().getBoolean("Should.Drop items on full inventory", false);
@@ -516,6 +519,10 @@ public class ConfigController implements Controller {
 		return this.updaterUpdate;
 	}
 
+	public boolean shouldAutoRespawn() {
+		return this.shouldAutoRespawn;
+	}
+
 	public boolean shouldCheckForUpdates() {
 		return this.updaterEnabled;
 	}
@@ -667,8 +674,8 @@ public class ConfigController implements Controller {
 			}
 			try {
 				File killstreaksFile = new File(dataFolder, "killstreaks.yml");
+				File oldKillstreaksFile = new File(oldFolder, "killstreaks.yml");
 				if (killstreaksFile.exists()) {
-					File oldKillstreaksFile = new File(oldFolder, "killstreaks.yml");
 					if (FileUtil.copy(killstreaksFile, oldKillstreaksFile)) {
 						FileUtilities.delete(killstreaksFile);
 					}

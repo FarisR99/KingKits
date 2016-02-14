@@ -96,7 +96,7 @@ public class PlayerUtilities {
 		}
 	}
 
-	public static void sendKitDelayMesasge(CommandSender sender, Kit kit, long timestamp) {
+	public static void sendKitDelayMessage(CommandSender sender, Kit kit, long timestamp) {
 		if (sender != null && kit != null) {
 			long cooldownSeconds = (long) (kit.getCooldown() - (((double) System.currentTimeMillis() - (double) timestamp) / 1_000D));
 			String rawMessage = Messages.KIT_DELAY.getRawMessage();

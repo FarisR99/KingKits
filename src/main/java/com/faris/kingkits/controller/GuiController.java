@@ -443,7 +443,7 @@ public class GuiController implements Controller {
 
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, selectedKit));
 				} else {
-					PlayerUtilities.sendKitDelayMesasge(player, selectedKit, kitTimestamp);
+					PlayerUtilities.sendKitDelayMessage(player, selectedKit, kitTimestamp);
 				}
 			} else {
 				if (allowKitPreview && ConfigController.getInstance().shouldShowKitPreview()) {

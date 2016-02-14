@@ -292,29 +292,30 @@ public class EventListener implements Listener {
 			if (deathInPvPWorld || kitPlayer.hasKit()) {
 				if (!ConfigController.getInstance().shouldShowDeathMessages()) event.setDeathMessage("");
 				if (!ConfigController.getInstance().shouldDropItemsOnDeath()) event.getDrops().clear();
-				if (PlayerUtilities.checkPlayer(player, kitPlayer)) {
-					if (ConfigController.getInstance().shouldRemoveKitOnDeath()) {
-						kitPlayer.setKit(null);
+				if (ConfigController.getInstance().shouldRemoveKitOnDeath()) {
+					kitPlayer.setKit(null);
 
-						for (PotionEffect activeEffect : player.getActivePotionEffects())
-							player.removePotionEffect(activeEffect.getType());
+					for (PotionEffect activeEffect : player.getActivePotionEffects())
+						player.removePotionEffect(activeEffect.getType());
 
-						if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
-							player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-						if (ConfigController.getInstance().shouldSetMaxHealth())
-							player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
-						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
-						player.getInventory().clear();
-						player.getInventory().setArmorContents(null);
-						player.updateInventory();
-					} else {
-						event.setKeepInventory(true);
-					}
-					kitPlayer.onDeath();
-					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
-						kitPlayer.setScore(Math.min(Math.max(kitPlayer.getScore() + ConfigController.getInstance().getScorePerDeath(), 0), ConfigController.getInstance().getMaxScore()));
-						final KitPlayer killerPlayer = PlayerController.getInstance().getPlayer(killer);
-						if (killerPlayer != null) {
+					if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+						player.setHealth(PlayerUtilities.getDefaultMaxHealth());
+					if (ConfigController.getInstance().shouldSetMaxHealth())
+						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+					player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
+					player.getInventory().clear();
+					player.getInventory().setArmorContents(null);
+					player.updateInventory();
+				} else {
+					event.setKeepInventory(true);
+				}
+				kitPlayer.onDeath();
+				if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
+					kitPlayer.setScore(Math.min(Math.max(kitPlayer.getScore() + ConfigController.getInstance().getScorePerDeath(), 0), ConfigController.getInstance().getMaxScore()));
+					final KitPlayer killerPlayer = PlayerController.getInstance().getPlayer(killer);
+					if (killerPlayer != null) {
+						killerPlayer.setScore(Math.min(Math.max(killerPlayer.getScore() + ConfigController.getInstance().getScorePerKill(), 0), ConfigController.getInstance().getMaxScore()));
+						try {
 							if (killerPlayer.getKit() != null) {
 								killerPlayer.incrementKillstreak();
 								if (killerPlayer.getKit().getKillstreaks().containsKey(killerPlayer.getKillstreak())) {
@@ -330,32 +331,37 @@ public class EventListener implements Listener {
 									}
 								}
 							}
-							killerPlayer.setScore(Math.min(Math.max(killerPlayer.getScore() + ConfigController.getInstance().getScorePerKill(), 0), ConfigController.getInstance().getMaxScore()));
-							try {
-								for (Kit kit : KitController.getInstance().getKits().values()) {
-									if (kit.getAutoUnlockScore() != -1) {
-										if (kit.getAutoUnlockScore() <= killerPlayer.getScore()) {
-											try {
-												if (!killerPlayer.hasUnlocked(kit) && !killer.hasPermission("kingkits.kits." + kit.getName().toLowerCase())) {
-													killerPlayer.addKit(kit);
-													if (ConfigController.getInstance().shouldDecreaseScoreOnAutoUnlock())
-														killerPlayer.setScore(Math.max(killerPlayer.getScore() - kit.getAutoUnlockScore(), 0));
-													Messages.sendMessage(killer, Messages.KIT_UNLOCK, kit.getName());
-												}
-											} catch (Exception ex) {
-												ex.printStackTrace();
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						try {
+							for (Kit kit : KitController.getInstance().getKits().values()) {
+								if (kit.getAutoUnlockScore() != -1) {
+									if (kit.getAutoUnlockScore() <= killerPlayer.getScore()) {
+										try {
+											if (!killerPlayer.hasUnlocked(kit) && !killer.hasPermission("kingkits.kits." + kit.getName().toLowerCase())) {
+												killerPlayer.addKit(kit);
+												if (ConfigController.getInstance().shouldDecreaseScoreOnAutoUnlock())
+													killerPlayer.setScore(Math.max(killerPlayer.getScore() - kit.getAutoUnlockScore(), 0));
+												Messages.sendMessage(killer, Messages.KIT_UNLOCK, kit.getName());
 											}
+										} catch (Exception ex) {
+											ex.printStackTrace();
 										}
 									}
 								}
-							} catch (Exception ex) {
-								ex.printStackTrace();
 							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
 						}
 					}
 				}
 				for (String commandToRun : ConfigController.getInstance().getCommandsToRunOnDeath()) {
-					event.getEntity().getServer().dispatchCommand(event.getEntity().getServer().getConsoleSender(), commandToRun.replace("<player>", player.getName()).replace("<killer>", killer != null ? killer.getName() : ""));
+					try {
+						event.getEntity().getServer().dispatchCommand(event.getEntity().getServer().getConsoleSender(), commandToRun.replace("<player>", player.getName()).replace("<killer>", killer != null ? killer.getName() : ""));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
 				if (ConfigController.getInstance().isEconomyEnabled()) {
 					if (ConfigController.getInstance().getMoneyPerDeath() != 0D) {
@@ -366,6 +372,20 @@ public class EventListener implements Listener {
 						PlayerUtilities.incrementMoney(killer, ConfigController.getInstance().getMoneyPerKill());
 						Messages.sendMessage(killer, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(), player.getName());
 					}
+				}
+				if (ConfigController.getInstance().shouldAutoRespawn()) {
+					player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
+						@Override
+						public void run() {
+							if (player.isOnline() && player.isDead()) {
+								try {
+									PlayerUtilities.respawnPlayer(player);
+								} catch (Exception ex) {
+									ex.printStackTrace();
+								}
+							}
+						}
+					}, 1L);
 				}
 			}
 		} catch (Exception ex) {
@@ -655,6 +675,23 @@ public class EventListener implements Listener {
 	}
 
 	@EventHandler
+	public void onPlayerShootBow(EntityShootBowEvent event) {
+		try {
+			if (event.getEntity() instanceof Player && event.getBow() != null) {
+				Player player = (Player) event.getEntity();
+				if (Utilities.isPvPWorld(player.getWorld())) {
+					KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+					if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+						event.getBow().setDurability((short) 0);
+					}
+				}
+			}
+		} catch (Exception ex) {
+			Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to repair an unbreakable item.", ex);
+		}
+	}
+
+	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		try {
 			if (event.getDamager() instanceof Player) {
@@ -748,7 +785,8 @@ public class EventListener implements Listener {
 							public void run() {
 								if (player.isOnline()) {
 									for (Player onlinePlayer : player.getServer().getOnlinePlayers()) {
-										if (onlinePlayer.isOp() || onlinePlayer.hasPermission("*")) onlinePlayer.sendMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
+										if (onlinePlayer.isOp() || onlinePlayer.hasPermission("*"))
+											onlinePlayer.sendMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
 									}
 									player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
 								}

@@ -203,7 +203,7 @@ public class CommandPvPKit extends KingKitsCommand {
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, kit));
 					Messages.sendMessage(player, Messages.KIT_SET, kit.getName());
 				} else {
-					if (!isOther) PlayerUtilities.sendKitDelayMesasge(player, kit, kitTimestamp);
+					if (!isOther) PlayerUtilities.sendKitDelayMessage(player, kit, kitTimestamp);
 				}
 			} else {
 				Messages.sendMessage(sender, Messages.KIT_NO_PERMISSION, strKit);

@@ -33,6 +33,11 @@ Commands:
 - broadcast &4<player> &6has chosen the <kit> kit!
 
 # Commands to run when a player reaches a defined killstreak.
+# Template:
+# Killstreak <killstreak>:
+# - <command1>
+# - <command2>
+# - <command3>
 Killstreak commands:
   Killstreak 10:
   - broadcast &4<player> &6is on a rampage with a 10 killstreak!

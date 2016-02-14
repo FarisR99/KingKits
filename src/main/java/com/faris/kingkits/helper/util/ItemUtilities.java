@@ -25,6 +25,7 @@ public class ItemUtilities {
 				this.add(material);
 			}
 		}
+		this.add(Material.BOW);
 		this.add(Material.FLINT_AND_STEEL);
 		this.add(Material.FISHING_ROD);
 	}};
@@ -85,11 +86,11 @@ public class ItemUtilities {
 			if (material != null) {
 				deserializedItem = new ItemStack(material);
 
-				int amount = ObjectUtilities.getObject(serializedItem, Integer.class, "Amount", 1);
+				int amount = ObjectUtilities.getObject(serializedItem, Number.class, "Amount", 1).intValue();
 				if (amount > 0) deserializedItem.setAmount(amount);
 
 				if (serializedItem.containsKey("Data")) {
-					byte data = ObjectUtilities.getObject(serializedItem, Byte.class, "Data", (byte) 0);
+					byte data = ObjectUtilities.getObject(serializedItem, Number.class, "Data", (byte) 0).byteValue();
 
 					MaterialData itemMaterialData = deserializedItem.getData();
 					if (itemMaterialData == null) itemMaterialData = new MaterialData(material);
@@ -97,7 +98,7 @@ public class ItemUtilities {
 					deserializedItem.setData(itemMaterialData);
 				}
 				if (serializedItem.containsKey("Durability"))
-					deserializedItem.setDurability(ObjectUtilities.getObject(serializedItem, Short.class, "Durability", (short) 0));
+					deserializedItem.setDurability(ObjectUtilities.getObject(serializedItem, Number.class, "Durability", (short) 0).shortValue());
 				if (serializedItem.get("Potion") != null) {
 					Map<String, Object> serializedPotion = ObjectUtilities.getMap(serializedItem.get("Potion"));
 					if (serializedPotion != null && serializedPotion.containsKey("Type")) {
@@ -114,7 +115,7 @@ public class ItemUtilities {
 								try {
 									int maxLevel = potion.getType().getMaxLevel();
 									if (maxLevel > 0) {
-										int level = ObjectUtilities.getObject(serializedPotion, Integer.class, "Level");
+										int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level").intValue();
 										if (level > 0) potion.setLevel(Math.min(level, maxLevel));
 									}
 								} catch (Exception ex) {
@@ -177,11 +178,11 @@ public class ItemUtilities {
 						if (serializedItem.get("Dye") instanceof String) {
 							int dyeRGB = Utilities.getDye(ObjectUtilities.getObject(serializedItem, String.class, "Dye"));
 							leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(dyeRGB, 0), 255)));
-						} else if (serializedItem.get("Dye") instanceof Integer) {
-							leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(ObjectUtilities.getObject(serializedItem, Integer.class, "Dye", 0), 0), 255)));
+						} else if (serializedItem.get("Dye") instanceof Number) {
+							leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(ObjectUtilities.getObject(serializedItem, Number.class, "Dye", 0).intValue(), 0), 255)));
 						} else {
 							Map<String, Object> deserializedDyeColor = ObjectUtilities.getMap(serializedItem.get("Dye"));
-							leatherArmorMeta.setColor(Color.fromRGB(ObjectUtilities.getObject(deserializedDyeColor, Integer.class, "Red", 0), ObjectUtilities.getObject(deserializedDyeColor, Integer.class, "Green", 0), ObjectUtilities.getObject(deserializedDyeColor, Integer.class, "Blue", 0)));
+							leatherArmorMeta.setColor(Color.fromRGB(ObjectUtilities.getObject(deserializedDyeColor, Number.class, "Red", 0).intValue(), ObjectUtilities.getObject(deserializedDyeColor, Number.class, "Green", 0).intValue(), ObjectUtilities.getObject(deserializedDyeColor, Number.class, "Blue", 0).intValue()));
 						}
 					}
 					if (itemMeta instanceof BannerMeta && serializedItem.containsKey("Banner")) {

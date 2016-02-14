@@ -166,17 +166,13 @@ public class Attribute implements ConfigurationSerializable {
 	 * @return The {@link UUID}
 	 */
 	public UUID getUUID() {
-		return uuid;
+		return this.uuid;
 	}
 
 	NBTTagCompound write() throws InstantiationException, IllegalAccessException {
 		Preconditions.checkNotNull(type, "Type cannot be null.");
-		if (operation == null) {
-			operation = Operation.ADD_NUMBER;
-		}
-		if (uuid == null) {
-			uuid = UUID.randomUUID();
-		}
+		if (this.operation == null) operation = Operation.ADD_NUMBER;
+		if (this.uuid == null) this.uuid = UUID.randomUUID();
 
 		NBTTagCompound tag = new NBTTagCompound();
 		tag.setString("AttributeName", type.minecraftID);
@@ -240,7 +236,7 @@ public class Attribute implements ConfigurationSerializable {
 	@Override
 	public Map<String, Object> serialize() {
 		Map<String, Object> serializedAttribute = new LinkedHashMap<>();
-		serializedAttribute.put("UUID", this.getUUID());
+		serializedAttribute.put("UUID", this.getUUID().toString());
 		serializedAttribute.put("Type", this.getType().name());
 		serializedAttribute.put("Amount", this.getAmount());
 		if (this.operation != null) serializedAttribute.put("Operation", this.getOperation().name());
@@ -257,7 +253,7 @@ public class Attribute implements ConfigurationSerializable {
 			}
 			if (attributeType != null) {
 				UUID attributeUUID = Utilities.isUUID(serializedAttribute.get("UUID")) ? UUID.fromString(serializedAttribute.get("UUID").toString()) : null;
-				double attributeAmount = ObjectUtilities.getObject(serializedAttribute, Double.class, "Amount", 0D);
+				double attributeAmount = ObjectUtilities.getObject(serializedAttribute, Number.class, "Amount", 0D).doubleValue();
 				Operation operation = null;
 				try {
 					operation = Operation.valueOf(ObjectUtilities.getObject(serializedAttribute, String.class, "Operation"));
