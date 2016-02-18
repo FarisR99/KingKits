@@ -1,8 +1,8 @@
 package com.faris.kingkits.hook;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.*;
+import org.bukkit.entity.*;
+import org.bukkit.plugin.*;
 
 public class VaultAPI {
 

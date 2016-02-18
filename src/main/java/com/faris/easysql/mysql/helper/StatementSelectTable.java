@@ -1,7 +1,6 @@
 package com.faris.easysql.mysql.helper;
 
 import com.faris.easysql.mysql.MySQLHandler;
-import com.faris.kingkits.helper.Debugger;
 
 import java.sql.*;
 import java.util.*;
@@ -26,7 +25,6 @@ public class StatementSelectTable extends StatementBuilder {
 			ResultSet resultSet = null;
 			try {
 				String sqlString = this.toSQLString();
-				Debugger.debugMessage("SQL: " + sqlString);
 				if (sqlString != null) {
 					preparedStatement = connection.prepareStatement(sqlString);
 					resultSet = preparedStatement.executeQuery();
@@ -53,7 +51,6 @@ public class StatementSelectTable extends StatementBuilder {
 			ResultSet resultSet = null;
 			try {
 				String sqlString = this.toSQLString();
-				Debugger.debugMessage("SQL: " + sqlString);
 				if (sqlString != null) {
 					preparedStatement = connection.prepareStatement(sqlString);
 					resultSet = preparedStatement.executeQuery();

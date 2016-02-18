@@ -1,7 +1,6 @@
 package com.faris.easysql.mysql.helper;
 
 import com.faris.easysql.mysql.MySQLHandler;
-import com.faris.kingkits.helper.Debugger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +31,6 @@ public class StatementCreateTable extends StatementBuilder {
 		if (connection != null) {
 			PreparedStatement preparedStatement = null;
 			String sqlString = this.toSQLString();
-			Debugger.debugMessage("SQL: " + sqlString);
 			String[] sqlStringSplit = sqlString.contains(System.lineSeparator()) ? sqlString.split(System.lineSeparator()) : new String[]{sqlString};
 			boolean isResultSet = true;
 			for (String sqlQuery : sqlStringSplit) {

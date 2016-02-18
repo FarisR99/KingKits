@@ -2,8 +2,7 @@ package com.faris.kingkits.player;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.controller.KitController;
-import com.faris.kingkits.controller.PlayerController;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -103,10 +102,6 @@ public class KitPlayer extends OfflineKitPlayer {
 	@Override
 	public void setUniqueId(UUID uuid) {
 		throw new UnsupportedOperationException("You cannot modify the UUID of an online player.");
-	}
-
-	public void update() {
-		PlayerController.getInstance().updatePlayer(this);
 	}
 
 }

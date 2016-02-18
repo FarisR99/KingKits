@@ -1,7 +1,7 @@
 package com.faris.kingkits.listener.commands;
 
 import com.faris.kingkits.KingKits;
-import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.*;
 
 public abstract class KingKitsCommand implements CommandExecutor {
 

@@ -8,26 +8,15 @@ import com.faris.kingkits.controller.*;
 import com.faris.kingkits.helper.util.*;
 import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.storage.DataStorage;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.block.Sign;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.*;
+import org.bukkit.block.*;
+import org.bukkit.entity.*;
+import org.bukkit.event.*;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
+import org.bukkit.inventory.*;
+import org.bukkit.potion.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -786,38 +775,27 @@ public class EventListener implements Listener {
 		kitPlayer.setLoadTaskID(player.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
 			@Override
 			public void run() {
-				try {
-					DataStorage.getInstance().loadPlayer(PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()));
-					while (true) {
-						if (PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()).isLoaded()) {
-							break;
-						} else if (System.currentTimeMillis() - currentTime > 7_500L) {
-							Bukkit.getServer().getScheduler().runTask(plugin, new Runnable() {
-								@Override
-								public void run() {
-									if (player.isOnline()) {
-										player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
-										player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
+				DataStorage.getInstance().loadPlayer(kitPlayer);
+				while (true) {
+					if (kitPlayer.isLoaded()) {
+						break;
+					} else if (System.currentTimeMillis() - currentTime > 7_500L) {
+						player.getServer().getScheduler().runTask(plugin, new Runnable() {
+							@Override
+							public void run() {
+								if (player.isOnline()) {
+									for (Player onlinePlayer : player.getServer().getOnlinePlayers()) {
+										if (onlinePlayer.isOp() || onlinePlayer.hasPermission("*"))
+											onlinePlayer.sendMessage(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.");
 									}
+									player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
 								}
-							});
-							return;
-						}
-					}
-					Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-
-					Bukkit.getServer().getScheduler().runTask(plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (player.isOnline()) {
-								player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "An error occurred whilst loading " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
-								player.kickPlayer(ChatColor.RED + "[KingKits] An error occurred!\n" + ChatColor.RED + "Could not load your data.");
 							}
-						}
-					});
+						});
+						return;
+					}
 				}
+				Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
 			}
 		}).getTaskId());
 	}

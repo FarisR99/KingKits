@@ -2,9 +2,9 @@ package com.faris.kingkits.helper.util;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Messages;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.command.*;
+import org.bukkit.entity.*;
 
 public class BukkitUtilities {
 

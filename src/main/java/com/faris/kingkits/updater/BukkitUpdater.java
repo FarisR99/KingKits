@@ -1,8 +1,8 @@
 package com.faris.kingkits.updater;
 
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.configuration.file.*;
+import org.bukkit.plugin.*;
+import org.bukkit.scheduler.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;

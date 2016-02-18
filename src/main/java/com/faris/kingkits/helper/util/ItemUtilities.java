@@ -2,19 +2,13 @@ package com.faris.kingkits.helper.util;
 
 import nl.arfie.bukkit.attributes.Attribute;
 import nl.arfie.bukkit.attributes.Attributes;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.block.banner.Pattern;
-import org.bukkit.block.banner.PatternType;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.*;
+import org.bukkit.block.banner.*;
+import org.bukkit.enchantments.*;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
+import org.bukkit.material.*;
+import org.bukkit.potion.*;
 
 import java.util.*;
 

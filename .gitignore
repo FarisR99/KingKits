@@ -34,10 +34,6 @@ local.properties
 .iml
 .target/
 
-#################
-## Maven
-#################
-.src/test/
 
 #################
 ## Visual Studio

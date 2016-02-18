@@ -1,6 +1,6 @@
 package com.faris.kingkits.updater;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -59,7 +59,7 @@ public class SpigotUpdater {
 	public String getCurrentVersion() {
 		return this.oldVersion;
 	}
-
+	
 	public UpdateResult getResult() {
 		return this.result;
 	}

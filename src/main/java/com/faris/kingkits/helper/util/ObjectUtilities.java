@@ -1,7 +1,7 @@
 package com.faris.kingkits.helper.util;
 
 import com.google.gson.JsonObject;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.*;
 
 import java.util.HashMap;
 import java.util.Map;

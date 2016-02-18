@@ -3,9 +3,9 @@ package com.faris.kingkits.player;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.helper.util.ObjectUtilities;
 import com.faris.kingkits.helper.util.Utilities;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.configuration.serialization.*;
+import org.bukkit.entity.*;
 
 import java.util.*;
 
@@ -37,8 +37,8 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 
 	public void addKit(Kit kit) {
 		if (kit != null) {
-			if (this.loaded && (!this.playerKits.containsKey(kit.getName()) || !kit.equals(this.playerKits.get(kit.getName()))))
-				this.modified = true;
+			if (this.loaded)
+				this.modified = !this.playerKits.containsKey(kit.getName()) || !kit.equals(this.playerKits.get(kit.getName()));
 			this.playerKits.put(kit.getName(), kit);
 		}
 	}
@@ -88,10 +88,7 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 	}
 
 	public void removeKit(Kit kit) {
-		if (kit != null) {
-			if (this.loaded && this.playerKits.containsKey(kit.getName())) this.modified = true;
-			this.playerKits.remove(kit.getName());
-		}
+		if (kit != null) this.playerKits.remove(kit.getName());
 	}
 
 	public void setKits(Map<String, Kit> kits) {
@@ -163,10 +160,7 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 	}
 
 	public void setUsername(String username) {
-		if (username != null) {
-			if (!username.equals(this.playerUsername)) this.modified = true;
-			this.playerUsername = username;
-		}
+		this.playerUsername = username;
 	}
 
 	@Override

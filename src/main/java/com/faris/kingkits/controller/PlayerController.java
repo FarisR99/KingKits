@@ -3,7 +3,7 @@ package com.faris.kingkits.controller;
 import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.player.OfflineKitPlayer;
 import com.faris.kingkits.storage.DataStorage;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 
 import java.util.*;
 
@@ -72,7 +72,7 @@ public class PlayerController implements Controller {
 	public void saveAllPlayers() {
 		try {
 			for (KitPlayer kitPlayer : new ArrayList<>(this.playerRegistry.values())) {
-				if (kitPlayer.isLoaded()) DataStorage.getInstance().savePlayer(kitPlayer);
+				DataStorage.getInstance().savePlayer(kitPlayer);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -97,18 +97,6 @@ public class PlayerController implements Controller {
 
 	public KitPlayer unregisterPlayer(Player bukkitPlayer) {
 		return this.playerRegistry.remove(bukkitPlayer.getUniqueId());
-	}
-
-	public void updatePlayer(KitPlayer kitPlayer) {
-		if (kitPlayer != null && this.playerRegistry.containsKey(kitPlayer.getUniqueId())) {
-			KitPlayer currentPlayer = this.playerRegistry.get(kitPlayer.getUniqueId());
-			if (currentPlayer != null) {
-				currentPlayer.setLoaded(kitPlayer.isLoaded());
-				this.playerRegistry.put(kitPlayer.getUniqueId(), currentPlayer);
-			} else {
-				this.playerRegistry.put(kitPlayer.getUniqueId(), kitPlayer);
-			}
-		}
 	}
 
 	public static PlayerController getInstance() {

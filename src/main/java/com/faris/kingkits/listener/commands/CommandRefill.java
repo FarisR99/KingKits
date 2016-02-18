@@ -7,12 +7,10 @@ import com.faris.kingkits.controller.ConfigController;
 import com.faris.kingkits.helper.util.PlayerUtilities;
 import com.faris.kingkits.helper.util.StringUtilities;
 import com.faris.kingkits.helper.util.Utilities;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.*;
+import org.bukkit.command.*;
+import org.bukkit.entity.*;
+import org.bukkit.inventory.*;
 
 import java.util.logging.Level;
 
