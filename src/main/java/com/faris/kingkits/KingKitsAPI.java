@@ -4,7 +4,7 @@ import com.faris.kingkits.controller.KitController;
 import com.faris.kingkits.controller.PlayerController;
 import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.player.OfflineKitPlayer;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 

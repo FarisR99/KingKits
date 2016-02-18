@@ -1,8 +1,8 @@
 package com.faris.kingkits;
 
 import com.faris.kingkits.helper.util.ReflectionUtilities;
-import org.bukkit.*;
-import org.bukkit.permissions.*;
+import org.bukkit.Bukkit;
+import org.bukkit.permissions.Permission;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,8 @@ import java.util.Map;
 public class Permissions {
 
 	private static Map<String, Permission> permissionList = new HashMap<>();
+
+	public static Permission ADMIN = null;
 
 	public static Permission COMMAND_RELOAD = null;
 	public static Permission COMMAND_CONFIG = null;
@@ -43,6 +45,8 @@ public class Permissions {
 
 	public static void initialisePermissions() {
 		permissionList.clear();
+
+		registerPermission("ADMIN", "kingkits.admin");
 
 		registerPermission("COMMAND_RELOAD", "kingkits.command.reload");
 		registerPermission("COMMAND_CONFIG", "kingkits.command.config");

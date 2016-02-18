@@ -11,9 +11,10 @@ import com.faris.kingkits.helper.util.PlayerUtilities;
 import com.faris.kingkits.helper.util.StringUtilities;
 import com.faris.kingkits.helper.util.Utilities;
 import com.faris.kingkits.player.KitPlayer;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.entity.*;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.logging.Level;
 

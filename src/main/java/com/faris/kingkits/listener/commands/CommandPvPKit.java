@@ -11,11 +11,13 @@ import com.faris.kingkits.controller.GuiController;
 import com.faris.kingkits.controller.PlayerController;
 import com.faris.kingkits.helper.util.*;
 import com.faris.kingkits.player.KitPlayer;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.entity.*;
-import org.bukkit.inventory.*;
-import org.bukkit.potion.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.List;

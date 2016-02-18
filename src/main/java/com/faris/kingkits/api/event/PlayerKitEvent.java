@@ -2,7 +2,8 @@ package com.faris.kingkits.api.event;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.player.KitPlayer;
-import org.bukkit.event.*;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 
 public class PlayerKitEvent extends Event {
 

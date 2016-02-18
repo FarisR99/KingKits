@@ -9,9 +9,10 @@ import com.faris.kingkits.controller.KitController;
 import com.faris.kingkits.helper.util.KitUtilities;
 import com.faris.kingkits.helper.util.StringUtilities;
 import com.faris.kingkits.helper.util.Utilities;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.entity.*;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.logging.Level;
 

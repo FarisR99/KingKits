@@ -2,9 +2,11 @@ package com.faris.kingkits.api.event;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.player.KitPlayer;
-import org.bukkit.event.*;
-import org.bukkit.inventory.*;
-import org.bukkit.potion.*;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -20,12 +20,18 @@ import com.faris.kingkits.storage.FlatFileStorage;
 import com.faris.kingkits.storage.SQLStorage;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.configuration.file.*;
-import org.bukkit.entity.*;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONObject;
 
 import java.io.BufferedWriter;
@@ -61,7 +67,7 @@ public class CommandListener implements CommandExecutor {
 								ConfigController.getInstance().loadConfiguration();
 
 								KitController.getInstance().loadKits();
-								
+
 								SQLController.getInstance().setHandler(MySQLHandler.newInstance(this.plugin, ConfigController.getInstance().getSQLDetails()));
 								SQLController.getInstance().openConnection();
 

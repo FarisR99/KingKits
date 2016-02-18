@@ -6,8 +6,9 @@ import com.faris.kingkits.config.CustomConfiguration;
 import com.faris.kingkits.helper.util.FileUtilities;
 import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.player.OfflineKitPlayer;
-import org.bukkit.*;
-import org.bukkit.configuration.file.*;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
