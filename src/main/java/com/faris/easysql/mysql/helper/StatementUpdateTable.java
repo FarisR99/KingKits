@@ -1,6 +1,7 @@
 package com.faris.easysql.mysql.helper;
 
 import com.faris.easysql.mysql.MySQLHandler;
+import com.faris.kingkits.helper.Debugger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -41,6 +42,7 @@ public class StatementUpdateTable extends StatementBuilder {
 			PreparedStatement preparedStatement = null;
 			try {
 				String sqlString = this.toSQLString();
+				Debugger.debugMessage("SQL: " + sqlString);
 				if (sqlString != null) {
 					preparedStatement = connection.prepareStatement(sqlString);
 					return preparedStatement.execute();
@@ -63,7 +65,7 @@ public class StatementUpdateTable extends StatementBuilder {
 		if (columns != null && columns.length > 0) {
 			StringBuilder sbValues = new StringBuilder();
 			for (int i = 0; i < columns.length; i++) {
-				sbValues.append("'").append(columns[i].getName()).append("'=").append(columns[i].getValue() instanceof String ? "'" + columns[i].getValue() + "'" : columns[i].getValue());
+				sbValues.append(this.getSpecialCharacter()).append(columns[i].getName()).append(this.getSpecialCharacter()).append("=").append(columns[i].getValue() instanceof String ? "'" + columns[i].getValue() + "'" : columns[i].getValue());
 				if (i < columns.length - 1) sbValues.append(",");
 			}
 			this.values = sbValues.toString();

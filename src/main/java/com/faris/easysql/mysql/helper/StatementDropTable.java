@@ -1,6 +1,7 @@
 package com.faris.easysql.mysql.helper;
 
 import com.faris.easysql.mysql.MySQLHandler;
+import com.faris.kingkits.helper.Debugger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,6 +23,7 @@ public class StatementDropTable extends StatementBuilder {
 			PreparedStatement preparedStatement = null;
 			try {
 				String sqlString = this.toSQLString();
+				Debugger.debugMessage("SQL: " + sqlString);
 				if (sqlString != null) {
 					preparedStatement = connection.prepareStatement(sqlString);
 					return preparedStatement.execute();

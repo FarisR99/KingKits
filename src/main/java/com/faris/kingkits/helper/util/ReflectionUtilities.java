@@ -1,6 +1,6 @@
 package com.faris.kingkits.helper.util;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

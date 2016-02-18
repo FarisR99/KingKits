@@ -10,11 +10,11 @@ import com.faris.kingkits.controller.KitController;
 import com.faris.kingkits.controller.PlayerController;
 import com.faris.kingkits.player.KitPlayer;
 import mkremins.fanciful.FancyMessage;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.entity.*;
-import org.bukkit.inventory.*;
-import org.bukkit.potion.*;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.*;
 

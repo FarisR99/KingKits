@@ -16,11 +16,11 @@ import com.faris.kingkits.storage.FlatFileStorage;
 import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
 import nl.arfie.bukkit.attributes.Attribute;
-import org.bukkit.*;
-import org.bukkit.configuration.serialization.*;
-import org.bukkit.entity.*;
-import org.bukkit.plugin.java.*;
-import org.bukkit.potion.*;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -246,7 +246,8 @@ public class KingKits extends JavaPlugin {
 							if (kitPlayer.hasKit() && kitPlayer.getKit().getMaxHealth() != PlayerUtilities.getDefaultMaxHealth()) {
 								if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 									player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-								if (ConfigController.getInstance().shouldSetMaxHealth()) player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
+								if (ConfigController.getInstance().shouldSetMaxHealth())
+									player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
 							}
 							player.getInventory().clear();
 							player.getInventory().setArmorContents(null);

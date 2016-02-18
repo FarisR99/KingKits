@@ -3,8 +3,8 @@ package com.faris.kingkits.helper.api;
 import com.faris.kingkits.helper.util.ChatUtilities;
 import com.faris.kingkits.helper.util.ReflectionUtilities;
 import org.apache.commons.lang.Validate;
-import org.bukkit.*;
-import org.bukkit.entity.*;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 public class TitleAPI {
 
