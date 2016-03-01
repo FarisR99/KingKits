@@ -1,7 +1,7 @@
 package com.faris.easysql.main.databases;
 
 import com.faris.easysql.main.Database;
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

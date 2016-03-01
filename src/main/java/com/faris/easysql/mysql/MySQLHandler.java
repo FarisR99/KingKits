@@ -3,7 +3,7 @@ package com.faris.easysql.mysql;
 import com.faris.easysql.main.databases.MySQL;
 import com.faris.easysql.mysql.helper.StatementCreateTable;
 import com.faris.easysql.mysql.helper.StatementDropTable;
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

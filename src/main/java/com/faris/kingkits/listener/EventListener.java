@@ -690,7 +690,7 @@ public class EventListener implements Listener {
 		try {
 			if (event.getEntity() instanceof Player && event.getBow() != null) {
 				Player player = (Player) event.getEntity();
-				if (Utilities.isPvPWorld(player.getWorld())) {
+				if (player.getGameMode() != GameMode.CREATIVE && Utilities.isPvPWorld(player.getWorld())) {
 					KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 					if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
 						event.getBow().setDurability((short) 0);
@@ -734,22 +734,38 @@ public class EventListener implements Listener {
 					if (Utilities.isPvPWorld(damaged.getWorld())) {
 						final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(damaged);
 						if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
-							final ItemStack[] armourContents = damaged.getInventory().getArmorContents();
-							for (int armourIndex = 0; armourIndex < armourContents.length; armourIndex++) {
-								ItemStack armour = armourContents[armourIndex];
-								if (ItemUtilities.getDamageableMaterials().contains(damaged.getInventory().getItemInHand().getType())) {
-									armour.setDurability((short) 0);
-									armourContents[armourIndex] = armour;
-								}
+							boolean updateHelmet = false, updateChestplate = false, updateLeggings = false, updateBoots = false;
+							final ItemStack helmet = damaged.getInventory().getHelmet(), chestplate = damaged.getInventory().getChestplate(), leggings = damaged.getInventory().getLeggings(), boots = damaged.getInventory().getBoots();
+							if (helmet != null && ItemUtilities.getDamageableMaterials().contains(helmet.getType())) {
+								helmet.setDurability((short) 0);
+								updateHelmet = true;
 							}
-							damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-								@Override
-								public void run() {
-									if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
-										damaged.getInventory().setArmorContents(armourContents);
+							if (chestplate != null && ItemUtilities.getDamageableMaterials().contains(chestplate.getType())) {
+								chestplate.setDurability((short) 0);
+								updateChestplate = true;
+							}
+							if (leggings != null && ItemUtilities.getDamageableMaterials().contains(leggings.getType())) {
+								leggings.setDurability((short) 0);
+								updateLeggings = true;
+							}
+							if (boots != null && ItemUtilities.getDamageableMaterials().contains(boots.getType())) {
+								boots.setDurability((short) 0);
+								updateBoots = true;
+							}
+							if (updateHelmet || updateChestplate || updateLeggings || updateBoots) {
+								final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots;
+								damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+									@Override
+									public void run() {
+										if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+											if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
+											if (finalUpdateChestplate) damaged.getInventory().setChestplate(chestplate);
+											if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
+											if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
+										}
 									}
-								}
-							});
+								});
+							}
 						}
 					}
 				}

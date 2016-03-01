@@ -277,18 +277,38 @@ public class KitUtilities {
 			this.otherKits = otherKits;
 		}
 
+		/**
+		 * Get the kit with the exact same name as the search name. (character casing sensitive)
+		 *
+		 * @return The kit.
+		 */
 		public Kit getKit() {
 			return this.exactKit;
 		}
 
+		/**
+		 * Get other kits with the same name as the search name. (ignores character casing)
+		 *
+		 * @return The kit.
+		 */
 		public List<Kit> getOtherKits() {
 			return this.otherKits;
 		}
 
+		/**
+		 * Check if the search result has found a kit with the exact same name. (character casing sensitive)
+		 *
+		 * @return True if so, false if not.
+		 */
 		public boolean hasKit() {
 			return this.exactKit != null;
 		}
 
+		/**
+		 * Check if the search result contains any kits with the same name. (ignores character casing)
+		 *
+		 * @return True if so, false if not.
+		 */
 		public boolean hasOtherKits() {
 			return !this.otherKits.isEmpty();
 		}

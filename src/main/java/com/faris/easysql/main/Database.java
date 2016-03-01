@@ -1,6 +1,6 @@
 package com.faris.easysql.main;
 
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -17,7 +17,7 @@ import java.sql.Statement;
 public abstract class Database {
 
 	protected Connection connection;
-	
+
 	/**
 	 * Plugin instance, use for plugin.getDataFolder()
 	 */
@@ -75,7 +75,7 @@ public abstract class Database {
 
 	/**
 	 * Executes a SQL Query
-	 *
+	 * <p/>
 	 * If the connection is closed, it will be opened
 	 *
 	 * @param query Query to be run

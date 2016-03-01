@@ -1,8 +1,8 @@
 package com.faris.easysql.mysql;
 
 import com.faris.kingkits.helper.util.ObjectUtilities;
-import org.bukkit.*;
-import org.bukkit.configuration.serialization.*;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
