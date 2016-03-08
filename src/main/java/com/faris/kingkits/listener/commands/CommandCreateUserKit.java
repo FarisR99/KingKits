@@ -106,7 +106,7 @@ public class CommandCreateUserKit extends KingKitsCommand {
 
 								KitController.getInstance().saveKit(kit, kitPlayer.getUniqueId());
 							} else {
-								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects);
+								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects, player.getInventory().getItemInOffHand());
 								kit.setUserKit(true);
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setWalkSpeed(player.getWalkSpeed());
