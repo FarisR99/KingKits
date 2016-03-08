@@ -126,6 +126,7 @@ public class GuiController implements Controller {
 					if (kitItemEntry.getKey() >= 0 && kitItemEntry.getKey() < kitPreviewInv.getSize() - 18)
 						kitPreviewInv.setItem(kitItemEntry.getKey(), kitItemEntry.getValue());
 				}
+				kitPreviewInv.setItem(kit.getItems().size() + 1, kit.getOffHand());
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 17, kit.getArmour()[3]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 15, kit.getArmour()[2]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 13, kit.getArmour()[1]);
@@ -415,6 +416,9 @@ public class GuiController implements Controller {
 							}
 						}
 						player.getInventory().setArmorContents(selectedKit.getArmour());
+						if(selectedKit.getOffHand() != null) {
+							player.getInventory().setItemInOffHand(selectedKit.getOffHand());
+						}
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : selectedKit.getItems().values()) {
