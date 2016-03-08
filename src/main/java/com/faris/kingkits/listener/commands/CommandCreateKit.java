@@ -98,7 +98,7 @@ public class CommandCreateKit extends KingKitsCommand {
 								KitController.getInstance().addKit(kit);
 								KitController.getInstance().saveKit(kit);
 							} else {
-								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects);
+								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects, player.getInventory().getItemInOffHand());
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setWalkSpeed(player.getWalkSpeed());
 								kit.setMaxHealth(player.getMaxHealth());

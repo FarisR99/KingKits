@@ -267,7 +267,7 @@ public class CommandListener implements CommandExecutor {
 							Player player = (Player) sender;
 							if (player.hasPermission(Permissions.COMMAND_CONFIG)) {
 								if (args.length == 1) {
-									ItemStack itemInHand = player.getInventory().getItemInHand();
+									ItemStack itemInHand = player.getInventory().getItemInMainHand();
 									if (!ItemUtilities.isNull(itemInHand) && itemInHand.getType() == Material.WRITTEN_BOOK && itemInHand.getItemMeta() instanceof BookMeta) {
 										BookMeta bookMeta = (BookMeta) itemInHand.getItemMeta();
 										List<String> bookLines = new ArrayList<>();

@@ -137,7 +137,7 @@ public class EventListener implements Listener {
 							if (ConfigController.getInstance().canQuickSoup()) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
-										int soupAmount = player.getInventory().getItemInHand().getAmount();
+										int soupAmount = player.getInventory().getItemInMainHand().getAmount();
 										if (soupAmount > 0) {
 											boolean valid = true;
 											if (player.getHealth() < player.getMaxHealth()) {
@@ -149,11 +149,11 @@ public class EventListener implements Listener {
 											}
 											if (valid) {
 												if (soupAmount == 1) {
-													player.getInventory().setItemInHand(new ItemStack(Material.BOWL));
+													player.getInventory().setItemInMainHand(new ItemStack(Material.BOWL));
 												} else {
-													ItemStack newItem = player.getInventory().getItemInHand();
+													ItemStack newItem = player.getInventory().getItemInMainHand();
 													newItem.setAmount(soupAmount - 1);
-													player.getInventory().setItemInHand(newItem);
+													player.getInventory().setItemInMainHand(newItem);
 													player.getInventory().addItem(new ItemStack(Material.BOWL));
 												}
 												event.setCancelled(true);
@@ -482,6 +482,7 @@ public class EventListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerDropItem(PlayerDropItemEvent event) {
 		try {
@@ -708,17 +709,17 @@ public class EventListener implements Listener {
 			if (event.getDamager() instanceof Player) {
 				final Player damager = (Player) event.getDamager();
 				if (damager.getGameMode() == GameMode.SURVIVAL || damager.getGameMode() == GameMode.ADVENTURE) {
-					if (damager.getInventory().getItemInHand() != null && Utilities.isPvPWorld(damager.getWorld())) {
+					if (damager.getInventory().getItemInMainHand() != null && Utilities.isPvPWorld(damager.getWorld())) {
 						final KitPlayer damagerKitPlayer = PlayerController.getInstance().getPlayer(damager);
 						if (damagerKitPlayer != null && damagerKitPlayer.hasKit() && !damagerKitPlayer.getKit().canItemsBreak()) {
-							if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInHand().getType())) {
+							if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
 								damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
 									@Override
 									public void run() {
-										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInHand().getType())) {
-											ItemStack itemInHand = damager.getInventory().getItemInHand();
+										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInMainHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
+											ItemStack itemInHand = damager.getInventory().getItemInMainHand();
 											itemInHand.setDurability((short) 0);
-											damager.setItemInHand(itemInHand);
+											damager.getInventory().setItemInMainHand(itemInHand);
 											damager.updateInventory();
 										}
 									}
@@ -786,7 +787,6 @@ public class EventListener implements Listener {
 					try {
 						if (ConfigController.getInstance().shouldShowGuiOnJoin() && Utilities.isPvPWorld(player.getWorld())) {
 							tasksJoinKitMenu.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-								@SuppressWarnings("deprecation")
 								public void run() {
 									if (player.isOnline()) GuiController.getInstance().openKitsMenu(player);
 								}
