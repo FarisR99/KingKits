@@ -171,6 +171,9 @@ public class CommandPvPKit extends KingKitsCommand {
 							}
 						}
 						player.getInventory().setArmorContents(kit.getArmour());
+						if(kit.getOffHand() != null) {
+							player.getInventory().setItemInOffHand(kit.getOffHand());
+						}
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : kit.getItems().values()) {
