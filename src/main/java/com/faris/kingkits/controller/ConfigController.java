@@ -1182,154 +1182,171 @@ public class ConfigController implements Controller {
 					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
 					if (kitsFolder.exists()) {
 						File[] kitFiles = FileUtilities.getFiles(kitsFolder);
-						for (File kitFile : kitFiles) {
-							if (kitFile.getName().endsWith(".yml")) {
-								CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
-								kitConfig.setNewLineAfterHeader(true);
-								kitConfig.setNewLinePerKey(true);
+						if (kitFiles.length > 0) {
+							File oldFolder = new File(dataFolder, "old3.0");
+							try {
+								if (!oldFolder.exists()) oldFolder.mkdirs();
+							} catch (Exception ex) {
+								plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "(kits)", ""), ex);
+								oldFolder = null;
+							}
 
-								boolean save = false;
-								if (kitConfig.contains("Items")) {
-									Map<String, Object> itemsMap = ObjectUtilities.getMap(kitConfig.get("Items"));
-									boolean saveItems = false;
-									for (Map.Entry<String, Object> serializedItemEntry : new LinkedHashMap<>(itemsMap).entrySet()) {
-										Map<String, Object> serializedItem = ObjectUtilities.getMap(serializedItemEntry.getValue());
-										boolean saveItem = false;
-										if (!serializedItem.isEmpty()) {
-											if (serializedItem.containsKey("Data")) {
-												saveItem = true;
-												serializedItem.remove("Data");
-											}
-											if (ObjectUtilities.getObject(serializedItem, String.class, "Type", "").equalsIgnoreCase("Potion")) {
-												if (serializedItem.containsKey("Potion")) {
+							for (File kitFile : kitFiles) {
+								if (kitFile.getName().endsWith(".yml")) {
+									CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
+									kitConfig.setNewLineAfterHeader(true);
+									kitConfig.setNewLinePerKey(true);
+
+									boolean save = false;
+									if (kitConfig.contains("Items")) {
+										Map<String, Object> itemsMap = ObjectUtilities.getMap(kitConfig.get("Items"));
+										boolean saveItems = false;
+										for (Map.Entry<String, Object> serializedItemEntry : new LinkedHashMap<>(itemsMap).entrySet()) {
+											Map<String, Object> serializedItem = ObjectUtilities.getMap(serializedItemEntry.getValue());
+											boolean saveItem = false;
+											if (!serializedItem.isEmpty()) {
+												if (serializedItem.containsKey("Data")) {
 													saveItem = true;
-													serializedItem.remove("Potion");
+													serializedItem.remove("Data");
 												}
-												if (serializedItem.containsKey("Durability")) {
-													short durability = ObjectUtilities.getObject(serializedItem, Number.class, "Durability", (short) 0).shortValue();
-													String potionType = "";
-													if (durability == 16) {
-														potionType = "minecraft:awkward"; // Awkward
-													} else if (durability == 32) {
-														potionType = "minecraft:thick"; // Thick
-													} else if (durability == 64) {
-														potionType = "minecraft:mundane"; // Mundane (extended)
-													} else if (durability == 8192) {
-														potionType = "minecraft:mundane"; // Mundane
-													} else if (isPotion(durability, 8193)) {
-														potionType = "minecraft:regeneration"; // Regeneration
-													} else if (isPotion(durability, 8257)) {
-														potionType = "minecraft:long_regeneration"; // Regeneration (extended)
-													} else if (isPotion(durability, 8225)) {
-														potionType = "minecraft:strong_regeneration"; // Regeneration II
-													} else if (isPotion(durability, 8194)) {
-														potionType = "minecraft:swiftness"; // Swiftness
-													} else if (isPotion(durability, 8258)) {
-														potionType = "minecraft:long_swiftness"; // Swiftness (extended)
-													} else if (isPotion(durability, 8226)) {
-														potionType = "minecraft:strong_swiftness"; // Swiftness II
-													} else if (isPotion(durability, 8195)) {
-														potionType = "minecraft:fire_resistance"; // Fire Resistance
-													} else if (isPotion(durability, 8259)) {
-														potionType = "minecraft:long_fire_resistance"; // Fire Resistance (extended)
-													} else if (isPotion(durability, 8197)) {
-														potionType = "minecraft:healing"; // Healing
-													} else if (isPotion(durability, 8229)) {
-														potionType = "minecraft:strong_healing"; // Healing II
-													} else if (isPotion(durability, 8198)) {
-														potionType = "minecraft:night_vision"; // Night Vision
-													} else if (isPotion(durability, 8262)) {
-														potionType = "minecraft:long_night_vision"; // Night Vision (extended)
-													} else if (isPotion(durability, 8201)) {
-														potionType = "minecraft:strength"; // Strength
-													} else if (isPotion(durability, 8265)) {
-														potionType = "minecraft:long_strength"; // Strength (extended)
-													} else if (isPotion(durability, 8233)) {
-														potionType = "minecraft:strong_strength"; // Strength II
-													} else if (isPotion(durability, 8203)) {
-														potionType = "minecraft:leaping"; // Leaping
-													} else if (isPotion(durability, 8267)) {
-														potionType = "minecraft:long_leaping"; // Leaping (extended)
-													} else if (isPotion(durability, 8235)) {
-														potionType = "minecraft:strong_leaping"; // Leaping II
-													} else if (isPotion(durability, 8205)) {
-														potionType = "minecraft:water_breathing"; // Water Breathing
-													} else if (isPotion(durability, 8269)) {
-														potionType = "minecraft:long_water_breathing"; // Water Breathing (extended)
-													} else if (isPotion(durability, 8206)) {
-														potionType = "minecraft:invisibility"; // Invisibility
-													} else if (isPotion(durability, 8270)) {
-														potionType = "minecraft:long_invisibility"; // Invisibility (extended)
-													} else if (isPotion(durability, 8196)) {
-														potionType = "minecraft:poison"; // Poison
-													} else if (isPotion(durability, 8260)) {
-														potionType = "minecraft:long_poison"; // Poison (extended)
-													} else if (isPotion(durability, 8228)) {
-														potionType = "minecraft:strong_poison"; // Poison II
-													} else if (isPotion(durability, 8200)) {
-														potionType = "minecraft:weakness"; // Weakness
-													} else if (isPotion(durability, 8264)) {
-														potionType = "minecraft:long_weakness"; // Weakness (extended)
-													} else if (isPotion(durability, 8202)) {
-														potionType = "minecraft:slowness"; // Slowness
-													} else if (isPotion(durability, 8266)) {
-														potionType = "minecraft:long_slowness"; // Slowness (extended)
-													} else if (isPotion(durability, 8204)) {
-														potionType = "minecraft:harming"; // Harming
-													} else if (isPotion(durability, 8236)) {
-														potionType = "minecraft:strong_harming"; // Harming II
-													} else if (isPotion(durability, 8289)) {
-														potionType = "minecraft:strong_regeneration"; // Regeneration II
-													} else if (isPotion(durability, 8290)) {
-														potionType = "minecraft:strong_swiftness"; // Swiftness II
-													} else if (isPotion(durability, 8297)) {
-														potionType = "minecraft:strong_strength"; // Strength II
-													} else if (isPotion(durability, 8292)) {
-														potionType = "minecraft:strong_poison"; // Poison II
-													} else if (durability == 373) {
-														potionType = "minecraft:empty"; // Empty
+												if (ObjectUtilities.getObject(serializedItem, String.class, "Type", "").equalsIgnoreCase("Potion")) {
+													if (serializedItem.containsKey("Potion")) {
+														saveItem = true;
+														serializedItem.remove("Potion");
 													}
-													if (durability > 16000) serializedItem.put("Type", "Splash Potion");
+													if (serializedItem.containsKey("Durability")) {
+														short durability = ObjectUtilities.getObject(serializedItem, Number.class, "Durability", (short) 0).shortValue();
+														String potionType = "";
+														if (durability == 16) {
+															potionType = "minecraft:awkward"; // Awkward
+														} else if (durability == 32) {
+															potionType = "minecraft:thick"; // Thick
+														} else if (durability == 64) {
+															potionType = "minecraft:mundane"; // Mundane (extended)
+														} else if (durability == 8192) {
+															potionType = "minecraft:mundane"; // Mundane
+														} else if (isPotion(durability, 8193)) {
+															potionType = "minecraft:regeneration"; // Regeneration
+														} else if (isPotion(durability, 8257)) {
+															potionType = "minecraft:long_regeneration"; // Regeneration (extended)
+														} else if (isPotion(durability, 8225)) {
+															potionType = "minecraft:strong_regeneration"; // Regeneration II
+														} else if (isPotion(durability, 8194)) {
+															potionType = "minecraft:swiftness"; // Swiftness
+														} else if (isPotion(durability, 8258)) {
+															potionType = "minecraft:long_swiftness"; // Swiftness (extended)
+														} else if (isPotion(durability, 8226)) {
+															potionType = "minecraft:strong_swiftness"; // Swiftness II
+														} else if (isPotion(durability, 8195)) {
+															potionType = "minecraft:fire_resistance"; // Fire Resistance
+														} else if (isPotion(durability, 8259)) {
+															potionType = "minecraft:long_fire_resistance"; // Fire Resistance (extended)
+														} else if (isPotion(durability, 8197)) {
+															potionType = "minecraft:healing"; // Healing
+														} else if (isPotion(durability, 8229)) {
+															potionType = "minecraft:strong_healing"; // Healing II
+														} else if (isPotion(durability, 8198)) {
+															potionType = "minecraft:night_vision"; // Night Vision
+														} else if (isPotion(durability, 8262)) {
+															potionType = "minecraft:long_night_vision"; // Night Vision (extended)
+														} else if (isPotion(durability, 8201)) {
+															potionType = "minecraft:strength"; // Strength
+														} else if (isPotion(durability, 8265)) {
+															potionType = "minecraft:long_strength"; // Strength (extended)
+														} else if (isPotion(durability, 8233)) {
+															potionType = "minecraft:strong_strength"; // Strength II
+														} else if (isPotion(durability, 8203)) {
+															potionType = "minecraft:leaping"; // Leaping
+														} else if (isPotion(durability, 8267)) {
+															potionType = "minecraft:long_leaping"; // Leaping (extended)
+														} else if (isPotion(durability, 8235)) {
+															potionType = "minecraft:strong_leaping"; // Leaping II
+														} else if (isPotion(durability, 8205)) {
+															potionType = "minecraft:water_breathing"; // Water Breathing
+														} else if (isPotion(durability, 8269)) {
+															potionType = "minecraft:long_water_breathing"; // Water Breathing (extended)
+														} else if (isPotion(durability, 8206)) {
+															potionType = "minecraft:invisibility"; // Invisibility
+														} else if (isPotion(durability, 8270)) {
+															potionType = "minecraft:long_invisibility"; // Invisibility (extended)
+														} else if (isPotion(durability, 8196)) {
+															potionType = "minecraft:poison"; // Poison
+														} else if (isPotion(durability, 8260)) {
+															potionType = "minecraft:long_poison"; // Poison (extended)
+														} else if (isPotion(durability, 8228)) {
+															potionType = "minecraft:strong_poison"; // Poison II
+														} else if (isPotion(durability, 8200)) {
+															potionType = "minecraft:weakness"; // Weakness
+														} else if (isPotion(durability, 8264)) {
+															potionType = "minecraft:long_weakness"; // Weakness (extended)
+														} else if (isPotion(durability, 8202)) {
+															potionType = "minecraft:slowness"; // Slowness
+														} else if (isPotion(durability, 8266)) {
+															potionType = "minecraft:long_slowness"; // Slowness (extended)
+														} else if (isPotion(durability, 8204)) {
+															potionType = "minecraft:harming"; // Harming
+														} else if (isPotion(durability, 8236)) {
+															potionType = "minecraft:strong_harming"; // Harming II
+														} else if (isPotion(durability, 8289)) {
+															potionType = "minecraft:strong_regeneration"; // Regeneration II
+														} else if (isPotion(durability, 8290)) {
+															potionType = "minecraft:strong_swiftness"; // Swiftness II
+														} else if (isPotion(durability, 8297)) {
+															potionType = "minecraft:strong_strength"; // Strength II
+														} else if (isPotion(durability, 8292)) {
+															potionType = "minecraft:strong_poison"; // Poison II
+														} else if (durability == 373) {
+															potionType = "minecraft:empty"; // Empty
+														}
+														if (durability > 16000)
+															serializedItem.put("Type", "Splash Potion");
 
-													saveItem = true;
-													serializedItem.remove("Durability");
-													if (!potionType.isEmpty()) serializedItem.put("Potion", potionType);
+														saveItem = true;
+														serializedItem.remove("Durability");
+														if (!potionType.isEmpty())
+															serializedItem.put("Potion", potionType);
+													}
+												}
+												if (saveItem) {
+													saveItems = true;
+													itemsMap.put(serializedItemEntry.getKey(), serializedItem);
 												}
 											}
-											if (saveItem) {
-												saveItems = true;
-												itemsMap.put(serializedItemEntry.getKey(), serializedItem);
-											}
+										}
+										if (saveItems) {
+											kitConfig.set("Items", itemsMap);
+											save = true;
 										}
 									}
-									if (saveItems) {
-										kitConfig.set("Items", itemsMap);
-										save = true;
-									}
-								}
-								if (kitConfig.contains("Potion effects")) {
-									Map<String, Object> serializedPotionEffects = ObjectUtilities.getMap(kitConfig.get("Potion effects"));
-									boolean savePotionEffects = false;
-									for (Map.Entry<String, Object> serializedPotionEffectEntry : new LinkedHashMap<>(serializedPotionEffects).entrySet()) {
-										Map<String, Object> serializedPotionEffect = ObjectUtilities.getMap(serializedPotionEffectEntry.getValue());
-										if (serializedPotionEffect.containsKey("Duration")) {
-											double duration = ObjectUtilities.getObject(serializedPotionEffect, Number.class, "Duration").doubleValue();
-											if (duration >= 0L) {
-												duration = duration / 20D;
-												savePotionEffects = true;
-												serializedPotionEffect.put("Duration", duration);
-												serializedPotionEffects.put(serializedPotionEffectEntry.getKey(), serializedPotionEffect);
+									if (kitConfig.contains("Potion effects")) {
+										Map<String, Object> serializedPotionEffects = ObjectUtilities.getMap(kitConfig.get("Potion effects"));
+										boolean savePotionEffects = false;
+										for (Map.Entry<String, Object> serializedPotionEffectEntry : new LinkedHashMap<>(serializedPotionEffects).entrySet()) {
+											Map<String, Object> serializedPotionEffect = ObjectUtilities.getMap(serializedPotionEffectEntry.getValue());
+											if (serializedPotionEffect.containsKey("Duration")) {
+												double duration = ObjectUtilities.getObject(serializedPotionEffect, Number.class, "Duration").doubleValue();
+												if (duration >= 0L) {
+													duration = duration / 20D;
+													savePotionEffects = true;
+													serializedPotionEffect.put("Duration", duration);
+													serializedPotionEffects.put(serializedPotionEffectEntry.getKey(), serializedPotionEffect);
+												}
 											}
 										}
+										if (savePotionEffects) {
+											kitConfig.set("Potion effects", serializedPotionEffects);
+											save = true;
+										}
 									}
-									if (savePotionEffects) {
-										kitConfig.set("Potion effects", serializedPotionEffects);
-										save = true;
+									if (save) {
+										if (oldFolder == null) {
+											kitConfig.save(kitFile);
+											continue;
+										}
+										FileUtil.copy(kitFile, new File(oldFolder, kitFile.getName()));
+										FileUtilities.delete(kitFile);
+										kitConfig.save(kitFile);
 									}
-								}
-								if (save) {
-									FileUtilities.delete(kitFile);
-									kitConfig.save(kitFile);
 								}
 							}
 						}
