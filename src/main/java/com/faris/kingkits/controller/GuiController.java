@@ -126,6 +126,8 @@ public class GuiController implements Controller {
 					if (kitItemEntry.getKey() >= 0 && kitItemEntry.getKey() < kitPreviewInv.getSize() - 18)
 						kitPreviewInv.setItem(kitItemEntry.getKey(), kitItemEntry.getValue());
 				}
+				if (!ItemUtilities.isNull(kit.getOffHand()))
+					kitPreviewInv.setItem(kitPreviewInv.getSize() - 5, kit.getOffHand());
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 17, kit.getArmour()[3]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 15, kit.getArmour()[2]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 13, kit.getArmour()[1]);
@@ -248,8 +250,7 @@ public class GuiController implements Controller {
 							if (!PlayerUtilities.checkPlayer(player, kitPlayer)) return;
 							player.closeInventory();
 
-							// TODO: RIGHT CLICK = Preview kits.
-							if (event.getClick() != ClickType.RIGHT) {
+							if (!ConfigController.getInstance().shouldAllowRightClickPreview() || event.getClick() != ClickType.RIGHT) {
 								setKit(clickedKit, player, kitPlayer, true);
 							} else {
 								final UUID playerUUID = player.getUniqueId();
@@ -414,12 +415,15 @@ public class GuiController implements Controller {
 								ex.printStackTrace();
 							}
 						}
+						player.getInventory().setItemInOffHand(selectedKit.getOffHand());
 						player.getInventory().setArmorContents(selectedKit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : selectedKit.getItems().values()) {
 							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
+						if (!ItemUtilities.isNull(selectedKit.getOffHand()))
+							itemsToDrop.addAll(player.getInventory().addItem(selectedKit.getOffHand()).values());
 						for (ItemStack kitArmour : selectedKit.getArmour()) {
 							if (!ItemUtilities.isNull(kitArmour))
 								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
@@ -429,6 +433,8 @@ public class GuiController implements Controller {
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
 						}
 					}
+					if (selectedKit.getHeldItemSlot() != -1)
+						player.getInventory().setHeldItemSlot(selectedKit.getHeldItemSlot());
 					player.setWalkSpeed(selectedKit.getWalkSpeed());
 					if (player.getHealth() > selectedKit.getMaxHealth())
 						player.setHealth(selectedKit.getMaxHealth());

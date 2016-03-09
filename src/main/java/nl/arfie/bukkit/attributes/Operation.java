@@ -4,7 +4,7 @@ package nl.arfie.bukkit.attributes;
  * An Operation will indicate the way that an Attribute's amount value changes
  * the user's base value of the given {@link AttributeType}. Default is
  * {@link #ADD_NUMBER}.
- *
+ * <p/>
  * When applying operations, there are three variables: amount, base and output.
  * <ul>
  * <li><tt>amount</tt> indicates the amount of this {@link Attribute}</li>

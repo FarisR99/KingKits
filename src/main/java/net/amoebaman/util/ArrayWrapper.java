@@ -27,9 +27,9 @@ public final class ArrayWrapper<E> {
 	public ArrayWrapper(E... elements) {
 		setArray(elements);
 	}
-	
+
 	private E[] _array;
-	
+
 	/**
 	 * Retrieves a reference to the wrapped array instance.
 	 *
@@ -38,7 +38,7 @@ public final class ArrayWrapper<E> {
 	public E[] getArray() {
 		return _array;
 	}
-	
+
 	/**
 	 * Set this wrapper to wrap a new array instance.
 	 *
@@ -48,7 +48,7 @@ public final class ArrayWrapper<E> {
 		Validate.notNull(array, "The array must not be null.");
 		_array = array;
 	}
-	
+
 	/**
 	 * Determines if this object has a value equivalent to another object.
 	 *

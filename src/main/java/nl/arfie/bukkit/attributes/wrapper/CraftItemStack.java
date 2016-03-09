@@ -1,6 +1,6 @@
 package nl.arfie.bukkit.attributes.wrapper;
 
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.ItemStack;
 
 public class CraftItemStack extends SourceWrapper {
 

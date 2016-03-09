@@ -5,7 +5,7 @@ import nl.arfie.bukkit.attributes.wrapper.CraftItemStack;
 import nl.arfie.bukkit.attributes.wrapper.MinecraftItemStack;
 import nl.arfie.bukkit.attributes.wrapper.NBTTagCompound;
 import nl.arfie.bukkit.attributes.wrapper.NBTTagList;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +15,7 @@ import java.util.logging.Level;
 /**
  * Class to apply {@link Attribute}s or {@link Collection}s containing
  * Attributes to ItemStacks.
- *
+ * <p/>
  * <b>Example code:</b>
  * <pre>
  * // Instantiate some Attributes

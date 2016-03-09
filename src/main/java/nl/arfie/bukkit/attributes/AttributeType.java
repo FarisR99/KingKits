@@ -29,10 +29,23 @@ public enum AttributeType {
 	 */
 	KNOCKBACK_RESISTANCE("generic.knockbackResistance"),
 	/**
+	 * Will set the user's armour defense points. 0.0 = no defense
+	 * 0.0 = no defense, 30.0 = max defense.
+	 */
+	ARMOUR_DEFENSE("generic.armor"),
+	/**
 	 * Will set the number of life points the user's attacks will normally take
 	 * off when hitting another Damageable.
 	 */
 	ATTACK_DAMAGE("generic.attackDamage"),
+	/**
+	 * Determines speed at which attack strength recharges. Value is the number of full-strength attacks per second.
+	 */
+	ATTACK_SPEED("generic.attackSpeed"),
+	/**
+	 * Affects the results of loot tables (e.g. when opening chests or chest minecarts, fishing, and killing mobs).
+	 */
+	LUCK("generic.luck"),
 	/**
 	 * Will set a horse's jumping strength. Default is 0.7.
 	 */

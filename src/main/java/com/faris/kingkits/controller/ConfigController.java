@@ -23,6 +23,7 @@ import java.util.logging.Level;
 public class ConfigController implements Controller {
 
 	private static ConfigController instance = null;
+	public static final String CURRENT_CONFIG_VERSION = "3.1";
 
 	private MySQLDetails sqlDetails = null;
 
@@ -128,7 +129,7 @@ public class ConfigController implements Controller {
 
 	private void saveDefaultConfig() {
 		this.getConfig().options().header("KingKits configuration");
-		this.getConfig().addDefault("Version", "3.0", "Do NOT modify this, this is for the plugin only.");
+		this.getConfig().addDefault("Version", CURRENT_CONFIG_VERSION, "Do NOT modify this, this is for the plugin only.");
 		this.getConfig().addDefault("Updater.Enabled", true, "Set to 'false' if you want to disable the checking of new updates.");
 		this.getConfig().addDefault("Updater.Update", true, "Set to 'true' if you want to auto-update the plugin if a new version has been found.", "This only works for Bukkit.");
 		this.getConfig().addDefault("MySQL", new MySQLDetails().serialize(), "MySQL authentication information and details.");
@@ -517,6 +518,10 @@ public class ConfigController implements Controller {
 		return this.scoreEnabled;
 	}
 
+	public boolean shouldAllowRightClickPreview() {
+		return this.allowRightClickPreview;
+	}
+
 	public boolean shouldAutomaticallyUpdate() {
 		return this.updaterUpdate;
 	}
@@ -666,348 +671,455 @@ public class ConfigController implements Controller {
 		KingKits plugin = KingKits.getInstance();
 		File dataFolder = KingKits.getInstance().getDataFolder();
 		if (dataFolder != null && dataFolder.exists()) {
-			File oldFolder = new File(dataFolder, "old");
 			final String migrationFailedMessage = "Failed to convert old KingKits %s: %s";
-			try {
-				if (!oldFolder.exists()) oldFolder.mkdirs();
-			} catch (Exception ex) {
-				plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "(config.yml, messages.yml, economy.yml, kits.yml, userkits.yml, cooldown.yml, killstreaks.yml, scores.yml)", ""), ex);
-				return;
-			}
-			try {
-				File killstreaksFile = new File(dataFolder, "killstreaks.yml");
-				File oldKillstreaksFile = new File(oldFolder, "killstreaks.yml");
-				if (killstreaksFile.exists()) {
-					if (FileUtil.copy(killstreaksFile, oldKillstreaksFile)) {
-						FileUtilities.delete(killstreaksFile);
-					}
+			if (!this.getConfig().contains("Version")) {
+				plugin.getLogger().log(Level.INFO, "Converting old configurations to KingKits v5.0.0...");
+
+				File oldFolder = new File(dataFolder, "old");
+				try {
+					if (!oldFolder.exists()) oldFolder.mkdirs();
+				} catch (Exception ex) {
+					plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "(config.yml, messages.yml, economy.yml, kits.yml, userkits.yml, cooldown.yml, killstreaks.yml, scores.yml)", ""), ex);
+					return;
 				}
 
-				File configFile = new File(dataFolder, "config.yml");
-				if (configFile.exists()) {
-					File oldConfigFile = new File(oldFolder, "config.yml");
-					if (FileUtil.copy(configFile, oldConfigFile)) {
-						if (configFile.delete()) {
-							CustomConfiguration newConfig = CustomConfiguration.loadConfiguration(configFile);
-							final FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
+				try {
+					File killstreaksFile = new File(dataFolder, "killstreaks.yml");
+					File oldKillstreaksFile = new File(oldFolder, "killstreaks.yml");
+					if (killstreaksFile.exists()) {
+						if (FileUtil.copy(killstreaksFile, oldKillstreaksFile)) {
+							FileUtilities.delete(killstreaksFile);
+						}
+					}
 
-							newConfig.set("Updater.Enabled", oldConfig.getBoolean("Check for updates", true));
-							newConfig.set("Updater.Update", oldConfig.getBoolean("Automatically update", true));
-							newConfig.set("MySQL", MySQLDetails.deserialize(ObjectUtilities.getMap(oldConfig.get("MySQL"))).serialize());
-							newConfig.set("OP bypass", oldConfig.getBoolean("Op bypass", true));
-							newConfig.set("Allow.Block modification", !oldConfig.getBoolean("Disable block placing and breaking", false));
-							newConfig.set("Allow.Death messages", !oldConfig.getBoolean("Disable death messages", false));
-							newConfig.set("Allow.Item dropping", oldConfig.getBoolean("Drop items", false));
-							newConfig.set("Allow.Item dropping on death", oldConfig.getBoolean("Drop items on death", false));
-							newConfig.set("Allow.Item picking up", oldConfig.getBoolean("Allow picking up items", true));
-							newConfig.set("Allow.Quick soup", oldConfig.getBoolean("Quick soup", true));
-							Map<String, Object> existingKeys = ObjectUtilities.getMap(newConfig.get("Command"));
-							newConfig.set("Command", new LinkedHashMap<String, Boolean>() {{
-								this.put("Kit", oldConfig.getBoolean("Enable kits command", true));
-								this.put("Kit create", oldConfig.getBoolean("Enable create kits command", true));
-								this.put("Kit delete", oldConfig.getBoolean("Enable delete kits command", true));
-								this.put("Kit rename", oldConfig.getBoolean("Enable rename kits command", true));
-								this.put("User kit create", oldConfig.getBoolean("Enable create user kits command", true));
-								this.put("User kit delete", oldConfig.getBoolean("Enable delete user kits command", true));
-								this.put("User kit rename", oldConfig.getBoolean("Enable rename user kits command", true));
-								this.put("Preview kit", oldConfig.getBoolean("Enable preview kit command", true));
-								this.put("Refill", oldConfig.getBoolean("Enable refill command", true));
-							}}, "Enable/disable commands.");
-							for (Map.Entry<String, Object> existingKey : existingKeys.entrySet()) {
-								if (!newConfig.isSet("Command." + existingKey.getKey()))
-									newConfig.set("Command." + existingKey.getKey(), existingKey.getValue());
-							}
-							newConfig.set("Kit GUI.Size", oldConfig.getInt("GUI.Size", 36));
-							String strKitGuiPageButtonType = StringUtilities.capitalizeFully(Material.matchMaterial(String.valueOf(oldConfig.getInt("GUI.Page button.ID"))).name().replace('_', ' '));
-							short kitGuiPageButtonData = (short) oldConfig.getInt("GUI.Page button.Data value", 0);
-							newConfig.set("Kit GUI.Next button.Type", strKitGuiPageButtonType);
-							newConfig.set("Kit GUI.Previous button.Type", strKitGuiPageButtonType);
-							if (kitGuiPageButtonData != 0)
-								newConfig.set("Kit GUI.Next button.Data", kitGuiPageButtonData);
-							if (kitGuiPageButtonData != 0)
-								newConfig.set("Kit GUI.Previous button.Data", kitGuiPageButtonData);
-							newConfig.set("Kit GUI.Show on join", (oldConfig.getBoolean("List kits on join") && !oldConfig.getString("Kit list mode").equalsIgnoreCase("Text")) || oldConfig.getBoolean("Kit menu on join", false));
-							newConfig.set("Kit GUI.Show on respawn", oldConfig.getBoolean("GUI.Show on respawn", false));
-							newConfig.set("Multi-inventories.Enabled", oldConfig.getBoolean("Multi-inventories", false));
-							newConfig.set("Multi-inventories.Plugin", oldConfig.getString("Multiple world inventories plugin", "Multiverse-Inventories"));
-							newConfig.set("Score.Chat prefix", oldConfig.getString("Score chat prefix", "&6[&a%d&6] &f").replace("<score>", "%d"));
-							newConfig.set("Score.Enabled", oldConfig.getBoolean("Enable score", false));
-							newConfig.set("Score.Max", oldConfig.getInt("Max score", Integer.MAX_VALUE));
-							newConfig.set("Score.Per kill", oldConfig.getInt("Score per kill", 0));
-							newConfig.set("Should.Clear items on kit selection", oldConfig.getBoolean("Replace items when selecting a kit", true));
-							newConfig.set("Should.Decrease score on auto-unlock", oldConfig.getBoolean("Decrease score on auto unlock", false));
-							newConfig.set("Should.Drop items on full inventory", oldConfig.getBoolean("Drop items on full inventory", false));
-							newConfig.set("Should.Lock food level", oldConfig.getBoolean("Lock hunger level", true));
-							newConfig.set("Should.Prevent creative", oldConfig.getBoolean("Disable gamemode while using a kit", false));
-							newConfig.set("Should.Remove items on reload", oldConfig.getBoolean("Clear inventories on reload", true));
-							newConfig.set("Should.Remove kit on death", oldConfig.getBoolean("Remove items on death", true));
-							newConfig.set("Should.Remove kit on leave", oldConfig.getBoolean("Remove items on leave", true));
-							newConfig.set("Should.Remove potion effects on leave", oldConfig.getBoolean("Remove potion effects on leave", true));
-							newConfig.set("Should.Set compass to nearest player", oldConfig.getBoolean("Set compass target to nearest player", false));
-							newConfig.set("Should.Show kit preview", oldConfig.getBoolean("Show kit preview", true));
-							newConfig.set("Should.Sort kits alphanumerically", oldConfig.getBoolean("Sort kits alphabetically", true));
-							newConfig.set("Should.Use permissions for kit list", oldConfig.getBoolean("Use permissions for kit list", true));
-							newConfig.set("Sign.Kit.Unregistered", oldConfig.getString("Kit sign", "[Kit]"));
-							newConfig.set("Sign.Kit.Valid", oldConfig.getString("Kit sign valid", "[&1Kit&0]"));
-							newConfig.set("Sign.Kit.Invalid", oldConfig.getString("Kit sign invalid", "[&cKit&0]"));
-							newConfig.set("Sign.Kit list.Unregistered", oldConfig.getString("Kit list sign", "[KLit]"));
-							newConfig.set("Sign.Kit list.Valid", oldConfig.getString("Kit list sign valid", "[&1KList&0]"));
-							newConfig.set("Sign.Refill sign.Unregistered", oldConfig.getString("Refill sign", "[KRefill]"));
-							newConfig.set("Sign.Refill sign.Valid", oldConfig.getString("Refill sign valid", "[&1KRefill&0]"));
-							newConfig.set("PvP Worlds", oldConfig.getStringList("PvP Worlds"));
-							newConfig.set("Kit list mode", oldConfig.getString("Kit list mode", "GUI"));
-							newConfig.set("One kit per life", oldConfig.getBoolean("One kit per life", false));
-							newConfig.set("Commands to run on death", oldConfig.getStringList("Commands to run on death"));
-							newConfig.set("Drop animation IDs", oldConfig.getIntegerList("Drop animations"));
-							newConfig.set("Food level lock", oldConfig.getInt("Hunger lock", 20));
-							newConfig.set("Quick soup heal", oldConfig.getDouble("Quick soup heal", 5D));
+					File configFile = new File(dataFolder, "config.yml");
+					if (configFile.exists()) {
+						File oldConfigFile = new File(oldFolder, "config.yml");
+						if (FileUtil.copy(configFile, oldConfigFile)) {
+							if (configFile.delete()) {
+								CustomConfiguration newConfig = CustomConfiguration.loadConfiguration(configFile);
+								final FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
 
-							newConfig.save(configFile);
+								newConfig.set("Version", "3.0");
+								newConfig.set("Updater.Enabled", oldConfig.getBoolean("Check for updates", true));
+								newConfig.set("Updater.Update", oldConfig.getBoolean("Automatically update", true));
+								newConfig.set("MySQL", MySQLDetails.deserialize(ObjectUtilities.getMap(oldConfig.get("MySQL"))).serialize());
+								newConfig.set("OP bypass", oldConfig.getBoolean("Op bypass", true));
+								newConfig.set("Allow.Block modification", !oldConfig.getBoolean("Disable block placing and breaking", false));
+								newConfig.set("Allow.Death messages", !oldConfig.getBoolean("Disable death messages", false));
+								newConfig.set("Allow.Item dropping", oldConfig.getBoolean("Drop items", false));
+								newConfig.set("Allow.Item dropping on death", oldConfig.getBoolean("Drop items on death", false));
+								newConfig.set("Allow.Item picking up", oldConfig.getBoolean("Allow picking up items", true));
+								newConfig.set("Allow.Quick soup", oldConfig.getBoolean("Quick soup", true));
+								Map<String, Object> existingKeys = ObjectUtilities.getMap(newConfig.get("Command"));
+								newConfig.set("Command", new LinkedHashMap<String, Boolean>() {{
+									this.put("Kit", oldConfig.getBoolean("Enable kits command", true));
+									this.put("Kit create", oldConfig.getBoolean("Enable create kits command", true));
+									this.put("Kit delete", oldConfig.getBoolean("Enable delete kits command", true));
+									this.put("Kit rename", oldConfig.getBoolean("Enable rename kits command", true));
+									this.put("User kit create", oldConfig.getBoolean("Enable create user kits command", true));
+									this.put("User kit delete", oldConfig.getBoolean("Enable delete user kits command", true));
+									this.put("User kit rename", oldConfig.getBoolean("Enable rename user kits command", true));
+									this.put("Preview kit", oldConfig.getBoolean("Enable preview kit command", true));
+									this.put("Refill", oldConfig.getBoolean("Enable refill command", true));
+								}}, "Enable/disable commands.");
+								for (Map.Entry<String, Object> existingKey : existingKeys.entrySet()) {
+									if (!newConfig.isSet("Command." + existingKey.getKey()))
+										newConfig.set("Command." + existingKey.getKey(), existingKey.getValue());
+								}
+								newConfig.set("Kit GUI.Size", oldConfig.getInt("GUI.Size", 36));
+								String strKitGuiPageButtonType = StringUtilities.capitalizeFully(Material.matchMaterial(String.valueOf(oldConfig.getInt("GUI.Page button.ID"))).name().replace('_', ' '));
+								short kitGuiPageButtonData = (short) oldConfig.getInt("GUI.Page button.Data value", 0);
+								newConfig.set("Kit GUI.Next button.Type", strKitGuiPageButtonType);
+								newConfig.set("Kit GUI.Previous button.Type", strKitGuiPageButtonType);
+								if (kitGuiPageButtonData != 0)
+									newConfig.set("Kit GUI.Next button.Data", kitGuiPageButtonData);
+								if (kitGuiPageButtonData != 0)
+									newConfig.set("Kit GUI.Previous button.Data", kitGuiPageButtonData);
+								newConfig.set("Kit GUI.Show on join", (oldConfig.getBoolean("List kits on join") && !oldConfig.getString("Kit list mode").equalsIgnoreCase("Text")) || oldConfig.getBoolean("Kit menu on join", false));
+								newConfig.set("Kit GUI.Show on respawn", oldConfig.getBoolean("GUI.Show on respawn", false));
+								newConfig.set("Multi-inventories.Enabled", oldConfig.getBoolean("Multi-inventories", false));
+								newConfig.set("Multi-inventories.Plugin", oldConfig.getString("Multiple world inventories plugin", "Multiverse-Inventories"));
+								newConfig.set("Score.Chat prefix", oldConfig.getString("Score chat prefix", "&6[&a%d&6] &f").replace("<score>", "%d"));
+								newConfig.set("Score.Enabled", oldConfig.getBoolean("Enable score", false));
+								newConfig.set("Score.Max", oldConfig.getInt("Max score", Integer.MAX_VALUE));
+								newConfig.set("Score.Per kill", oldConfig.getInt("Score per kill", 0));
+								newConfig.set("Should.Clear items on kit selection", oldConfig.getBoolean("Replace items when selecting a kit", true));
+								newConfig.set("Should.Decrease score on auto-unlock", oldConfig.getBoolean("Decrease score on auto unlock", false));
+								newConfig.set("Should.Drop items on full inventory", oldConfig.getBoolean("Drop items on full inventory", false));
+								newConfig.set("Should.Lock food level", oldConfig.getBoolean("Lock hunger level", true));
+								newConfig.set("Should.Prevent creative", oldConfig.getBoolean("Disable gamemode while using a kit", false));
+								newConfig.set("Should.Remove items on reload", oldConfig.getBoolean("Clear inventories on reload", true));
+								newConfig.set("Should.Remove kit on death", oldConfig.getBoolean("Remove items on death", true));
+								newConfig.set("Should.Remove kit on leave", oldConfig.getBoolean("Remove items on leave", true));
+								newConfig.set("Should.Remove potion effects on leave", oldConfig.getBoolean("Remove potion effects on leave", true));
+								newConfig.set("Should.Set compass to nearest player", oldConfig.getBoolean("Set compass target to nearest player", false));
+								newConfig.set("Should.Show kit preview", oldConfig.getBoolean("Show kit preview", true));
+								newConfig.set("Should.Sort kits alphanumerically", oldConfig.getBoolean("Sort kits alphabetically", true));
+								newConfig.set("Should.Use permissions for kit list", oldConfig.getBoolean("Use permissions for kit list", true));
+								newConfig.set("Sign.Kit.Unregistered", oldConfig.getString("Kit sign", "[Kit]"));
+								newConfig.set("Sign.Kit.Valid", oldConfig.getString("Kit sign valid", "[&1Kit&0]"));
+								newConfig.set("Sign.Kit.Invalid", oldConfig.getString("Kit sign invalid", "[&cKit&0]"));
+								newConfig.set("Sign.Kit list.Unregistered", oldConfig.getString("Kit list sign", "[KLit]"));
+								newConfig.set("Sign.Kit list.Valid", oldConfig.getString("Kit list sign valid", "[&1KList&0]"));
+								newConfig.set("Sign.Refill sign.Unregistered", oldConfig.getString("Refill sign", "[KRefill]"));
+								newConfig.set("Sign.Refill sign.Valid", oldConfig.getString("Refill sign valid", "[&1KRefill&0]"));
+								newConfig.set("PvP Worlds", oldConfig.getStringList("PvP Worlds"));
+								newConfig.set("Kit list mode", oldConfig.getString("Kit list mode", "GUI"));
+								newConfig.set("One kit per life", oldConfig.getBoolean("One kit per life", false));
+								newConfig.set("Commands to run on death", oldConfig.getStringList("Commands to run on death"));
+								newConfig.set("Drop animation IDs", oldConfig.getIntegerList("Drop animations"));
+								newConfig.set("Food level lock", oldConfig.getInt("Hunger lock", 20));
+								newConfig.set("Quick soup heal", oldConfig.getDouble("Quick soup heal", 5D));
 
-							plugin.getLogger().info("Successfully converted old config.yml into new config.yml.");
+								newConfig.save(configFile);
 
-							File economyConfigFile = new File(dataFolder, "economy.yml");
-							if (economyConfigFile.exists()) {
-								File oldEconomyConfigFile = new File(oldFolder, "economy.yml");
-								if (FileUtil.copy(economyConfigFile, oldEconomyConfigFile)) {
-									if (economyConfigFile.delete()) {
-										FileConfiguration oldEconomyConfig = YamlConfiguration.loadConfiguration(oldEconomyConfigFile);
+								plugin.getLogger().info("Successfully converted old config.yml into new config.yml.");
 
-										newConfig.set("Economy.Enabled", oldEconomyConfig.getBoolean("Use economy", false));
-										newConfig.set("Economy.Cost per refill", oldEconomyConfig.getDouble("Cost per refill", 2.5D));
-										newConfig.set("Economy.Money per kill", oldEconomyConfig.getDouble("Money per kill", 5D));
-										newConfig.set("Economy.Money per death", oldEconomyConfig.getDouble("Money per death", 7.5D));
+								File economyConfigFile = new File(dataFolder, "economy.yml");
+								if (economyConfigFile.exists()) {
+									File oldEconomyConfigFile = new File(oldFolder, "economy.yml");
+									if (FileUtil.copy(economyConfigFile, oldEconomyConfigFile)) {
+										if (economyConfigFile.delete()) {
+											FileConfiguration oldEconomyConfig = YamlConfiguration.loadConfiguration(oldEconomyConfigFile);
 
-										newConfig.save(configFile);
+											newConfig.set("Economy.Enabled", oldEconomyConfig.getBoolean("Use economy", false));
+											newConfig.set("Economy.Cost per refill", oldEconomyConfig.getDouble("Cost per refill", 2.5D));
+											newConfig.set("Economy.Money per kill", oldEconomyConfig.getDouble("Money per kill", 5D));
+											newConfig.set("Economy.Money per death", oldEconomyConfig.getDouble("Money per death", 7.5D));
 
-										plugin.getLogger().info("Successfully converted old economy.yml.");
+											newConfig.save(configFile);
+
+											plugin.getLogger().info("Successfully converted old economy.yml.");
+										} else {
+											plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "economy.yml", "Could not delete old config.yml."));
+										}
 									} else {
-										plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "economy.yml", "Could not delete old config.yml."));
+										plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "economy.yml", "Could not move old economy.yml to the old folder."));
 									}
-								} else {
-									plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "economy.yml", "Could not move old economy.yml to the old folder."));
 								}
+								this.reloadConfig();
+							} else {
+								plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not delete old config.yml."));
 							}
 						} else {
-							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not delete old config.yml."));
+							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not move old config.yml to the old folder."));
 						}
-					} else {
-						plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not move old config.yml to the old folder."));
 					}
+				} catch (Exception ex) {
+					plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not convert old config.yml to new config.yml."), ex);
 				}
-			} catch (Exception ex) {
-				plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "config.yml", "Could not convert old config.yml to new config.yml."), ex);
-			}
-			try {
-				File messagesFile = new File(dataFolder, "messages.yml");
-				if (messagesFile.exists()) {
-					File oldMessagesFile = new File(oldFolder, "messages.yml");
-					if (FileUtil.copy(messagesFile, oldMessagesFile)) {
-						if (messagesFile.delete()) {
-							FileConfiguration newMessagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
-							FileConfiguration oldMessagesConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
+				try {
+					File messagesFile = new File(dataFolder, "messages.yml");
+					if (messagesFile.exists()) {
+						File oldMessagesFile = new File(oldFolder, "messages.yml");
+						if (FileUtil.copy(messagesFile, oldMessagesFile)) {
+							if (messagesFile.delete()) {
+								FileConfiguration newMessagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+								FileConfiguration oldMessagesConfig = YamlConfiguration.loadConfiguration(oldMessagesFile);
 
-							newMessagesConfig.set("General.Command error", oldMessagesConfig.getString("Command.General.Error"));
-							newMessagesConfig.set("General.Command permission", oldMessagesConfig.getString("Command.General.No permission"));
-							newMessagesConfig.set("General.Command usage", oldMessagesConfig.getString("Command.General.Usage").replace("%s", "%s %s"));
-							newMessagesConfig.set("General.Player not found", oldMessagesConfig.getString("Command.General.Not online"));
-							newMessagesConfig.set("General.Player command", oldMessagesConfig.getString("Command.General.In-game"));
-							newMessagesConfig.set("Command.Create kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
-							newMessagesConfig.set("Command.Create kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
-							newMessagesConfig.set("Command.Create user kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
-							newMessagesConfig.set("Command.Create user kit.Maximum kits", oldMessagesConfig.getString("Command.Create kit.User.Maximum personal kits"));
-							newMessagesConfig.set("Command.Create user kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
-							newMessagesConfig.set("Command.Delete kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
-							newMessagesConfig.set("Command.Delete user kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
-							newMessagesConfig.set("Command.Kit.List.Title", oldMessagesConfig.getString("General.Kit list title").replace("%s", "%d"));
-							newMessagesConfig.set("Command.Kit.List.No kits", oldMessagesConfig.getString("General.No kits available"));
-							newMessagesConfig.set("Command.Rename kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
-							newMessagesConfig.set("Command.Rename user kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
-							newMessagesConfig.set("Command.Refill.Bowl", oldMessagesConfig.getString("Command.Refill.Bowl"));
-							newMessagesConfig.set("Command.Refill.Not enough money", oldMessagesConfig.getString("Command.Refill.Not enough money"));
-							newMessagesConfig.set("Command.Refill.Full inventory", oldMessagesConfig.getString("Command.Refill.Full inventory"));
-							newMessagesConfig.set("Compass.Player", oldMessagesConfig.getString("Compass.Player"));
-							newMessagesConfig.set("Compass.Spawn", oldMessagesConfig.getString("Compass.Spawn"));
-							newMessagesConfig.set("Kit.Delay", oldMessagesConfig.getString("Kit.Delay"));
-							newMessagesConfig.set("Kit.Illegal characters", oldMessagesConfig.getString("Command.Create kit.Illegal characters"));
-							newMessagesConfig.set("Kit.No permission", oldMessagesConfig.getString("Kit.No permission"));
-							newMessagesConfig.set("Kit.Not enough money", oldMessagesConfig.getString("Kit.Not enough money"));
-							newMessagesConfig.set("Kit.Not found", oldMessagesConfig.getString("Kit.Non-existent"));
-							newMessagesConfig.set("Kit.One per life", oldMessagesConfig.getString("Kit.Already chosen"));
-							newMessagesConfig.set("Kit.Unlocked", oldMessagesConfig.getString("Kit.Unlocked"));
-							newMessagesConfig.set("Sign.Create.No permission", oldMessagesConfig.getString("Sign.Create.No permission"));
-							newMessagesConfig.set("Sign.Create.Incorrectly setup", oldMessagesConfig.getString("Sign.General.Incorrectly set up"));
-							newMessagesConfig.set("Sign.Use.No permission", oldMessagesConfig.getString("Sign.Use.No permission"));
-							newMessagesConfig.set("Time.Second", oldMessagesConfig.getString("Time.Second"));
-							newMessagesConfig.set("Time.Seconds", oldMessagesConfig.getString("Time.Seconds"));
-							newMessagesConfig.set("Time.Minute", oldMessagesConfig.getString("Time.Minute"));
-							newMessagesConfig.set("Time.Minutes", oldMessagesConfig.getString("Time.Minutes"));
-							newMessagesConfig.set("Time.Hour", oldMessagesConfig.getString("Time.Hour"));
-							newMessagesConfig.set("Time.Hours", oldMessagesConfig.getString("Time.Hours"));
-							newMessagesConfig.set("Time.Day", oldMessagesConfig.getString("Time.Day"));
-							newMessagesConfig.set("Time.Days", oldMessagesConfig.getString("Time.Days"));
+								newMessagesConfig.set("General.Command error", oldMessagesConfig.getString("Command.General.Error"));
+								newMessagesConfig.set("General.Command permission", oldMessagesConfig.getString("Command.General.No permission"));
+								newMessagesConfig.set("General.Command usage", oldMessagesConfig.getString("Command.General.Usage").replace("%s", "%s %s"));
+								newMessagesConfig.set("General.Player not found", oldMessagesConfig.getString("Command.General.Not online"));
+								newMessagesConfig.set("General.Player command", oldMessagesConfig.getString("Command.General.In-game"));
+								newMessagesConfig.set("Command.Create kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
+								newMessagesConfig.set("Command.Create kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
+								newMessagesConfig.set("Command.Create user kit.Created", oldMessagesConfig.getString("Command.Create kit.Created"));
+								newMessagesConfig.set("Command.Create user kit.Maximum kits", oldMessagesConfig.getString("Command.Create kit.User.Maximum personal kits"));
+								newMessagesConfig.set("Command.Create user kit.Overwrote", oldMessagesConfig.getString("Command.Create kit.Overwrite"));
+								newMessagesConfig.set("Command.Delete kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
+								newMessagesConfig.set("Command.Delete user kit.Deleted", oldMessagesConfig.getString("Command.Delete kit.Deleted"));
+								newMessagesConfig.set("Command.Kit.List.Title", oldMessagesConfig.getString("General.Kit list title").replace("%s", "%d"));
+								newMessagesConfig.set("Command.Kit.List.No kits", oldMessagesConfig.getString("General.No kits available"));
+								newMessagesConfig.set("Command.Rename kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
+								newMessagesConfig.set("Command.Rename user kit.Renamed", oldMessagesConfig.getString("Command.Rename kit.Renamed"));
+								newMessagesConfig.set("Command.Refill.Bowl", oldMessagesConfig.getString("Command.Refill.Bowl"));
+								newMessagesConfig.set("Command.Refill.Not enough money", oldMessagesConfig.getString("Command.Refill.Not enough money"));
+								newMessagesConfig.set("Command.Refill.Full inventory", oldMessagesConfig.getString("Command.Refill.Full inventory"));
+								newMessagesConfig.set("Compass.Player", oldMessagesConfig.getString("Compass.Player"));
+								newMessagesConfig.set("Compass.Spawn", oldMessagesConfig.getString("Compass.Spawn"));
+								newMessagesConfig.set("Kit.Delay", oldMessagesConfig.getString("Kit.Delay"));
+								newMessagesConfig.set("Kit.Illegal characters", oldMessagesConfig.getString("Command.Create kit.Illegal characters"));
+								newMessagesConfig.set("Kit.No permission", oldMessagesConfig.getString("Kit.No permission"));
+								newMessagesConfig.set("Kit.Not enough money", oldMessagesConfig.getString("Kit.Not enough money"));
+								newMessagesConfig.set("Kit.Not found", oldMessagesConfig.getString("Kit.Non-existent"));
+								newMessagesConfig.set("Kit.One per life", oldMessagesConfig.getString("Kit.Already chosen"));
+								newMessagesConfig.set("Kit.Unlocked", oldMessagesConfig.getString("Kit.Unlocked"));
+								newMessagesConfig.set("Sign.Create.No permission", oldMessagesConfig.getString("Sign.Create.No permission"));
+								newMessagesConfig.set("Sign.Create.Incorrectly setup", oldMessagesConfig.getString("Sign.General.Incorrectly set up"));
+								newMessagesConfig.set("Sign.Use.No permission", oldMessagesConfig.getString("Sign.Use.No permission"));
+								newMessagesConfig.set("Time.Second", oldMessagesConfig.getString("Time.Second"));
+								newMessagesConfig.set("Time.Seconds", oldMessagesConfig.getString("Time.Seconds"));
+								newMessagesConfig.set("Time.Minute", oldMessagesConfig.getString("Time.Minute"));
+								newMessagesConfig.set("Time.Minutes", oldMessagesConfig.getString("Time.Minutes"));
+								newMessagesConfig.set("Time.Hour", oldMessagesConfig.getString("Time.Hour"));
+								newMessagesConfig.set("Time.Hours", oldMessagesConfig.getString("Time.Hours"));
+								newMessagesConfig.set("Time.Day", oldMessagesConfig.getString("Time.Day"));
+								newMessagesConfig.set("Time.Days", oldMessagesConfig.getString("Time.Days"));
 
-							File oldConfigFile = new File(oldFolder, "config.yml");
-							if (oldConfigFile.exists()) {
-								FileConfiguration oldConfigYml = YamlConfiguration.loadConfiguration(oldConfigFile);
-								newMessagesConfig.set("Kit.Set", oldConfigYml.getString("Custom message"));
-							}
-							File oldEconomyFile = new File(oldFolder, "economy.yml");
-							if (oldEconomyFile.exists()) {
-								FileConfiguration oldEconomyYml = YamlConfiguration.loadConfiguration(oldEconomyFile);
-								if (oldEconomyYml.contains("Message"))
-									newMessagesConfig.set("Economy.Kit cost", oldEconomyYml.getString("Message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f"));
-								if (oldEconomyYml.contains("Money per death message"))
-									newMessagesConfig.set("Economy.Money per death", oldEconomyYml.getString("Money per death message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<killer>", "%s"));
-								if (oldEconomyYml.contains("Money per kill message"))
-									newMessagesConfig.set("Economy.Money per kill", oldEconomyYml.getString("Money per kill message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<target>", "%s"));
-							}
-
-							newMessagesConfig.save(messagesFile);
-
-							plugin.getLogger().info("Successfully converted old messages.yml into new messages.yml.");
-						} else {
-							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not delete old messages.yml."));
-						}
-					} else {
-						plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not move old messages.yml to the old folder."));
-					}
-				}
-			} catch (Exception ex) {
-				plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not convert old messages.yml to new messages.yml."), ex);
-			}
-			try {
-				File configFile = new File(dataFolder, "kits.yml");
-				if (configFile.exists()) {
-					File oldConfigFile = new File(oldFolder, "kits.yml");
-					if (FileUtil.copy(configFile, oldConfigFile)) {
-						if (configFile.delete()) {
-							FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
-
-							File kitsFolder = new File(dataFolder, "kits");
-							FileUtilities.createDirectory(kitsFolder);
-
-							for (Map.Entry<String, Object> kitEntry : oldConfig.getValues(false).entrySet()) {
-								final OldKit oldKit = OldKit.deserialize(ObjectUtilities.getMap(kitEntry.getValue()));
-								if (oldKit != null) {
-									File kitFile = new File(kitsFolder, kitEntry.getKey() + ".yml");
-									if (kitFile.exists()) kitFile.delete();
-									CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
-									kitConfig.setNewLinePerKey(true);
-
-									final Kit kit = new Kit(kitEntry.getKey(), oldKit.getItemsWithSlot());
-
-									ItemStack[] kitArmour = new ItemStack[4];
-									List<ItemStack> armourItems = oldKit.getArmour();
-									for (ItemStack armourItem : armourItems) {
-										if (armourItem != null) {
-											String strArmourType = armourItem.getType().toString().toLowerCase();
-											if (strArmourType.endsWith("helmet"))
-												kitArmour[3] = armourItem;
-											else if (strArmourType.endsWith("chestplate"))
-												kitArmour[2] = armourItem;
-											else if (strArmourType.endsWith("leggings") || strArmourType.endsWith("pants"))
-												kitArmour[1] = armourItem;
-											else if (strArmourType.endsWith("boots"))
-												kitArmour[0] = armourItem;
-										}
-									}
-									kit.setArmour(kitArmour);
-
-									kit.setAlias(oldKit.hasAlias());
-									kit.setAutoUnlockScore(oldKit.getUnlockScore());
-									kit.setCommands(oldKit.getCommands());
-									kit.setCooldown(oldKit.getCooldown());
-									kit.setCost(oldKit.getCost());
-									kit.setDescription(oldKit.getDescription());
-									kit.setGuiItem(oldKit.getGuiItem());
-									kit.setGuiPosition(oldKit.getGuiPosition());
-									kit.setItemsBreakable(oldKit.canItemsBreak());
-									kit.setKillstreakCommands(new LinkedHashMap<Integer, List<String>>() {{
-										for (Map.Entry<Long, List<String>> killstreakEntry : oldKit.getKillstreaks().entrySet()) {
-											this.put((int) Math.min(Math.max(killstreakEntry.getKey(), (long) Integer.MIN_VALUE), (long) Integer.MAX_VALUE), killstreakEntry.getValue());
-										}
-									}});
-									kit.setMaxHealth(oldKit.getMaxHealth());
-									kit.setPotionEffects(oldKit.getPotionEffects());
-
-									Map<String, Object> serializedKit = kit.serialize();
-									for (Map.Entry<String, Object> serializationEntry : serializedKit.entrySet())
-										kitConfig.set(serializationEntry.getKey(), serializationEntry.getValue());
-									kitConfig.save(kitFile);
+								File oldConfigFile = new File(oldFolder, "config.yml");
+								if (oldConfigFile.exists()) {
+									FileConfiguration oldConfigYml = YamlConfiguration.loadConfiguration(oldConfigFile);
+									newMessagesConfig.set("Kit.Set", oldConfigYml.getString("Custom message"));
 								}
+								File oldEconomyFile = new File(oldFolder, "economy.yml");
+								if (oldEconomyFile.exists()) {
+									FileConfiguration oldEconomyYml = YamlConfiguration.loadConfiguration(oldEconomyFile);
+									if (oldEconomyYml.contains("Message"))
+										newMessagesConfig.set("Economy.Kit cost", oldEconomyYml.getString("Message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f"));
+									if (oldEconomyYml.contains("Money per death message"))
+										newMessagesConfig.set("Economy.Money per death", oldEconomyYml.getString("Money per death message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<killer>", "%s"));
+									if (oldEconomyYml.contains("Money per kill message"))
+										newMessagesConfig.set("Economy.Money per kill", oldEconomyYml.getString("Money per kill message").replace(" <currency>", "").replace("<currency>", "").replace("<money>", "%.2f").replace("<target>", "%s"));
+								}
+
+								newMessagesConfig.save(messagesFile);
+
+								plugin.getLogger().info("Successfully converted old messages.yml into new messages.yml.");
+							} else {
+								plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not delete old messages.yml."));
 							}
-
-							plugin.getLogger().info("Successfully converted old kits.yml.");
 						} else {
-							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not delete old kits.yml."));
+							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not move old messages.yml to the old folder."));
 						}
-					} else {
-						plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not move old kits.yml to the old folder."));
 					}
+				} catch (Exception ex) {
+					plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "messages.yml", "Could not convert old messages.yml to new messages.yml."), ex);
 				}
-			} catch (Exception ex) {
-				plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not convert old kits.yml."), ex);
-			}
+				try {
+					File configFile = new File(dataFolder, "kits.yml");
+					if (configFile.exists()) {
+						File oldConfigFile = new File(oldFolder, "kits.yml");
+						if (FileUtil.copy(configFile, oldConfigFile)) {
+							if (configFile.delete()) {
+								FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldConfigFile);
 
-			this.reloadConfigs();
-			this.loadConfiguration();
-			if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
-				SQLController.getInstance();
-				DataStorage.setInstance(DataStorage.DataStorageType.SQL);
-			} else {
-				DataStorage.setInstance(DataStorage.DataStorageType.FILE);
-			}
+								File kitsFolder = new File(dataFolder, "kits");
+								FileUtilities.createDirectory(kitsFolder);
 
-			try {
-				Map<UUID, OfflineKitPlayer> cachedPlayers = new HashMap<>();
+								for (Map.Entry<String, Object> kitEntry : oldConfig.getValues(false).entrySet()) {
+									final OldKit oldKit = OldKit.deserialize(ObjectUtilities.getMap(kitEntry.getValue()));
+									if (oldKit != null) {
+										File kitFile = new File(kitsFolder, kitEntry.getKey() + ".yml");
+										if (kitFile.exists()) kitFile.delete();
+										CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
+										kitConfig.setNewLinePerKey(true);
 
-				File cooldownFile = new File(dataFolder, "cooldown.yml");
-				if (cooldownFile.exists()) {
-					File oldCooldownFile = new File(oldFolder, "cooldown.yml");
-					if (FileUtil.copy(cooldownFile, oldCooldownFile)) {
-						if (cooldownFile.delete()) {
-							FileConfiguration cooldownConfig = YamlConfiguration.loadConfiguration(oldCooldownFile);
-							for (Map.Entry<String, Object> uuidEntry : cooldownConfig.getValues(false).entrySet()) {
-								if (Utilities.isUUID(uuidEntry.getKey())) {
-									Map<String, Object> configKitCooldowns = ObjectUtilities.getMap(uuidEntry.getValue());
-									if (!configKitCooldowns.isEmpty()) {
-										Map<String, Long> kitCooldowns = new LinkedHashMap<>();
-										for (Map.Entry<String, Object> configKitCooldown : configKitCooldowns.entrySet()) {
-											if (Utilities.isNumber(Long.class, configKitCooldown.getValue())) {
-												kitCooldowns.put(configKitCooldown.getKey(), Long.parseLong(configKitCooldown.getValue().toString()));
+										final Kit kit = new Kit(kitEntry.getKey(), oldKit.getItemsWithSlot(), null);
+
+										ItemStack[] kitArmour = new ItemStack[4];
+										List<ItemStack> armourItems = oldKit.getArmour();
+										for (ItemStack armourItem : armourItems) {
+											if (armourItem != null) {
+												String strArmourType = armourItem.getType().toString().toLowerCase();
+												if (strArmourType.endsWith("helmet"))
+													kitArmour[3] = armourItem;
+												else if (strArmourType.endsWith("chestplate"))
+													kitArmour[2] = armourItem;
+												else if (strArmourType.endsWith("leggings") || strArmourType.endsWith("pants"))
+													kitArmour[1] = armourItem;
+												else if (strArmourType.endsWith("boots"))
+													kitArmour[0] = armourItem;
 											}
 										}
-										if (!kitCooldowns.isEmpty()) {
-											OfflineKitPlayer offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(UUID.fromString(uuidEntry.getKey()));
+										kit.setArmour(kitArmour);
+
+										kit.setAlias(oldKit.hasAlias());
+										kit.setAutoUnlockScore(oldKit.getUnlockScore());
+										kit.setCommands(oldKit.getCommands());
+										kit.setCooldown(oldKit.getCooldown());
+										kit.setCost(oldKit.getCost());
+										kit.setDescription(oldKit.getDescription());
+										kit.setGuiItem(oldKit.getGuiItem());
+										kit.setGuiPosition(oldKit.getGuiPosition());
+										kit.setItemsBreakable(oldKit.canItemsBreak());
+										kit.setKillstreakCommands(new LinkedHashMap<Integer, List<String>>() {{
+											for (Map.Entry<Long, List<String>> killstreakEntry : oldKit.getKillstreaks().entrySet()) {
+												this.put((int) Math.min(Math.max(killstreakEntry.getKey(), (long) Integer.MIN_VALUE), (long) Integer.MAX_VALUE), killstreakEntry.getValue());
+											}
+										}});
+										kit.setMaxHealth(oldKit.getMaxHealth());
+										kit.setPotionEffects(oldKit.getPotionEffects());
+
+										Map<String, Object> serializedKit = kit.serialize();
+										for (Map.Entry<String, Object> serializationEntry : serializedKit.entrySet())
+											kitConfig.set(serializationEntry.getKey(), serializationEntry.getValue());
+										kitConfig.save(kitFile);
+									}
+								}
+
+								plugin.getLogger().info("Successfully converted old kits.yml.");
+							} else {
+								plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not delete old kits.yml."));
+							}
+						} else {
+							plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not move old kits.yml to the old folder."));
+						}
+					}
+				} catch (Exception ex) {
+					plugin.getLogger().log(Level.WARNING, String.format(migrationFailedMessage, "kits.yml", "Could not convert old kits.yml."), ex);
+				}
+
+				this.reloadConfigs();
+				this.loadConfiguration();
+				if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+					SQLController.getInstance();
+					DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+				} else {
+					DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+				}
+
+				try {
+					Map<UUID, OfflineKitPlayer> cachedPlayers = new HashMap<>();
+
+					File cooldownFile = new File(dataFolder, "cooldown.yml");
+					if (cooldownFile.exists()) {
+						File oldCooldownFile = new File(oldFolder, "cooldown.yml");
+						if (FileUtil.copy(cooldownFile, oldCooldownFile)) {
+							if (cooldownFile.delete()) {
+								FileConfiguration cooldownConfig = YamlConfiguration.loadConfiguration(oldCooldownFile);
+								for (Map.Entry<String, Object> uuidEntry : cooldownConfig.getValues(false).entrySet()) {
+									if (Utilities.isUUID(uuidEntry.getKey())) {
+										Map<String, Object> configKitCooldowns = ObjectUtilities.getMap(uuidEntry.getValue());
+										if (!configKitCooldowns.isEmpty()) {
+											Map<String, Long> kitCooldowns = new LinkedHashMap<>();
+											for (Map.Entry<String, Object> configKitCooldown : configKitCooldowns.entrySet()) {
+												if (Utilities.isNumber(Long.class, configKitCooldown.getValue())) {
+													kitCooldowns.put(configKitCooldown.getKey(), Long.parseLong(configKitCooldown.getValue().toString()));
+												}
+											}
+											if (!kitCooldowns.isEmpty()) {
+												OfflineKitPlayer offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(UUID.fromString(uuidEntry.getKey()));
+												long currentTime = System.currentTimeMillis();
+												while (true) {
+													if (offlineKitPlayer.isLoaded() || System.currentTimeMillis() - currentTime > 1_000L)
+														break;
+												}
+												offlineKitPlayer.setKitTimestamps(kitCooldowns);
+												cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					File scoresFile = new File(dataFolder, "scores.yml");
+					if (scoresFile.exists()) {
+						File oldScoresFile = new File(oldFolder, "scores.yml");
+						if (FileUtil.copy(scoresFile, oldScoresFile)) {
+							if (scoresFile.delete()) {
+								FileConfiguration scoresConfig = YamlConfiguration.loadConfiguration(oldScoresFile);
+								if (scoresConfig.contains("Scores")) {
+									Map<String, Object> configScores = ObjectUtilities.getMap(scoresConfig.get("Scores"));
+									if (!configScores.isEmpty()) {
+										for (Map.Entry<String, Object> configScore : configScores.entrySet()) {
+											if (Utilities.isNumber(Integer.class, configScore.getValue())) {
+												if (Utilities.isUUID(configScore.getKey())) {
+													UUID offlinePlayerUUID = UUID.fromString(configScore.getKey());
+													OfflineKitPlayer offlineKitPlayer = cachedPlayers.get(offlinePlayerUUID);
+													if (offlineKitPlayer == null) {
+														offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(offlinePlayerUUID);
+														long currentTime = System.currentTimeMillis();
+														while (true) {
+															if (offlineKitPlayer.isLoaded() || System.currentTimeMillis() - currentTime > 1_000L)
+																break;
+														}
+													}
+													offlineKitPlayer.setScore(Math.max(Integer.parseInt(configScore.getValue().toString()), 0));
+													cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					File unlockedKitsFile = new File(dataFolder, "unlockedkits.yml");
+					if (unlockedKitsFile.exists()) {
+						File oldUnlockedKitsFile = new File(oldFolder, "unlockedkits.yml");
+						if (FileUtil.copy(unlockedKitsFile, oldUnlockedKitsFile)) {
+							if (unlockedKitsFile.delete()) {
+								FileConfiguration unlockedKitsConfig = YamlConfiguration.loadConfiguration(oldUnlockedKitsFile);
+								for (String strUUIDEntry : unlockedKitsConfig.getKeys(false)) {
+									if (Utilities.isUUID(strUUIDEntry)) {
+										UUID offlinePlayerUUID = UUID.fromString(strUUIDEntry);
+										OfflineKitPlayer offlineKitPlayer = cachedPlayers.get(offlinePlayerUUID);
+										if (offlineKitPlayer == null) {
+											offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(offlinePlayerUUID);
 											long currentTime = System.currentTimeMillis();
 											while (true) {
 												if (offlineKitPlayer.isLoaded() || System.currentTimeMillis() - currentTime > 1_000L)
 													break;
 											}
-											offlineKitPlayer.setKitTimestamps(kitCooldowns);
-											cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
 										}
+										offlineKitPlayer.setUnlockedKits(unlockedKitsConfig.getStringList(strUUIDEntry));
+										cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
 									}
 								}
 							}
 						}
 					}
-				}
 
-				File scoresFile = new File(dataFolder, "scores.yml");
-				if (scoresFile.exists()) {
-					File oldScoresFile = new File(oldFolder, "scores.yml");
-					if (FileUtil.copy(scoresFile, oldScoresFile)) {
-						if (scoresFile.delete()) {
-							FileConfiguration scoresConfig = YamlConfiguration.loadConfiguration(oldScoresFile);
-							if (scoresConfig.contains("Scores")) {
-								Map<String, Object> configScores = ObjectUtilities.getMap(scoresConfig.get("Scores"));
-								if (!configScores.isEmpty()) {
-									for (Map.Entry<String, Object> configScore : configScores.entrySet()) {
-										if (Utilities.isNumber(Integer.class, configScore.getValue())) {
-											if (Utilities.isUUID(configScore.getKey())) {
-												UUID offlinePlayerUUID = UUID.fromString(configScore.getKey());
+					File userKitsFile = new File(dataFolder, "userkits.yml");
+					if (userKitsFile.exists()) {
+						File oldUserKitsFile = new File(oldFolder, "userkits.yml");
+						if (FileUtil.copy(userKitsFile, oldUserKitsFile)) {
+							if (userKitsFile.delete()) {
+								FileConfiguration userKitsConfig = YamlConfiguration.loadConfiguration(oldUserKitsFile);
+								for (Map.Entry<String, Object> playerEntry : userKitsConfig.getValues(false).entrySet()) {
+									if (Utilities.isUUID(playerEntry.getKey())) {
+										Map<String, Object> configPlayerKits = ObjectUtilities.getMap(playerEntry.getValue());
+										if (!configPlayerKits.isEmpty()) {
+											Map<String, Kit> playerKits = new LinkedHashMap<>();
+											for (Map.Entry<String, Object> configPlayerKit : configPlayerKits.entrySet()) {
+												final OldKit oldPlayerKit = OldKit.deserialize(ObjectUtilities.getMap(configPlayerKit.getValue()));
+												if (oldPlayerKit != null) {
+													final Kit kit = new Kit(configPlayerKit.getKey(), oldPlayerKit.getItemsWithSlot(), null);
+
+													ItemStack[] kitArmour = new ItemStack[4];
+													List<ItemStack> armourItems = oldPlayerKit.getArmour();
+													for (ItemStack armourItem : armourItems) {
+														if (armourItem != null) {
+															String strArmourType = armourItem.getType().toString().toLowerCase();
+															if (strArmourType.endsWith("helmet"))
+																kitArmour[3] = armourItem;
+															else if (strArmourType.endsWith("chestplate"))
+																kitArmour[2] = armourItem;
+															else if (strArmourType.endsWith("leggings") || strArmourType.endsWith("pants"))
+																kitArmour[1] = armourItem;
+															else if (strArmourType.endsWith("boots"))
+																kitArmour[0] = armourItem;
+														}
+													}
+													kit.setArmour(kitArmour);
+
+													kit.setAlias(oldPlayerKit.hasAlias());
+													kit.setAutoUnlockScore(oldPlayerKit.getUnlockScore());
+													kit.setCommands(oldPlayerKit.getCommands());
+													kit.setCooldown(oldPlayerKit.getCooldown());
+													kit.setCost(oldPlayerKit.getCost());
+													kit.setDescription(oldPlayerKit.getDescription());
+													kit.setGuiItem(oldPlayerKit.getGuiItem());
+													kit.setGuiPosition(oldPlayerKit.getGuiPosition());
+													kit.setItemsBreakable(oldPlayerKit.canItemsBreak());
+													kit.setKillstreakCommands(new LinkedHashMap<Integer, List<String>>() {{
+														for (Map.Entry<Long, List<String>> killstreakEntry : oldPlayerKit.getKillstreaks().entrySet()) {
+															this.put((int) Math.min(Math.max(killstreakEntry.getKey(), (long) Integer.MIN_VALUE), (long) Integer.MAX_VALUE), killstreakEntry.getValue());
+														}
+													}});
+													kit.setMaxHealth(oldPlayerKit.getMaxHealth());
+													kit.setPotionEffects(oldPlayerKit.getPotionEffects());
+
+													playerKits.put(kit.getName(), kit);
+												}
+											}
+											if (!playerKits.isEmpty()) {
+												UUID offlinePlayerUUID = UUID.fromString(playerEntry.getKey());
 												OfflineKitPlayer offlineKitPlayer = cachedPlayers.get(offlinePlayerUUID);
 												if (offlineKitPlayer == null) {
 													offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(offlinePlayerUUID);
@@ -1017,7 +1129,7 @@ public class ConfigController implements Controller {
 															break;
 													}
 												}
-												offlineKitPlayer.setScore(Math.max(Integer.parseInt(configScore.getValue().toString()), 0));
+												offlineKitPlayer.setKits(playerKits);
 												cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
 											}
 										}
@@ -1026,125 +1138,205 @@ public class ConfigController implements Controller {
 							}
 						}
 					}
+
+					int successful = 0;
+					boolean printedError = false;
+					for (OfflineKitPlayer cachedPlayer : cachedPlayers.values()) {
+						try {
+							cachedPlayer.setModified(true);
+							PlayerController.getInstance().saveOfflinePlayer(cachedPlayer);
+							successful++;
+						} catch (Exception ex) {
+							if (!printedError) {
+								ex.printStackTrace();
+								printedError = true;
+							}
+						}
+					}
+					plugin.getLogger().info("Successfully migrated " + successful + "/" + cachedPlayers.size() + " old player data.");
+				} catch (Exception ex) {
+					plugin.getLogger().log(Level.WARNING, "Failed to migrate old player data.", ex);
+				}
+			}
+			if (this.getConfig().getString("Version", "").equals("3.0")) {
+				// 1.9 changes
+				plugin.getLogger().log(Level.INFO, "Converting config v3.0 to v3.1...");
+
+				this.getConfig().set("Version", "3.1");
+				this.saveConfig();
+
+				this.reloadConfigs();
+				this.loadConfiguration();
+				try {
+					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+						SQLController.getInstance();
+						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					} else {
+						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
 				}
 
-				File unlockedKitsFile = new File(dataFolder, "unlockedkits.yml");
-				if (unlockedKitsFile.exists()) {
-					File oldUnlockedKitsFile = new File(oldFolder, "unlockedkits.yml");
-					if (FileUtil.copy(unlockedKitsFile, oldUnlockedKitsFile)) {
-						if (unlockedKitsFile.delete()) {
-							FileConfiguration unlockedKitsConfig = YamlConfiguration.loadConfiguration(oldUnlockedKitsFile);
-							for (String strUUIDEntry : unlockedKitsConfig.getKeys(false)) {
-								if (Utilities.isUUID(strUUIDEntry)) {
-									UUID offlinePlayerUUID = UUID.fromString(strUUIDEntry);
-									OfflineKitPlayer offlineKitPlayer = cachedPlayers.get(offlinePlayerUUID);
-									if (offlineKitPlayer == null) {
-										offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(offlinePlayerUUID);
-										long currentTime = System.currentTimeMillis();
-										while (true) {
-											if (offlineKitPlayer.isLoaded() || System.currentTimeMillis() - currentTime > 1_000L)
-												break;
+				try {
+					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
+					if (kitsFolder.exists()) {
+						File[] kitFiles = FileUtilities.getFiles(kitsFolder);
+						for (File kitFile : kitFiles) {
+							if (kitFile.getName().endsWith(".yml")) {
+								CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
+								kitConfig.setNewLineAfterHeader(true);
+								kitConfig.setNewLinePerKey(true);
+
+								boolean save = false;
+								if (kitConfig.contains("Items")) {
+									Map<String, Object> itemsMap = ObjectUtilities.getMap(kitConfig.get("Items"));
+									boolean saveItems = false;
+									for (Map.Entry<String, Object> serializedItemEntry : new LinkedHashMap<>(itemsMap).entrySet()) {
+										Map<String, Object> serializedItem = ObjectUtilities.getMap(serializedItemEntry.getValue());
+										boolean saveItem = false;
+										if (!serializedItem.isEmpty()) {
+											if (serializedItem.containsKey("Data")) {
+												saveItem = true;
+												serializedItem.remove("Data");
+											}
+											if (ObjectUtilities.getObject(serializedItem, String.class, "Type", "").equalsIgnoreCase("Potion")) {
+												if (serializedItem.containsKey("Potion")) {
+													saveItem = true;
+													serializedItem.remove("Potion");
+												}
+												if (serializedItem.containsKey("Durability")) {
+													short durability = ObjectUtilities.getObject(serializedItem, Number.class, "Durability", (short) 0).shortValue();
+													String potionType = "";
+													if (durability == 16) {
+														potionType = "minecraft:awkward"; // Awkward
+													} else if (durability == 32) {
+														potionType = "minecraft:thick"; // Thick
+													} else if (durability == 64) {
+														potionType = "minecraft:mundane"; // Mundane (extended)
+													} else if (durability == 8192) {
+														potionType = "minecraft:mundane"; // Mundane
+													} else if (isPotion(durability, 8193)) {
+														potionType = "minecraft:regeneration"; // Regeneration
+													} else if (isPotion(durability, 8257)) {
+														potionType = "minecraft:long_regeneration"; // Regeneration (extended)
+													} else if (isPotion(durability, 8225)) {
+														potionType = "minecraft:strong_regeneration"; // Regeneration II
+													} else if (isPotion(durability, 8194)) {
+														potionType = "minecraft:swiftness"; // Swiftness
+													} else if (isPotion(durability, 8258)) {
+														potionType = "minecraft:long_swiftness"; // Swiftness (extended)
+													} else if (isPotion(durability, 8226)) {
+														potionType = "minecraft:strong_swiftness"; // Swiftness II
+													} else if (isPotion(durability, 8195)) {
+														potionType = "minecraft:fire_resistance"; // Fire Resistance
+													} else if (isPotion(durability, 8259)) {
+														potionType = "minecraft:long_fire_resistance"; // Fire Resistance (extended)
+													} else if (isPotion(durability, 8197)) {
+														potionType = "minecraft:healing"; // Healing
+													} else if (isPotion(durability, 8229)) {
+														potionType = "minecraft:strong_healing"; // Healing II
+													} else if (isPotion(durability, 8198)) {
+														potionType = "minecraft:night_vision"; // Night Vision
+													} else if (isPotion(durability, 8262)) {
+														potionType = "minecraft:long_night_vision"; // Night Vision (extended)
+													} else if (isPotion(durability, 8201)) {
+														potionType = "minecraft:strength"; // Strength
+													} else if (isPotion(durability, 8265)) {
+														potionType = "minecraft:long_strength"; // Strength (extended)
+													} else if (isPotion(durability, 8233)) {
+														potionType = "minecraft:strong_strength"; // Strength II
+													} else if (isPotion(durability, 8203)) {
+														potionType = "minecraft:leaping"; // Leaping
+													} else if (isPotion(durability, 8267)) {
+														potionType = "minecraft:long_leaping"; // Leaping (extended)
+													} else if (isPotion(durability, 8235)) {
+														potionType = "minecraft:strong_leaping"; // Leaping II
+													} else if (isPotion(durability, 8205)) {
+														potionType = "minecraft:water_breathing"; // Water Breathing
+													} else if (isPotion(durability, 8269)) {
+														potionType = "minecraft:long_water_breathing"; // Water Breathing (extended)
+													} else if (isPotion(durability, 8206)) {
+														potionType = "minecraft:invisibility"; // Invisibility
+													} else if (isPotion(durability, 8270)) {
+														potionType = "minecraft:long_invisibility"; // Invisibility (extended)
+													} else if (isPotion(durability, 8196)) {
+														potionType = "minecraft:poison"; // Poison
+													} else if (isPotion(durability, 8260)) {
+														potionType = "minecraft:long_poison"; // Poison (extended)
+													} else if (isPotion(durability, 8228)) {
+														potionType = "minecraft:strong_poison"; // Poison II
+													} else if (isPotion(durability, 8200)) {
+														potionType = "minecraft:weakness"; // Weakness
+													} else if (isPotion(durability, 8264)) {
+														potionType = "minecraft:long_weakness"; // Weakness (extended)
+													} else if (isPotion(durability, 8202)) {
+														potionType = "minecraft:slowness"; // Slowness
+													} else if (isPotion(durability, 8266)) {
+														potionType = "minecraft:long_slowness"; // Slowness (extended)
+													} else if (isPotion(durability, 8204)) {
+														potionType = "minecraft:harming"; // Harming
+													} else if (isPotion(durability, 8236)) {
+														potionType = "minecraft:strong_harming"; // Harming II
+													} else if (isPotion(durability, 8289)) {
+														potionType = "minecraft:strong_regeneration"; // Regeneration II
+													} else if (isPotion(durability, 8290)) {
+														potionType = "minecraft:strong_swiftness"; // Swiftness II
+													} else if (isPotion(durability, 8297)) {
+														potionType = "minecraft:strong_strength"; // Strength II
+													} else if (isPotion(durability, 8292)) {
+														potionType = "minecraft:strong_poison"; // Poison II
+													} else if (durability == 373) {
+														potionType = "minecraft:empty"; // Empty
+													}
+													if (durability > 16000) serializedItem.put("Type", "Splash Potion");
+
+													saveItem = true;
+													serializedItem.remove("Durability");
+													if (!potionType.isEmpty()) serializedItem.put("Potion", potionType);
+												}
+											}
+											if (saveItem) {
+												saveItems = true;
+												itemsMap.put(serializedItemEntry.getKey(), serializedItem);
+											}
 										}
 									}
-									offlineKitPlayer.setUnlockedKits(unlockedKitsConfig.getStringList(strUUIDEntry));
-									cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
+									if (saveItems) {
+										kitConfig.set("Items", itemsMap);
+										save = true;
+									}
+								}
+								if (kitConfig.contains("Potion effects")) {
+									Map<String, Object> serializedPotionEffects = ObjectUtilities.getMap(kitConfig.get("Potion effects"));
+									boolean savePotionEffects = false;
+									for (Map.Entry<String, Object> serializedPotionEffectEntry : new LinkedHashMap<>(serializedPotionEffects).entrySet()) {
+										Map<String, Object> serializedPotionEffect = ObjectUtilities.getMap(serializedPotionEffectEntry.getValue());
+										if (serializedPotionEffect.containsKey("Duration")) {
+											double duration = ObjectUtilities.getObject(serializedPotionEffect, Number.class, "Duration").doubleValue();
+											if (duration >= 0L) {
+												duration = duration / 20D;
+												savePotionEffects = true;
+												serializedPotionEffect.put("Duration", duration);
+												serializedPotionEffects.put(serializedPotionEffectEntry.getKey(), serializedPotionEffect);
+											}
+										}
+									}
+									if (savePotionEffects) {
+										kitConfig.set("Potion effects", serializedPotionEffects);
+										save = true;
+									}
+								}
+								if (save) {
+									FileUtilities.delete(kitFile);
+									kitConfig.save(kitFile);
 								}
 							}
 						}
 					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
 				}
-
-				File userKitsFile = new File(dataFolder, "userkits.yml");
-				if (userKitsFile.exists()) {
-					File oldUserKitsFile = new File(oldFolder, "userkits.yml");
-					if (FileUtil.copy(userKitsFile, oldUserKitsFile)) {
-						if (userKitsFile.delete()) {
-							FileConfiguration userKitsConfig = YamlConfiguration.loadConfiguration(oldUserKitsFile);
-							for (Map.Entry<String, Object> playerEntry : userKitsConfig.getValues(false).entrySet()) {
-								if (Utilities.isUUID(playerEntry.getKey())) {
-									Map<String, Object> configPlayerKits = ObjectUtilities.getMap(playerEntry.getValue());
-									if (!configPlayerKits.isEmpty()) {
-										Map<String, Kit> playerKits = new LinkedHashMap<>();
-										for (Map.Entry<String, Object> configPlayerKit : configPlayerKits.entrySet()) {
-											final OldKit oldPlayerKit = OldKit.deserialize(ObjectUtilities.getMap(configPlayerKit.getValue()));
-											if (oldPlayerKit != null) {
-												final Kit kit = new Kit(configPlayerKit.getKey(), oldPlayerKit.getItemsWithSlot());
-
-												ItemStack[] kitArmour = new ItemStack[4];
-												List<ItemStack> armourItems = oldPlayerKit.getArmour();
-												for (ItemStack armourItem : armourItems) {
-													if (armourItem != null) {
-														String strArmourType = armourItem.getType().toString().toLowerCase();
-														if (strArmourType.endsWith("helmet"))
-															kitArmour[3] = armourItem;
-														else if (strArmourType.endsWith("chestplate"))
-															kitArmour[2] = armourItem;
-														else if (strArmourType.endsWith("leggings") || strArmourType.endsWith("pants"))
-															kitArmour[1] = armourItem;
-														else if (strArmourType.endsWith("boots"))
-															kitArmour[0] = armourItem;
-													}
-												}
-												kit.setArmour(kitArmour);
-
-												kit.setAlias(oldPlayerKit.hasAlias());
-												kit.setAutoUnlockScore(oldPlayerKit.getUnlockScore());
-												kit.setCommands(oldPlayerKit.getCommands());
-												kit.setCooldown(oldPlayerKit.getCooldown());
-												kit.setCost(oldPlayerKit.getCost());
-												kit.setDescription(oldPlayerKit.getDescription());
-												kit.setGuiItem(oldPlayerKit.getGuiItem());
-												kit.setGuiPosition(oldPlayerKit.getGuiPosition());
-												kit.setItemsBreakable(oldPlayerKit.canItemsBreak());
-												kit.setKillstreakCommands(new LinkedHashMap<Integer, List<String>>() {{
-													for (Map.Entry<Long, List<String>> killstreakEntry : oldPlayerKit.getKillstreaks().entrySet()) {
-														this.put((int) Math.min(Math.max(killstreakEntry.getKey(), (long) Integer.MIN_VALUE), (long) Integer.MAX_VALUE), killstreakEntry.getValue());
-													}
-												}});
-												kit.setMaxHealth(oldPlayerKit.getMaxHealth());
-												kit.setPotionEffects(oldPlayerKit.getPotionEffects());
-
-												playerKits.put(kit.getName(), kit);
-											}
-										}
-										if (!playerKits.isEmpty()) {
-											UUID offlinePlayerUUID = UUID.fromString(playerEntry.getKey());
-											OfflineKitPlayer offlineKitPlayer = cachedPlayers.get(offlinePlayerUUID);
-											if (offlineKitPlayer == null) {
-												offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(offlinePlayerUUID);
-												long currentTime = System.currentTimeMillis();
-												while (true) {
-													if (offlineKitPlayer.isLoaded() || System.currentTimeMillis() - currentTime > 1_000L)
-														break;
-												}
-											}
-											offlineKitPlayer.setKits(playerKits);
-											cachedPlayers.put(offlineKitPlayer.getUniqueId(), offlineKitPlayer);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-				int successful = 0;
-				boolean printedError = false;
-				for (OfflineKitPlayer cachedPlayer : cachedPlayers.values()) {
-					try {
-						cachedPlayer.setModified(true);
-						PlayerController.getInstance().saveOfflinePlayer(cachedPlayer);
-						successful++;
-					} catch (Exception ex) {
-						if (!printedError) {
-							ex.printStackTrace();
-							printedError = true;
-						}
-					}
-				}
-				plugin.getLogger().info("Successfully migrated " + successful + "/" + cachedPlayers.size() + " old player data.");
-			} catch (Exception ex) {
-				plugin.getLogger().log(Level.WARNING, "Failed to migrate old player data.", ex);
 			}
 		}
 	}
@@ -1152,6 +1344,10 @@ public class ConfigController implements Controller {
 	public static ConfigController getInstance() {
 		if (instance == null) instance = new ConfigController();
 		return instance;
+	}
+
+	private static boolean isPotion(short durability, int dataValue) {
+		return durability == dataValue || durability == (short) dataValue + (short) 8192;
 	}
 
 }

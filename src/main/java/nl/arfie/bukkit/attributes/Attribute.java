@@ -4,8 +4,8 @@ import com.faris.kingkits.helper.util.ObjectUtilities;
 import com.faris.kingkits.helper.util.Utilities;
 import com.google.common.base.Preconditions;
 import nl.arfie.bukkit.attributes.wrapper.NBTTagCompound;
-import org.bukkit.configuration.serialization.*;
-import org.bukkit.inventory.*;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

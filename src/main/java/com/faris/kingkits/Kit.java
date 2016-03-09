@@ -5,6 +5,7 @@ import com.faris.kingkits.helper.json.JsonSerializable;
 import com.faris.kingkits.helper.util.*;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
@@ -30,6 +31,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	// Kit contents
 	private Map<Integer, ItemStack> kitItems = new HashMap<>();
+	private ItemStack offHand = null;
 	private ItemStack[] kitArmour = new ItemStack[4];
 	private List<PotionEffect> potionEffects = new ArrayList<>();
 	private Map<Integer, List<String>> killstreakCommands = ConfigController.getInstance().getKitDefaultKillstreakCommands();
@@ -40,11 +42,13 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 	private double maxHealth = ConfigController.getInstance().getKitDefaultMaxHealth();
 	private float walkSpeed = ConfigController.getInstance().getKitDefaultWalkSpeed();
 	private int autoUnlockScore = -1;
+	private int heldItemSlot = -1;
 
 	public Kit(String kitName) {
 		Validate.notNull(kitName);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.offHand = new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
@@ -53,30 +57,33 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitCost = kitCost;
+		this.offHand = new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
-	public Kit(String kitName, Map<Integer, ItemStack> kitItems) {
+	public Kit(String kitName, Map<Integer, ItemStack> kitItems, ItemStack offHand) {
 		Validate.notNull(kitName);
 		Validate.notNull(kitItems);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
+		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
-	public Kit(String kitName, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
+	public Kit(String kitName, Map<Integer, ItemStack> kitItems, ItemStack offHand, List<PotionEffect> potionEffects) {
 		Validate.notNull(kitName);
 		Validate.notNull(kitItems);
 		Validate.notNull(potionEffects);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
+		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.potionEffects = potionEffects;
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
-	public Kit(String kitName, Map<Integer, ItemStack> kitItems, ItemStack[] kitArmour, List<PotionEffect> potionEffects) {
+	public Kit(String kitName, Map<Integer, ItemStack> kitItems, ItemStack offHand, ItemStack[] kitArmour, List<PotionEffect> potionEffects) {
 		Validate.notNull(kitName);
 		Validate.notNull(kitItems);
 		Validate.notNull(kitArmour);
@@ -84,28 +91,31 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
+		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitArmour = kitArmour;
 		this.potionEffects = potionEffects;
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
-	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems) {
+	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems, ItemStack offHand) {
 		Validate.notNull(kitName);
 		Validate.notNull(kitItems);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
+		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitCost = kitCost;
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
 
-	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems, List<PotionEffect> potionEffects) {
+	public Kit(String kitName, double kitCost, Map<Integer, ItemStack> kitItems, ItemStack offHand, List<PotionEffect> potionEffects) {
 		Validate.notNull(kitName);
 		Validate.notNull(kitItems);
 		Validate.notNull(potionEffects);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
 		this.kitItems = kitItems;
+		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitCost = kitCost;
 		this.potionEffects = potionEffects;
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
@@ -137,6 +147,8 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			kit.setMaxHealth(this.getMaxHealth());
 			kit.setWalkSpeed(this.getWalkSpeed());
 			kit.setItems(this.getItems());
+			kit.setOffHand(this.getOffHand());
+			kit.setHeldItemSlot(this.getHeldItemSlot());
 			kit.setArmour(this.getArmour());
 			kit.setPotionEffects(this.getPotionEffects());
 
@@ -176,6 +188,10 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		return this.guiPosition;
 	}
 
+	public int getHeldItemSlot() {
+		return this.heldItemSlot;
+	}
+
 	public Map<Integer, ItemStack> getItems() {
 		return Collections.unmodifiableMap(this.kitItems);
 	}
@@ -190,6 +206,10 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	public String getName() {
 		return this.kitName;
+	}
+
+	public ItemStack getOffHand() {
+		return this.offHand;
 	}
 
 	public List<PotionEffect> getPotionEffects() {
@@ -262,6 +282,11 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		return this;
 	}
 
+	public Kit setHeldItemSlot(int heldItemSlot) {
+		this.heldItemSlot = heldItemSlot >= 0 && heldItemSlot < 9 ? heldItemSlot : -1;
+		return this;
+	}
+
 	public Kit setItems(Map<Integer, ItemStack> items) {
 		if (items != null) this.kitItems = items;
 		return this;
@@ -286,6 +311,12 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(name);
 		Validate.notEmpty(name);
 		this.kitName = name;
+		return this;
+	}
+
+	public Kit setOffHand(ItemStack offHand) {
+		Validate.notNull(offHand);
+		this.offHand = offHand.clone();
 		return this;
 	}
 
@@ -332,11 +363,13 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			this.put("Item", ItemUtilities.serializeItem(guiItem));
 		}});
 		serializedMap.put("Items", new LinkedHashMap<String, Map<String, Object>>() {{
+			if (!ItemUtilities.isNull(offHand)) this.put("Offhand", ItemUtilities.serializeItem(offHand));
 			for (Map.Entry<Integer, ItemStack> itemEntry : kitItems.entrySet()) {
 				if (!ItemUtilities.isNull(itemEntry.getValue()))
 					this.put("Slot " + itemEntry.getKey(), ItemUtilities.serializeItem(itemEntry.getValue()));
 			}
 		}});
+		if (this.heldItemSlot != -1) serializedMap.put("Held item slot", this.heldItemSlot);
 		serializedMap.put("Armour", new LinkedHashMap<String, Map<String, Object>>() {{
 			if (!ItemUtilities.isNull(kitArmour[3])) this.put("Helmet", ItemUtilities.serializeItem(kitArmour[3]));
 			if (!ItemUtilities.isNull(kitArmour[2])) this.put("Chestplate", ItemUtilities.serializeItem(kitArmour[2]));
@@ -431,15 +464,21 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				for (Map.Entry<String, Object> itemEntry : itemsSection.entrySet()) {
 					ItemStack deserializedItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(itemEntry.getValue()));
 					if (deserializedItem != null) {
-						String strSlot = itemEntry.getKey().startsWith("Slot ") ? itemEntry.getKey().substring(5) : itemEntry.getKey();
-						if (Utilities.isNumber(Integer.class, strSlot)) {
-							int slotNumber = Integer.parseInt(strSlot);
-							if (slotNumber >= 0) kitItems.put(slotNumber, deserializedItem);
+						if (!itemEntry.getKey().equalsIgnoreCase("Offhand")) {
+							String strSlot = itemEntry.getKey().startsWith("Slot ") ? itemEntry.getKey().substring(5) : itemEntry.getKey();
+							if (Utilities.isNumber(Integer.class, strSlot)) {
+								int slotNumber = Integer.parseInt(strSlot);
+								if (slotNumber >= 0) kitItems.put(slotNumber, deserializedItem);
+							}
+						} else {
+							deserializedKit.setOffHand(deserializedItem);
 						}
 					}
 				}
 				deserializedKit.setItems(kitItems);
 			}
+			if (serializedKit.containsKey("Held item slot"))
+				deserializedKit.setHeldItemSlot(ObjectUtilities.getObject(serializedKit, Number.class, "Held item slot", -1).intValue());
 			if (serializedKit.containsKey("Armour")) {
 				ItemStack[] kitArmour = new ItemStack[4];
 				Map<String, Object> armourSection = ObjectUtilities.getMap(serializedKit.get("Armour"));
@@ -491,9 +530,10 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		if (potionEffect != null) {
 			serializedPotionEffect.put("Type", StringUtilities.capitalizeFully(potionEffect.getType().getName().replace('_', ' ')));
 			serializedPotionEffect.put("Level", potionEffect.getAmplifier());
-			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1 : potionEffect.getDuration());
+			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1D : (double) potionEffect.getDuration() / 20D);
 			if (!potionEffect.isAmbient()) serializedPotionEffect.put("Ambient", false);
 			if (!potionEffect.hasParticles()) serializedPotionEffect.put("Particles", false);
+			if (potionEffect.getColor() != null) serializedPotionEffect.put("Color", potionEffect.getColor().asRGB());
 		}
 		return serializedPotionEffect;
 	}
@@ -503,10 +543,11 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
 			if (potionEffectType != null) {
 				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
-				int duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).intValue();
+				double duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).doubleValue();
 				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
 				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
-				return new PotionEffect(potionEffectType, duration != -1 ? duration * 20 : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles);
+				Color color = serializedPotion.containsKey("Color") ? Color.fromRGB(ObjectUtilities.getObject(serializedPotion, Number.class, "Color", Color.GRAY.asRGB()).intValue()) : null;
+				return new PotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
 			}
 		}
 		return null;

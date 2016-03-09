@@ -59,9 +59,10 @@ public class CommandCreateKit extends KingKitsCommand {
 
 							Map<Integer, ItemStack> kitItems = new TreeMap<>();
 							ItemStack[] kitArmour = player.getInventory().getArmorContents();
+							ItemStack offHand = ItemUtilities.isNull(player.getInventory().getItemInOffHand()) ? new ItemStack(Material.AIR) : player.getInventory().getItemInOffHand();
 							List<PotionEffect> kitEffects = new ArrayList<>();
 							if (player.getInventory().getContents() != null) {
-								ItemStack[] playerInventoryContents = player.getInventory().getContents();
+								ItemStack[] playerInventoryContents = player.getInventory().getStorageContents();
 								for (int i = 0; i < playerInventoryContents.length; i++) {
 									if (!ItemUtilities.isNull(playerInventoryContents[i]))
 										kitItems.put(i, playerInventoryContents[i]);
@@ -92,13 +93,14 @@ public class CommandCreateKit extends KingKitsCommand {
 								Kit kit = searchResult.getKit();
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setItems(kitItems);
+								kit.setOffHand(offHand);
 								kit.setArmour(kitArmour);
 								kit.setPotionEffects(kitEffects);
 
 								KitController.getInstance().addKit(kit);
 								KitController.getInstance().saveKit(kit);
 							} else {
-								Kit kit = new Kit(strKit, kitItems, kitArmour, kitEffects);
+								Kit kit = new Kit(strKit, kitItems, offHand, kitArmour, kitEffects);
 								if (!ItemUtilities.isNull(guiItem)) kit.setGuiItem(guiItem);
 								kit.setWalkSpeed(player.getWalkSpeed());
 								kit.setMaxHealth(player.getMaxHealth());

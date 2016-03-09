@@ -27,6 +27,7 @@ public class FlatFileStorage extends DataStorage {
 			File playerDataDirectory = new File(KingKits.getInstance().getDataFolder(), "players");
 			if (!(playerDataDirectory.exists() || playerDataDirectory.mkdirs())) {
 				Bukkit.getServer().getLogger().warning("Failed to load player " + kitPlayer + ": Could not create players directory.");
+				kitPlayer.setLoaded(true);
 				return kitPlayer;
 			}
 			Object[] playerFileResult = getPlayerDataFile(playerDataDirectory, kitPlayer.getUsername());
@@ -47,8 +48,8 @@ public class FlatFileStorage extends DataStorage {
 					Bukkit.getServer().getLogger().log(Level.WARNING, "Could not create player file for " + kitPlayer + ".", ex);
 				}
 			}
-			if (!(playerFile.exists() || playerFile.createNewFile())) {
-				Bukkit.getServer().getLogger().warning("Failed to load player " + kitPlayer + ": Could not create player file.");
+			if (!playerFile.exists()) {
+				kitPlayer.setLoaded(true);
 				return kitPlayer;
 			}
 

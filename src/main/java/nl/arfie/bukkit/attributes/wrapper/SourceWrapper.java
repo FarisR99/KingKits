@@ -1,7 +1,7 @@
 package nl.arfie.bukkit.attributes.wrapper;
 
 import com.faris.kingkits.KingKits;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

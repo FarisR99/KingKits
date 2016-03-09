@@ -44,7 +44,7 @@ public class KingKits extends JavaPlugin {
 		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().contains("Version"))
+		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version", "").equals(ConfigController.CURRENT_CONFIG_VERSION))
 			ConfigController.getInstance().migrateOldConfigs();
 		else ConfigController.getInstance().loadConfiguration();
 		try {
@@ -234,7 +234,8 @@ public class KingKits extends JavaPlugin {
 			Player player = kitPlayer.getBukkitPlayer();
 			if (player == null) player = this.getServer().getPlayer(kitPlayer.getUniqueId());
 			try {
-				ConfigController.getInstance().getPlayersConfig().set(kitPlayer.getUniqueId().toString(), kitPlayer.serialize());
+				if (kitPlayer.isLoaded() && kitPlayer.hasBeenModified())
+					ConfigController.getInstance().getPlayersConfig().set(kitPlayer.getUniqueId().toString(), kitPlayer.serialize());
 				if (player != null) {
 					boolean inPvPWorld = Utilities.isPvPWorld(player.getWorld());
 					if (inPvPWorld || kitPlayer.hasKit()) {
@@ -316,6 +317,7 @@ public class KingKits extends JavaPlugin {
 
 	public void startAutoSaveTask() {
 		if (ConfigController.getInstance().getAutoSavePlayerDataTime() != -1D) {
+			this.stopAutoSaveTask();
 			this.autoSaveTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
 				@Override
 				public void run() {

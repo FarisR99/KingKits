@@ -41,6 +41,8 @@ Commands:
 Killstreak commands:
   Killstreak 10:
   - broadcast &4<player> &6is on a rampage with a 10 killstreak!
+  Killstreak 20:
+  - broadcast &4<player> &6is going beserk with a 20 killstreak!
 
 # Position - The position of the kit GUI item in the GUI. Set to -1 for a random order.
 # Item - The item to show in the Kit GUI that represents this kit.
@@ -50,8 +52,12 @@ GUI:
     Type: Diamond Sword
 
 # The items in the kit.
+# Supported item types: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 # Supported enchantments: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
+# Supported potions: http://minecraft.gamepedia.com/Potion#Item_data
 Items:
+  Offhand:
+    Type: Shield
   Slot 0:
     Type: Iron Sword
     Name: '&r&lDefault &rkit sword'
@@ -61,41 +67,41 @@ Items:
       Unbreaking: 3
   Slot 1:
     Type: Potion
-    Data: 37
-    Durability: 8229
-    Potion:
-      Type: Heal
-      Level: 1
-      Splash: false
-      Extended: false
+    Potion: minecraft:strong_healing
   Slot 8:
     Type: Golden Apple
     Durability: 1
-    Amount: 1
+    Name: '&dGod Apple'
+
+# The slot in the hotbar which the player's hand moves to when they choose this kit.
+# For example, if the slot was set to 0, when a player chooses this kit, their hand automatically moves to slot 0 (the first item).
+# Set to -1 if you do not want to change the slot their hand is currently at.
+Held item slot: -1
 
 # The armour in the kit.
 Armour:
   Helmet:
     Type: Skull Item
-    Data: 3
     Durability: 3
     Skull: Notch
   Chestplate:
-    Type: Iron Chestplate
+    Type: Leather Chestplate
     Dye:
       Red: 255
       Green: 0
       Blue: 0
+    Enchantments:
+      Protection: 1
   Leggings:
     Type: Iron Leggings
   Boots:
     Type: Iron Boots
 
 # The potion effects applied to a player when they use this kit.
-# Set Duration to '-1' for infinite time (until they die unless configured not to remove potion effects).
+# Set Duration (seconds) to '-1' for infinite time. (until they die unless configured not to remove potion effects)
 # Supported potion effects: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
 Potion effects:
   1:
     Type: Speed
     Level: 2
-    Duration: 200
+    Duration: 10

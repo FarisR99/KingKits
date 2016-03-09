@@ -8,19 +8,21 @@ import org.bukkit.Material;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 
 import java.util.*;
 
 public class ItemUtilities {
 
 	private static Class classCraftItemFactory = null;
+
+	static {
+		classCraftItemFactory = ReflectionUtilities.getBukkitClass("CraftItemStack");
+	}
 
 	private static List<Material> damageableList = new ArrayList<Material>() {{
 		for (Material material : Material.values()) {
@@ -32,6 +34,7 @@ public class ItemUtilities {
 			}
 		}
 		this.add(Material.BOW);
+		this.add(Material.SHIELD);
 		this.add(Material.FLINT_AND_STEEL);
 		this.add(Material.FISHING_ROD);
 	}};
@@ -53,8 +56,6 @@ public class ItemUtilities {
 
 	public static ItemMeta createMeta(Material itemType) {
 		try {
-			if (classCraftItemFactory == null)
-				classCraftItemFactory = ReflectionUtilities.getBukkitClass("CraftItemStack");
 			ReflectionUtilities.MethodInvoker methodGetInstance = ReflectionUtilities.getMethod(classCraftItemFactory, "instance");
 			if (methodGetInstance != null) {
 				Object objCraftItemFactory = methodGetInstance.invoke(null);
@@ -67,17 +68,6 @@ public class ItemUtilities {
 			ex.printStackTrace();
 		}
 		return null;
-	}
-
-	public static ItemStack createPotion(PotionEffectType potionEffectType, int level, boolean splash) {
-		Potion potion = new Potion(PotionType.getByEffect(potionEffectType));
-		potion.setLevel(level);
-		potion.setSplash(splash);
-		return potion.toItemStack(1);
-	}
-
-	public static List<Material> getDamageableMaterials() {
-		return new ArrayList<>(damageableList);
 	}
 
 	public static ItemStack deserializeItem(Map<String, Object> serializedItem) {
@@ -95,47 +85,21 @@ public class ItemUtilities {
 				int amount = ObjectUtilities.getObject(serializedItem, Number.class, "Amount", 1).intValue();
 				if (amount > 0) deserializedItem.setAmount(amount);
 
-				if (serializedItem.containsKey("Data")) {
-					byte data = ObjectUtilities.getObject(serializedItem, Number.class, "Data", (byte) 0).byteValue();
-
-					MaterialData itemMaterialData = deserializedItem.getData();
-					if (itemMaterialData == null) itemMaterialData = new MaterialData(material);
-					itemMaterialData.setData(data);
-					deserializedItem.setData(itemMaterialData);
-				}
 				if (serializedItem.containsKey("Durability"))
 					deserializedItem.setDurability(ObjectUtilities.getObject(serializedItem, Number.class, "Durability", (short) 0).shortValue());
+
+				if (!deserializedItem.hasItemMeta())
+					deserializedItem.setItemMeta(ItemUtilities.createMeta(material));
+
 				if (serializedItem.get("Potion") != null) {
-					Map<String, Object> serializedPotion = ObjectUtilities.getMap(serializedItem.get("Potion"));
-					if (serializedPotion != null && serializedPotion.containsKey("Type")) {
-						PotionType potionType = PotionType.getByEffect(PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_')));
-						if (potionType != null) {
-							Potion potion = new Potion(potionType);
-							if (serializedPotion.containsKey("Extended") && !potionType.isInstant()) {
-								try {
-									potion.setHasExtendedDuration(ObjectUtilities.getObject(serializedPotion, Boolean.class, "Extended"));
-								} catch (Exception ignored) {
-								}
-							}
-							if (serializedPotion.containsKey("Level")) {
-								try {
-									int maxLevel = potion.getType().getMaxLevel();
-									if (maxLevel > 0) {
-										int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level").intValue();
-										if (level > 0) potion.setLevel(Math.min(level, maxLevel));
-									}
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-							}
-							if (serializedPotion.containsKey("Splash")) {
-								try {
-									potion.setSplash(ObjectUtilities.getObject(serializedPotion, Boolean.class, "Splash"));
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-							}
-							potion.apply(deserializedItem);
+					String strPotionType = ObjectUtilities.getObject(serializedItem, String.class, "Potion");
+					if (strPotionType != null) {
+						try {
+							strPotionType = strPotionType.toLowerCase().replace(' ', '_');
+							if (!strPotionType.startsWith("minecraft:")) strPotionType = "minecraft:" + strPotionType;
+							deserializedItem = PotionUtilities.setPotionType(deserializedItem, strPotionType);
+						} catch (Exception ex) {
+							ex.printStackTrace();
 						}
 					}
 				}
@@ -157,8 +121,6 @@ public class ItemUtilities {
 					}
 				}
 
-				if (!deserializedItem.hasItemMeta())
-					deserializedItem.setItemMeta(ItemUtilities.createMeta(material));
 				ItemMeta itemMeta = deserializedItem.getItemMeta();
 				if (itemMeta != null) {
 					if (serializedItem.get("Item flags") instanceof List) {
@@ -259,6 +221,38 @@ public class ItemUtilities {
 		return deserializedItem;
 	}
 
+	/**
+	 * Get the core contents of an inventory.
+	 *
+	 * @param inventory The inventory
+	 * @return The contents of the inventory.
+	 * @deprecated Use {@link org.bukkit.inventory.Inventory#getStorageContents()}
+	 */
+	public static ItemStack[] getContents(Inventory inventory) {
+		if (inventory != null) {
+			if (inventory instanceof PlayerInventory) {
+				PlayerInventory playerInventory = (PlayerInventory) inventory;
+				ItemStack[] itemContents = playerInventory.getContents();
+				if (itemContents == null) itemContents = new ItemStack[36];
+				if (itemContents.length > 36) {
+					ItemStack[] actualContents = new ItemStack[itemContents.length];
+					System.arraycopy(itemContents, 0, actualContents, 0, 36);
+					return actualContents;
+				} else {
+					return itemContents;
+				}
+			} else {
+				return inventory.getContents();
+			}
+		} else {
+			return new ItemStack[36];
+		}
+	}
+
+	public static List<Material> getDamageableMaterials() {
+		return new ArrayList<>(damageableList);
+	}
+
 	public static String getFriendlyName(Material material) {
 		return material == null ? getFriendlyName(Material.AIR) : StringUtilities.capitalizeFully(material.name().replace('_', ' '));
 	}
@@ -332,7 +326,6 @@ public class ItemUtilities {
 		if (itemStack != null) {
 			serializedItem.put("Type", getFriendlyName(itemStack.getType()));
 			if (itemStack.getAmount() != 1) serializedItem.put("Amount", itemStack.getAmount());
-			if (itemStack.getData().getData() != 0) serializedItem.put("Data", itemStack.getData().getData());
 			if (itemStack.getDurability() != 0) serializedItem.put("Durability", itemStack.getDurability());
 			if (itemStack.getItemMeta() != null) {
 				ItemMeta itemMeta = itemStack.getItemMeta();
@@ -340,6 +333,17 @@ public class ItemUtilities {
 					serializedItem.put("Name", ChatUtilities.replaceChatColours(itemMeta.getDisplayName()));
 				if (itemMeta.hasLore())
 					serializedItem.put("Lore", ChatUtilities.replaceChatColours(itemMeta.getLore()));
+				if (itemMeta instanceof PotionMeta) {
+					try {
+						if (PotionUtilities.hasPotionType(itemStack)) {
+							String strPotionType = PotionUtilities.getPotionType(itemStack);
+							if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
+								serializedItem.put("Potion", strPotionType);
+						}
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
 				if (itemMeta instanceof LeatherArmorMeta) {
 					Color dyeColour = ((LeatherArmorMeta) itemMeta).getColor();
 					serializedItem.put("Dye", Utilities.serializeColor(dyeColour));
@@ -361,45 +365,20 @@ public class ItemUtilities {
 					if (ownerUsername != null) serializedItem.put("Skull", ownerUsername);
 				}
 			}
-			if (itemStack.getType() == Material.POTION) {
+
+			// NBT Tags
+			if (itemStack.getType() == Material.TIPPED_ARROW) {
 				try {
-					Potion potion;
-					short damage = itemStack.getDurability();
-					PotionType type = PotionType.getByDamageValue(damage & 15);
-					if (type != null && type != PotionType.WATER) {
-						int level = (damage & 32) >> 5;
-						++level;
-						potion = new Potion(type, level);
-					} else {
-						potion = new Potion(damage & 63);
-					}
-					if ((damage & 16384) > 0) potion = potion.splash();
-
-					if ((type != null && (type != PotionType.INSTANT_DAMAGE || type == PotionType.FIRE_RESISTANCE)) && !type.isInstant() && (damage & 64) > 0) {
-						try {
-							potion = potion.extend();
-						} catch (Exception ex) {
-							ex.printStackTrace();
-						}
-					}
-
-					Map<String, Object> serializedPotion = new LinkedHashMap<>();
-					if (potion != null) {
-						PotionEffectType potionEffectType = null;
-						if (potion.getType() != null) potionEffectType = potion.getType().getEffectType();
-						else if (!potion.getEffects().isEmpty())
-							potionEffectType = new ArrayList<>(potion.getEffects()).get(0).getType();
-						if (potionEffectType != null)
-							serializedPotion.put("Type", StringUtilities.capitalizeFully(potionEffectType.getName().replace('_', ' ')));
-						serializedPotion.put("Level", potion.getLevel());
-						serializedPotion.put("Splash", potion.isSplash());
-						serializedPotion.put("Extended", potion.hasExtendedDuration());
-						serializedItem.put("Potion", serializedPotion);
+					if (PotionUtilities.hasPotionType(itemStack)) {
+						String strPotionType = PotionUtilities.getPotionType(itemStack);
+						if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
+							serializedItem.put("Potion", strPotionType);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
+
 			final List<Attribute> itemAttributes = Attributes.fromStack(itemStack);
 			if (!itemAttributes.isEmpty()) {
 				Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();

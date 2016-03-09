@@ -9,10 +9,12 @@ import net.amoebaman.util.ArrayWrapper;
 import net.amoebaman.util.Reflection;
 import org.bukkit.*;
 import org.bukkit.Statistic.Type;
-import org.bukkit.command.*;
-import org.bukkit.configuration.serialization.*;
-import org.bukkit.entity.*;
-import org.bukkit.inventory.*;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -183,7 +185,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		onClick("suggest_command", command);
 		return this;
 	}
-	
+
 	/**
 	 * Set the behavior of the current editing component to instruct the client to append the chat input box content with the specified string when the currently edited part of the {@code FancyMessage} is SHIFT-CLICKED.
 	 * The client will not immediately send the command to the server to be executed unless the client player submits the command/chat message, usually with the enter key.
@@ -364,7 +366,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 			return this;
 		}
 	}
-	
+
 
 	/**
 	 * Set the behavior of the current editing component to display raw text when the client hovers over the text.
@@ -489,7 +491,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 			latest().translationReplacements.add(new JsonString(str));
 		}
 		dirty = true;
-		
+
 		return this;
 	}
 	/*
@@ -508,7 +510,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	}
 	
 	*/
-	
+
 	/**
 	 * If the text is a translatable key, and it has replaceable values, this function can be used to set the replacements that will be used in the message.
 	 *
@@ -519,12 +521,12 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 		for (FancyMessage str : replacements) {
 			latest().translationReplacements.add(str);
 		}
-		
+
 		dirty = true;
-		
+
 		return this;
 	}
-	
+
 	/**
 	 * If the text is a translatable key, and it has replaceable values, this function can be used to set the replacements that will be used in the message.
 	 *
@@ -534,7 +536,7 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	public FancyMessage translationReplacements(final Iterable<FancyMessage> replacements) {
 		return translationReplacements(ArrayWrapper.toArray(replacements, FancyMessage.class));
 	}
-	
+
 	/**
 	 * Terminate construction of the current editing component, and begin construction of a new message component.
 	 * After a successful call to this method, all setter methods will refer to a new message component, created as a result of the call to this method.
@@ -790,9 +792,9 @@ public class FancyMessage implements JsonRepresentedObject, Cloneable, Iterable<
 	public Iterator<MessagePart> iterator() {
 		return messageParts.iterator();
 	}
-	
+
 	private static JsonParser _stringParser = new JsonParser();
-	
+
 	/**
 	 * Deserializes a fancy message from its JSON representation. This JSON representation is of the format of
 	 * that returned by {@link #toJSONString()}, and is compatible with vanilla inputs.

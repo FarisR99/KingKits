@@ -21,11 +21,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
@@ -128,16 +126,16 @@ public class EventListener implements Listener {
 			try {
 				if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (event.getItem() != null) {
-						if (event.getItem().getType() == ConfigController.getInstance().getGuiItemType() && (ConfigController.getInstance().getGuiItemData() == -1 || event.getItem().getDurability() == ConfigController.getInstance().getGuiItemData())) {
+						if (event.getMaterial() == ConfigController.getInstance().getGuiItemType() && (ConfigController.getInstance().getGuiItemData() == -1 || event.getItem().getDurability() == ConfigController.getInstance().getGuiItemData())) {
 							if (Utilities.isPvPWorld(player.getWorld())) {
 								GuiController.getInstance().openKitsMenu(player);
 								event.setCancelled(true);
 							}
-						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
+						} else if (event.getMaterial() == Material.MUSHROOM_SOUP) {
 							if (ConfigController.getInstance().canQuickSoup()) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
-										int soupAmount = player.getInventory().getItemInHand().getAmount();
+										int soupAmount = event.getItem().getAmount();
 										if (soupAmount > 0) {
 											boolean valid = true;
 											if (player.getHealth() < player.getMaxHealth()) {
@@ -149,11 +147,17 @@ public class EventListener implements Listener {
 											}
 											if (valid) {
 												if (soupAmount == 1) {
-													player.getInventory().setItemInHand(new ItemStack(Material.BOWL));
+													if (event.getHand() == EquipmentSlot.HAND)
+														player.getInventory().setItemInMainHand(new ItemStack(Material.BOWL));
+													else if (event.getHand() == EquipmentSlot.OFF_HAND)
+														player.getInventory().setItemInOffHand(new ItemStack(Material.BOWL));
 												} else {
-													ItemStack newItem = player.getInventory().getItemInHand();
+													ItemStack newItem = event.getItem();
 													newItem.setAmount(soupAmount - 1);
-													player.getInventory().setItemInHand(newItem);
+													if (event.getHand() == EquipmentSlot.HAND)
+														player.getInventory().setItemInMainHand(newItem);
+													else if (event.getHand() == EquipmentSlot.OFF_HAND)
+														player.getInventory().setItemInOffHand(newItem);
 													player.getInventory().addItem(new ItemStack(Material.BOWL));
 												}
 												event.setCancelled(true);
@@ -703,26 +707,102 @@ public class EventListener implements Listener {
 	}
 
 	@EventHandler
+	public void onEntityDamage(EntityDamageEvent event) {
+		try {
+			if (!(event instanceof EntityDamageByEntityEvent) && event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+				if (event.getEntity() instanceof Player) {
+					final Player damaged = (Player) event.getEntity();
+					if (damaged.getGameMode() == GameMode.SURVIVAL || damaged.getGameMode() == GameMode.ADVENTURE) {
+						if (Utilities.isPvPWorld(damaged.getWorld())) {
+							final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(damaged);
+							if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+								boolean updateHelmet = false, updateChestplate = false, updateLeggings = false, updateBoots = false, updateOffhand = false;
+								final ItemStack helmet = damaged.getInventory().getHelmet(), chestplate = damaged.getInventory().getChestplate(), leggings = damaged.getInventory().getLeggings(), boots = damaged.getInventory().getBoots(), offhand = damaged.getInventory().getItemInOffHand();
+								if (helmet != null && ItemUtilities.getDamageableMaterials().contains(helmet.getType())) {
+									helmet.setDurability((short) 0);
+									updateHelmet = true;
+								}
+								if (chestplate != null && ItemUtilities.getDamageableMaterials().contains(chestplate.getType())) {
+									chestplate.setDurability((short) 0);
+									updateChestplate = true;
+								}
+								if (leggings != null && ItemUtilities.getDamageableMaterials().contains(leggings.getType())) {
+									leggings.setDurability((short) 0);
+									updateLeggings = true;
+								}
+								if (boots != null && ItemUtilities.getDamageableMaterials().contains(boots.getType())) {
+									boots.setDurability((short) 0);
+									updateBoots = true;
+								}
+								if (offhand != null && ItemUtilities.getDamageableMaterials().contains(offhand.getType())) {
+									offhand.setDurability((short) 0);
+									updateOffhand = true;
+								}
+								if (updateHelmet || updateChestplate || updateLeggings || updateBoots || updateOffhand) {
+									final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots, finalUpdateOffhand = updateOffhand;
+									damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+										@Override
+										public void run() {
+											if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+												if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
+												if (finalUpdateChestplate)
+													damaged.getInventory().setChestplate(chestplate);
+												if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
+												if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
+												if (finalUpdateOffhand)
+													damaged.getInventory().setItemInOffHand(offhand);
+											}
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		try {
 			if (event.getDamager() instanceof Player) {
 				final Player damager = (Player) event.getDamager();
 				if (damager.getGameMode() == GameMode.SURVIVAL || damager.getGameMode() == GameMode.ADVENTURE) {
-					if (damager.getInventory().getItemInHand() != null && Utilities.isPvPWorld(damager.getWorld())) {
+					if (Utilities.isPvPWorld(damager.getWorld())) {
 						final KitPlayer damagerKitPlayer = PlayerController.getInstance().getPlayer(damager);
 						if (damagerKitPlayer != null && damagerKitPlayer.hasKit() && !damagerKitPlayer.getKit().canItemsBreak()) {
-							if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInHand().getType())) {
-								damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-									@Override
-									public void run() {
-										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInHand().getType())) {
-											ItemStack itemInHand = damager.getInventory().getItemInHand();
-											itemInHand.setDurability((short) 0);
-											damager.setItemInHand(itemInHand);
-											damager.updateInventory();
+							if (damager.getInventory().getItemInMainHand() != null) {
+								if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
+									damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+										@Override
+										public void run() {
+											if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInMainHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
+												ItemStack itemInHand = damager.getInventory().getItemInMainHand();
+												itemInHand.setDurability((short) 0);
+												damager.getInventory().setItemInMainHand(itemInHand);
+												damager.updateInventory();
+											}
 										}
-									}
-								});
+									});
+								}
+							}
+							if (damager.getInventory().getItemInOffHand() != null) {
+								if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInOffHand().getType())) {
+									damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+										@Override
+										public void run() {
+											if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInOffHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInOffHand().getType())) {
+												ItemStack itemInHand = damager.getInventory().getItemInOffHand();
+												itemInHand.setDurability((short) 0);
+												damager.getInventory().setItemInOffHand(itemInHand);
+												damager.updateInventory();
+											}
+										}
+									});
+								}
 							}
 						}
 					}
@@ -734,8 +814,8 @@ public class EventListener implements Listener {
 					if (Utilities.isPvPWorld(damaged.getWorld())) {
 						final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(damaged);
 						if (kitPlayer != null && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
-							boolean updateHelmet = false, updateChestplate = false, updateLeggings = false, updateBoots = false;
-							final ItemStack helmet = damaged.getInventory().getHelmet(), chestplate = damaged.getInventory().getChestplate(), leggings = damaged.getInventory().getLeggings(), boots = damaged.getInventory().getBoots();
+							boolean updateHelmet = false, updateChestplate = false, updateLeggings = false, updateBoots = false, updateOffhand = false;
+							final ItemStack helmet = damaged.getInventory().getHelmet(), chestplate = damaged.getInventory().getChestplate(), leggings = damaged.getInventory().getLeggings(), boots = damaged.getInventory().getBoots(), offhand = damaged.getInventory().getItemInOffHand();
 							if (helmet != null && ItemUtilities.getDamageableMaterials().contains(helmet.getType())) {
 								helmet.setDurability((short) 0);
 								updateHelmet = true;
@@ -752,8 +832,12 @@ public class EventListener implements Listener {
 								boots.setDurability((short) 0);
 								updateBoots = true;
 							}
-							if (updateHelmet || updateChestplate || updateLeggings || updateBoots) {
-								final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots;
+							if (offhand != null && ItemUtilities.getDamageableMaterials().contains(offhand.getType())) {
+								offhand.setDurability((short) 0);
+								updateOffhand = true;
+							}
+							if (updateHelmet || updateChestplate || updateLeggings || updateBoots || updateOffhand) {
+								final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots, finalUpdateOffhand = updateOffhand;
 								damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
 									@Override
 									public void run() {
@@ -762,6 +846,7 @@ public class EventListener implements Listener {
 											if (finalUpdateChestplate) damaged.getInventory().setChestplate(chestplate);
 											if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
 											if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
+											if (finalUpdateOffhand) damaged.getInventory().setItemInOffHand(offhand);
 										}
 									}
 								});

@@ -103,6 +103,7 @@ public class FileUtilities {
 
 	private static void delete(File source, boolean isLoop) {
 		try {
+			if (!source.exists()) return;
 			if (source.isDirectory()) {
 				File[] dirFiles = source.listFiles();
 				if (dirFiles != null) {

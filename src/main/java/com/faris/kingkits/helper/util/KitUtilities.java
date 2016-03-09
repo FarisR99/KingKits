@@ -196,12 +196,16 @@ public class KitUtilities {
 								ex.printStackTrace();
 							}
 						}
+						if (!ItemUtilities.isNull(kit.getOffHand()))
+							player.getInventory().setItemInOffHand(kit.getOffHand());
 						player.getInventory().setArmorContents(kit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : kit.getItems().values()) {
 							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
+						if (!ItemUtilities.isNull(kit.getOffHand()))
+							itemsToDrop.addAll(player.getInventory().addItem(kit.getOffHand()).values());
 						for (ItemStack kitArmour : kit.getArmour()) {
 							if (!ItemUtilities.isNull(kitArmour))
 								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
@@ -211,6 +215,7 @@ public class KitUtilities {
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
 						}
 					}
+					if (kit.getHeldItemSlot() != -1) player.getInventory().setHeldItemSlot(kit.getHeldItemSlot());
 					player.setWalkSpeed(kit.getWalkSpeed());
 					if (player.getHealth() > kit.getMaxHealth())
 						player.setHealth(kit.getMaxHealth());

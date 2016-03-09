@@ -2,6 +2,7 @@ package com.faris.kingkits.api.event;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.player.KitPlayer;
+import org.bukkit.Material;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -44,6 +45,12 @@ public class PlayerPreKitEvent extends Event implements Cancellable {
 	public void setItems(Map<Integer, ItemStack> items) {
 		if (this.kit != null) {
 			this.kit.setItems(items != null ? items : new HashMap<Integer, ItemStack>());
+		}
+	}
+
+	public void setOffHand(ItemStack offHand) {
+		if (this.kit != null) {
+			this.kit.setOffHand(offHand == null ? new ItemStack(Material.AIR) : offHand);
 		}
 	}
 
