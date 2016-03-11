@@ -197,9 +197,9 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Should.Prevent creative", false, "If players should be prevented from going into Creative mode when using a kit.");
 		this.getConfig().addDefault("Should.Remove kit on death", true, "If this plugin should clear a player's inventory and their kit status when they die.");
 		this.getConfig().addDefault("Should.Remove kit on leave", true, "If a player's inventory should be cleared when they leave in a PvP world.");
-		this.getConfig().addDefault("Should.Remove items on reload", false, "If this plugin should clear all online players' inventories when this plugin is loaded.");
+		this.getConfig().addDefault("Should.Remove items on reload", false, "If this plugin should clear all online players' inventories when this plugin is unloaded.");
 		this.getConfig().addDefault("Should.Remove potion effects on leave", true, "If all potion effects should be removed when a player leaves.");
-		this.getConfig().addDefault("Should.Remove potion effects on reload", true, "If all potion effects should be removed when this plugin is loaded.");
+		this.getConfig().addDefault("Should.Remove potion effects on reload", true, "If all potion effects should be removed when this plugin is unloaded.");
 		this.getConfig().addDefault("Should.Set compass to nearest player", false, "If right clicking a compass targets the nearest player.");
 		this.getConfig().addDefault("Should.Set max health to kit max health", true, "If this plugin should set the player's max health to the max health set in the kit config.");
 		this.getConfig().addDefault("Should.Set to default gamemode on kit selection", true, "Whether or not to set the player's gamemode to the server's default when they choose a kit.");

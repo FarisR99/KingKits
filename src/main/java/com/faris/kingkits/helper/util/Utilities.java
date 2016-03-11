@@ -32,7 +32,7 @@ public class Utilities {
 	public static Color deserializeColor(Map<String, Object> serializedColor) {
 		Color deserializedColor = Color.BLACK;
 		try {
-			deserializedColor = Color.fromRGB(ObjectUtilities.getObject(serializedColor, Integer.class, "Red", 0), ObjectUtilities.getObject(serializedColor, Integer.class, "Green", 0), ObjectUtilities.getObject(serializedColor, Integer.class, "Blue", 0));
+			deserializedColor = Color.fromRGB(ObjectUtilities.getObject(serializedColor, Number.class, "Red", 0).intValue(), ObjectUtilities.getObject(serializedColor, Number.class, "Green", 0).intValue(), ObjectUtilities.getObject(serializedColor, Number.class, "Blue", 0).intValue());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

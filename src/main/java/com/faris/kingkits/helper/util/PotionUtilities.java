@@ -40,7 +40,7 @@ public class PotionUtilities {
 		else return null;
 	}
 
-	public static String getPotionType(ItemStack itemStack) throws Exception {
+	public static String getPotion(ItemStack itemStack) throws Exception {
 		if (itemStack != null) {
 			if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.SPLASH_POTION || itemStack.getType() == Material.TIPPED_ARROW) {
 				Object nmsStack = getNMSStack(itemStack);
@@ -56,7 +56,7 @@ public class PotionUtilities {
 		return null;
 	}
 
-	public static boolean hasPotionType(ItemStack itemStack) throws Exception {
+	public static boolean isPotion(ItemStack itemStack) throws Exception {
 		if (itemStack != null) {
 			if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.SPLASH_POTION || itemStack.getType() == Material.TIPPED_ARROW) {
 				Object nmsStack = getNMSStack(itemStack);
@@ -69,7 +69,7 @@ public class PotionUtilities {
 		return false;
 	}
 
-	public static ItemStack setPotionType(ItemStack itemStack, String potionType) throws Exception {
+	public static ItemStack setPotion(ItemStack itemStack, String potionType) throws Exception {
 		if (itemStack != null && potionType != null) {
 			if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.SPLASH_POTION || itemStack.getType() == Material.TIPPED_ARROW) {
 				Object nmsStack = getNMSStack(itemStack);
@@ -85,6 +85,5 @@ public class PotionUtilities {
 		}
 		return itemStack;
 	}
-
 
 }

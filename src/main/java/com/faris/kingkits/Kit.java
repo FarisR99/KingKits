@@ -5,13 +5,11 @@ import com.faris.kingkits.helper.json.JsonSerializable;
 import com.faris.kingkits.helper.util.*;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 
@@ -378,7 +376,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		}});
 		serializedMap.put("Potion effects", new LinkedHashMap<Integer, Map<String, Object>>() {{
 			for (int i = 0; i < potionEffects.size(); i++)
-				this.put((i + 1), serializePotionEffect(potionEffects.get(i)));
+				this.put((i + 1), ItemUtilities.serializePotionEffect(potionEffects.get(i)));
 		}});
 		return serializedMap;
 	}
@@ -505,7 +503,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				List<PotionEffect> potionEffects = new ArrayList<>();
 				for (Object potionEffectSection : potionEffectsSection.values()) {
 					Map<String, Object> serializedPotionEffect = ObjectUtilities.getMap(potionEffectSection);
-					PotionEffect deserializedPotionEffect = deserializePotionEffect(serializedPotionEffect);
+					PotionEffect deserializedPotionEffect = ItemUtilities.deserializePotionEffect(serializedPotionEffect);
 					if (deserializedPotionEffect != null) potionEffects.add(deserializedPotionEffect);
 				}
 				deserializedKit.setPotionEffects(potionEffects);
@@ -523,34 +521,6 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	public static Kit deserializeFromJson(String serializedKitToJson) {
 		return Utilities.getGsonParser().fromJson(new JsonPrimitive(serializedKitToJson), Kit.class); // Utilities.getGsonParser().fromJson(Utilities.getGsonParser().fromJson(serializedKitToJson, JsonObject.class), Kit.class);
-	}
-
-	public static Map<String, Object> serializePotionEffect(PotionEffect potionEffect) {
-		Map<String, Object> serializedPotionEffect = new LinkedHashMap<>();
-		if (potionEffect != null) {
-			serializedPotionEffect.put("Type", StringUtilities.capitalizeFully(potionEffect.getType().getName().replace('_', ' ')));
-			serializedPotionEffect.put("Level", potionEffect.getAmplifier());
-			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1D : (double) potionEffect.getDuration() / 20D);
-			if (!potionEffect.isAmbient()) serializedPotionEffect.put("Ambient", false);
-			if (!potionEffect.hasParticles()) serializedPotionEffect.put("Particles", false);
-			if (potionEffect.getColor() != null) serializedPotionEffect.put("Color", potionEffect.getColor().asRGB());
-		}
-		return serializedPotionEffect;
-	}
-
-	public static PotionEffect deserializePotionEffect(Map<String, Object> serializedPotion) {
-		if (serializedPotion != null && serializedPotion.containsKey("Type")) {
-			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
-			if (potionEffectType != null) {
-				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
-				double duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).doubleValue();
-				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
-				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
-				Color color = serializedPotion.containsKey("Color") ? Color.fromRGB(ObjectUtilities.getObject(serializedPotion, Number.class, "Color", Color.GRAY.asRGB()).intValue()) : null;
-				return new PotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
-			}
-		}
-		return null;
 	}
 
 }

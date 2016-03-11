@@ -415,7 +415,8 @@ public class GuiController implements Controller {
 								ex.printStackTrace();
 							}
 						}
-						player.getInventory().setItemInOffHand(selectedKit.getOffHand());
+						if (!ItemUtilities.isNull(selectedKit.getOffHand()))
+							player.getInventory().setItemInOffHand(selectedKit.getOffHand());
 						player.getInventory().setArmorContents(selectedKit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
@@ -543,6 +544,20 @@ public class GuiController implements Controller {
 						ItemStack guiItem = availableKit.getGuiItem().clone();
 						if (!ItemUtilities.hasName(guiItem))
 							ItemUtilities.renameItem(guiItem, "&a" + availableKit.getName());
+						if (availableKit.hasDescription()) {
+							final List<String> kitDescription = new ArrayList<>();
+							for (String descriptionLine : availableKit.getDescription()) {
+								descriptionLine = ChatUtilities.replaceChatCodes(descriptionLine);
+								if (descriptionLine.contains("<player>")) continue;
+								descriptionLine = descriptionLine.replace("<name>", availableKit.getName());
+								descriptionLine = descriptionLine.replace("<cost>", String.valueOf(availableKit.getCost()));
+								descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(availableKit.getCooldown()));
+								descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(availableKit.getMaxHealth()));
+								descriptionLine = descriptionLine.replace("<walkspeed>", String.valueOf(availableKit.getWalkSpeed()));
+								kitDescription.add(descriptionLine);
+							}
+							if (!kitDescription.isEmpty()) ItemUtilities.addLores(guiItem, kitDescription);
+						}
 						if (availableKit.getGuiPosition() != -1) {
 							if (availableKit.getGuiPosition() >= 0 && availableKit.getGuiPosition() < inventory.getSize()) {
 								inventory.setItem(availableKit.getGuiPosition(), guiItem);

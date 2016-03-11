@@ -5,6 +5,8 @@ import nl.arfie.bukkit.attributes.Attributes;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.block.Banner;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
@@ -13,6 +15,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 
@@ -97,7 +101,7 @@ public class ItemUtilities {
 						try {
 							strPotionType = strPotionType.toLowerCase().replace(' ', '_');
 							if (!strPotionType.startsWith("minecraft:")) strPotionType = "minecraft:" + strPotionType;
-							deserializedItem = PotionUtilities.setPotionType(deserializedItem, strPotionType);
+							deserializedItem = PotionUtilities.setPotion(deserializedItem, strPotionType);
 						} catch (Exception ex) {
 							ex.printStackTrace();
 						}
@@ -140,6 +144,17 @@ public class ItemUtilities {
 						}
 						if (!itemFlags.isEmpty())
 							itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[itemFlags.size()]));
+					}
+					if (itemMeta instanceof PotionMeta && serializedItem.containsKey("Custom potion effects")) {
+						PotionMeta potionMeta = (PotionMeta) itemMeta;
+						Map<String, Object> serializedCustomEffects = ObjectUtilities.getMap(serializedItem.get("Custom potion effects"));
+						if (!serializedCustomEffects.isEmpty()) {
+							for (Object serializedCustomEffect : serializedCustomEffects.values()) {
+								PotionEffect deserializedPotionEffect = deserializePotionEffect(ObjectUtilities.getMap(serializedCustomEffect));
+								if (deserializedPotionEffect != null)
+									potionMeta.addCustomEffect(deserializedPotionEffect, false);
+							}
+						}
 					}
 					if (itemMeta instanceof LeatherArmorMeta && serializedItem.containsKey("Dye")) {
 						LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
@@ -190,6 +205,48 @@ public class ItemUtilities {
 							bannerMeta.setPatterns(patterns);
 						}
 					}
+					if (itemMeta instanceof BlockStateMeta && serializedItem.containsKey("Block state")) {
+						BlockStateMeta blockStateMeta = (BlockStateMeta) itemMeta;
+						if (blockStateMeta.getBlockState() instanceof Banner) {
+							Banner banner = (Banner) blockStateMeta.getBlockState();
+							Map<String, Object> serializedBanner = ObjectUtilities.getMap(serializedItem.get("Block state"));
+							if (serializedBanner.containsKey("Base")) {
+								Color deserializedBaseColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedBanner.get("Base")));
+								if (deserializedBaseColor != null) {
+									banner.setBaseColor(DyeColor.getByColor(deserializedBaseColor));
+								}
+							}
+							if (serializedBanner.containsKey("Patterns")) {
+								List<Pattern> patterns = new ArrayList<>();
+								Map<String, Object> serializedPatterns = ObjectUtilities.getMap(serializedItem.get("Patterns"));
+								for (Object objSerializedPattern : serializedPatterns.values()) {
+									Map<String, Object> serializedPattern = ObjectUtilities.getMap(objSerializedPattern);
+									Pattern pattern = null;
+									PatternType patternType = null;
+									if (serializedPattern.get("Pattern") != null) {
+										String strPatternType = ObjectUtilities.toString(serializedPattern.get("Pattern"));
+										patternType = PatternType.getByIdentifier(strPatternType);
+										if (patternType != null) {
+											for (PatternType aPatternType : PatternType.values()) {
+												if (aPatternType.name().replace('_', ' ').equalsIgnoreCase(strPatternType)) {
+													patternType = aPatternType;
+													break;
+												}
+											}
+										}
+									}
+									if (patternType != null && serializedPattern.get("Color") != null) {
+										Color deserializedPatternColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedPattern.get("Color")));
+										if (deserializedPatternColor != null)
+											pattern = new Pattern(DyeColor.getByColor(deserializedPatternColor), patternType);
+									}
+									if (pattern != null) patterns.add(pattern);
+								}
+								banner.setPatterns(patterns);
+							}
+							blockStateMeta.setBlockState(banner);
+						}
+					}
 					if (itemMeta instanceof BookMeta && serializedItem.containsKey("Book")) {
 						BookMeta bookMeta = (BookMeta) itemMeta;
 						Map<String, Object> serializedBook = ObjectUtilities.getMap(serializedItem.get("Book"));
@@ -210,6 +267,10 @@ public class ItemUtilities {
 						String ownerUsername = ObjectUtilities.toString(serializedItem.get("Skull"));
 						skullMeta.setOwner(ownerUsername);
 					}
+					if (itemMeta instanceof Repairable && serializedItem.containsKey("Repair cost")) {
+						Repairable repairable = (Repairable) itemMeta;
+						repairable.setRepairCost(ObjectUtilities.getObject(serializedItem, Number.class, "Repair cost", 0).intValue());
+					}
 					if (serializedItem.get("Name") != null)
 						itemMeta.setDisplayName(ChatUtilities.replaceChatCodes(serializedItem.get("Name").toString()));
 					if (serializedItem.get("Lore") instanceof List)
@@ -219,6 +280,21 @@ public class ItemUtilities {
 			}
 		}
 		return deserializedItem;
+	}
+
+	public static PotionEffect deserializePotionEffect(Map<String, Object> serializedPotion) {
+		if (serializedPotion != null && serializedPotion.containsKey("Type")) {
+			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
+			if (potionEffectType != null) {
+				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
+				double duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).doubleValue();
+				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
+				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
+				Color color = serializedPotion.containsKey("Color") ? Color.fromRGB(ObjectUtilities.getObject(serializedPotion, Number.class, "Color", Color.GRAY.asRGB()).intValue()) : null;
+				return new PotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -289,6 +365,28 @@ public class ItemUtilities {
 		return itemStack;
 	}
 
+	private static Map<String, Object> serializeBanner(Banner banner) {
+		Map<String, Object> serializedBanner = new LinkedHashMap<>();
+		if (banner != null) {
+			DyeColor baseDyeColor = banner.getBaseColor();
+			if (baseDyeColor != null) serializedBanner.put("Base", Utilities.serializeColor(baseDyeColor.getColor()));
+			List<Pattern> bannerPatterns = banner.getPatterns();
+			if (bannerPatterns != null && !bannerPatterns.isEmpty()) {
+				Map<String, Map<String, Object>> serializedPatterns = new LinkedHashMap<>();
+				for (int patternIndex = 0; patternIndex < bannerPatterns.size(); patternIndex++) {
+					Pattern bannerPattern = bannerPatterns.get(patternIndex);
+					Map<String, Object> serializedPattern = new LinkedHashMap<>();
+					if (bannerPattern.getColor() != null)
+						serializedPattern.put("Color", Utilities.serializeColor(bannerPattern.getColor().getColor()));
+					serializedPattern.put("Pattern", StringUtilities.capitalizeFully(bannerPattern.getPattern().name().replace('_', ' ')));
+					serializedPatterns.put("Pattern " + (patternIndex + 1), serializedPattern);
+				}
+				serializedBanner.put("Patterns", serializedPatterns);
+			}
+		}
+		return serializedBanner;
+	}
+
 	private static Map<String, Object> serializeBanner(BannerMeta bannerMeta) {
 		Map<String, Object> serializedBanner = new LinkedHashMap<>();
 		if (bannerMeta != null) {
@@ -335,13 +433,23 @@ public class ItemUtilities {
 					serializedItem.put("Lore", ChatUtilities.replaceChatColours(itemMeta.getLore()));
 				if (itemMeta instanceof PotionMeta) {
 					try {
-						if (PotionUtilities.hasPotionType(itemStack)) {
-							String strPotionType = PotionUtilities.getPotionType(itemStack);
+						if (PotionUtilities.isPotion(itemStack)) {
+							String strPotionType = PotionUtilities.getPotion(itemStack);
 							if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
 								serializedItem.put("Potion", strPotionType);
 						}
 					} catch (Exception ex) {
 						ex.printStackTrace();
+					}
+					PotionMeta potionMeta = (PotionMeta) itemMeta;
+					if (potionMeta.hasCustomEffects()) {
+						Map<String, Map<String, Object>> serializedCustomEffects = new LinkedHashMap<>();
+						List<PotionEffect> potionEffects = potionMeta.getCustomEffects();
+						for (int i = 0; i < potionEffects.size(); i++) {
+							serializedCustomEffects.put("Potion " + (i + 1), serializePotionEffect(potionEffects.get(i)));
+						}
+						if (!serializedCustomEffects.isEmpty())
+							serializedItem.put("Custom potion effects", serializedCustomEffects);
 					}
 				}
 				if (itemMeta instanceof LeatherArmorMeta) {
@@ -351,6 +459,14 @@ public class ItemUtilities {
 				if (itemMeta instanceof BannerMeta) {
 					BannerMeta bannerMeta = (BannerMeta) itemMeta;
 					serializedItem.put("Banner", serializeBanner(bannerMeta));
+				}
+				if (itemMeta instanceof BlockStateMeta) {
+					BlockStateMeta blockStateMeta = (BlockStateMeta) itemMeta;
+					BlockState state = blockStateMeta.getBlockState();
+					if (state instanceof Banner) {
+						Banner bannerState = (Banner) state;
+						serializedItem.put("Block state", serializeBanner(bannerState));
+					}
 				}
 				if (itemMeta instanceof BookMeta) {
 					BookMeta bookMeta = (BookMeta) itemMeta;
@@ -364,13 +480,17 @@ public class ItemUtilities {
 					String ownerUsername = ((SkullMeta) itemMeta).getOwner();
 					if (ownerUsername != null) serializedItem.put("Skull", ownerUsername);
 				}
+				if (itemMeta instanceof Repairable) {
+					Repairable repairable = (Repairable) itemMeta;
+					if (repairable.hasRepairCost()) serializedItem.put("Repair cost", repairable.getRepairCost());
+				}
 			}
 
 			// NBT Tags
 			if (itemStack.getType() == Material.TIPPED_ARROW) {
 				try {
-					if (PotionUtilities.hasPotionType(itemStack)) {
-						String strPotionType = PotionUtilities.getPotionType(itemStack);
+					if (PotionUtilities.isPotion(itemStack)) {
+						String strPotionType = PotionUtilities.getPotion(itemStack);
 						if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
 							serializedItem.put("Potion", strPotionType);
 					}
@@ -405,6 +525,19 @@ public class ItemUtilities {
 			serializedItem.put("Type", getFriendlyName(null));
 		}
 		return serializedItem;
+	}
+
+	public static Map<String, Object> serializePotionEffect(PotionEffect potionEffect) {
+		Map<String, Object> serializedPotionEffect = new LinkedHashMap<>();
+		if (potionEffect != null) {
+			serializedPotionEffect.put("Type", StringUtilities.capitalizeFully(potionEffect.getType().getName().replace('_', ' ')));
+			serializedPotionEffect.put("Level", potionEffect.getAmplifier());
+			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1D : (double) potionEffect.getDuration() / 20D);
+			if (!potionEffect.isAmbient()) serializedPotionEffect.put("Ambient", false);
+			if (!potionEffect.hasParticles()) serializedPotionEffect.put("Particles", false);
+			if (potionEffect.getColor() != null) serializedPotionEffect.put("Color", potionEffect.getColor().asRGB());
+		}
+		return serializedPotionEffect;
 	}
 
 	public static ItemStack setDye(ItemStack itemStack, int dyeRGB) {
