@@ -647,7 +647,7 @@ public class EventListener implements Listener {
 						targetKit = searchResult.getOtherKits().get(0);
 					}
 				}
-				if (targetKit != null) {
+				if (targetKit != null && targetKit.hasCommandAlias()) {
 					event.setCancelled(true);
 					player.performCommand("pvpkit " + targetKit.getName());
 				}
