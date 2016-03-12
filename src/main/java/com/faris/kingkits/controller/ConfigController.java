@@ -13,6 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.FileUtil;
 
 import java.io.File;
@@ -23,7 +25,7 @@ import java.util.logging.Level;
 public class ConfigController implements Controller {
 
 	private static ConfigController instance = null;
-	public static final String CURRENT_CONFIG_VERSION = "3.1";
+	public static final String CURRENT_CONFIG_VERSION = "3.2";
 
 	private MySQLDetails sqlDetails = null;
 
@@ -1349,6 +1351,174 @@ public class ConfigController implements Controller {
 									}
 								}
 							}
+						}
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+			if (this.getConfig().getString("Version", "").equals("3.1")) {
+				// 1.9 changes
+				plugin.getLogger().log(Level.INFO, "Converting config v3.1 to v3.2...");
+
+				this.getConfig().set("Version", "3.2");
+				this.saveConfig();
+
+				this.reloadConfigs();
+				this.loadConfiguration();
+				try {
+					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+						SQLController.getInstance();
+						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					} else {
+						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+
+				try {
+					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
+					if (kitsFolder.exists()) {
+						File[] kitFiles = FileUtilities.getFiles(kitsFolder);
+						if (kitFiles.length > 0) {
+							File oldFolder = new File(dataFolder, "old3.1");
+							try {
+								if (!oldFolder.exists()) oldFolder.mkdirs();
+							} catch (Exception ex) {
+								plugin.getLogger().log(Level.WARNING, "Could not create 'old' folder", ex);
+								oldFolder = null;
+							}
+
+							for (File kitFile : kitFiles) {
+								if (kitFile.getName().endsWith(".yml")) {
+									CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
+									kitConfig.setNewLineAfterHeader(true);
+									kitConfig.setNewLinePerKey(true);
+
+									boolean save = false;
+									if (kitConfig.contains("Items")) {
+										Map<String, Object> itemsMap = ObjectUtilities.getMap(kitConfig.get("Items"));
+										boolean saveItems = false;
+										for (Map.Entry<String, Object> serializedItemEntry : new LinkedHashMap<>(itemsMap).entrySet()) {
+											Map<String, Object> serializedItem = ObjectUtilities.getMap(serializedItemEntry.getValue());
+											boolean saveItem = false;
+											if (!serializedItem.isEmpty()) {
+												if (serializedItem.containsKey("Potion")) {
+													String strPotionType = ObjectUtilities.getObject(serializedItem, String.class, "Potion");
+													if (strPotionType != null) {
+														PotionData potionData = null;
+														if (strPotionType.equalsIgnoreCase("minecraft:awkward")) {
+															potionData = new PotionData(PotionType.AWKWARD);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:thick")) {
+															potionData = new PotionData(PotionType.THICK);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:mundane")) {
+															potionData = new PotionData(PotionType.MUNDANE, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:mundane")) {
+															potionData = new PotionData(PotionType.MUNDANE);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:regeneration")) {
+															potionData = new PotionData(PotionType.REGEN);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_regeneration")) {
+															potionData = new PotionData(PotionType.REGEN, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_regeneration")) {
+															potionData = new PotionData(PotionType.REGEN, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:swiftness")) {
+															potionData = new PotionData(PotionType.SPEED);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_swiftness")) {
+															potionData = new PotionData(PotionType.SPEED, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_swiftness")) {
+															potionData = new PotionData(PotionType.SPEED, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:fire_resistance")) {
+															potionData = new PotionData(PotionType.FIRE_RESISTANCE);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_fire_resistance")) {
+															potionData = new PotionData(PotionType.FIRE_RESISTANCE, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:healing")) {
+															potionData = new PotionData(PotionType.INSTANT_HEAL);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_healing")) {
+															potionData = new PotionData(PotionType.INSTANT_HEAL, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:night_vision")) {
+															potionData = new PotionData(PotionType.NIGHT_VISION);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_night_vision")) {
+															potionData = new PotionData(PotionType.NIGHT_VISION, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strength")) {
+															potionData = new PotionData(PotionType.STRENGTH);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_strength")) {
+															potionData = new PotionData(PotionType.STRENGTH, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_strength")) {
+															potionData = new PotionData(PotionType.STRENGTH, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:leaping")) {
+															potionData = new PotionData(PotionType.JUMP);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_leaping")) {
+															potionData = new PotionData(PotionType.JUMP, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_leaping")) {
+															potionData = new PotionData(PotionType.JUMP, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:water_breathing")) {
+															potionData = new PotionData(PotionType.WATER_BREATHING);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_water_breathing")) {
+															potionData = new PotionData(PotionType.WATER_BREATHING, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:invisibility")) {
+															potionData = new PotionData(PotionType.INVISIBILITY);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_invisibility")) {
+															potionData = new PotionData(PotionType.INVISIBILITY, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:poison")) {
+															potionData = new PotionData(PotionType.POISON);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_poison")) {
+															potionData = new PotionData(PotionType.POISON, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_poison")) {
+															potionData = new PotionData(PotionType.POISON, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:weakness")) {
+															potionData = new PotionData(PotionType.WEAKNESS);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_weakness")) {
+															potionData = new PotionData(PotionType.WEAKNESS, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:slowness")) {
+															potionData = new PotionData(PotionType.SLOWNESS);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:long_slowness")) {
+															potionData = new PotionData(PotionType.SLOWNESS, true, false);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:harming")) {
+															potionData = new PotionData(PotionType.INSTANT_DAMAGE);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_harming")) {
+															potionData = new PotionData(PotionType.INSTANT_DAMAGE, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_regeneration")) {
+															potionData = new PotionData(PotionType.REGEN, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_swiftness")) {
+															potionData = new PotionData(PotionType.SPEED, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_strength")) {
+															potionData = new PotionData(PotionType.STRENGTH, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:strong_poison")) {
+															potionData = new PotionData(PotionType.POISON, false, true);
+														} else if (strPotionType.equalsIgnoreCase("minecraft:empty")) {
+															potionData = new PotionData(PotionType.WATER);
+														}
+														if (potionData != null) {
+															serializedItem.put("Potion", ItemUtilities.serializePotionData(potionData));
+															saveItem = true;
+														}
+													}
+												}
+												if (saveItem) {
+													saveItems = true;
+													itemsMap.put(serializedItemEntry.getKey(), serializedItem);
+												}
+											}
+										}
+										if (saveItems) {
+											kitConfig.set("Items", itemsMap);
+											save = true;
+										}
+									}
+									if (save) {
+										if (oldFolder == null) {
+											kitConfig.save(kitFile);
+											continue;
+										}
+										FileUtil.copy(kitFile, new File(oldFolder, kitFile.getName()));
+										FileUtilities.delete(kitFile);
+										kitConfig.save(kitFile);
+									}
+								}
+							}
+
+							if (FileUtilities.getFiles(oldFolder).length == 0) FileUtilities.delete(oldFolder);
 						}
 					}
 				} catch (Exception ex) {

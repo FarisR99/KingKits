@@ -15,8 +15,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import java.util.*;
 
@@ -95,18 +97,6 @@ public class ItemUtilities {
 				if (!deserializedItem.hasItemMeta())
 					deserializedItem.setItemMeta(ItemUtilities.createMeta(material));
 
-				if (serializedItem.get("Potion") != null) {
-					String strPotionType = ObjectUtilities.getObject(serializedItem, String.class, "Potion");
-					if (strPotionType != null) {
-						try {
-							strPotionType = strPotionType.toLowerCase().replace(' ', '_');
-							if (!strPotionType.startsWith("minecraft:")) strPotionType = "minecraft:" + strPotionType;
-							deserializedItem = PotionUtilities.setPotion(deserializedItem, strPotionType);
-						} catch (Exception ex) {
-							ex.printStackTrace();
-						}
-					}
-				}
 				if (serializedItem.get("Attributes") != null) {
 					Map<String, Object> attributesMap = ObjectUtilities.getMap(serializedItem.get("Attributes"));
 					List<Attribute> attributes = new ArrayList<>();
@@ -145,14 +135,23 @@ public class ItemUtilities {
 						if (!itemFlags.isEmpty())
 							itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[itemFlags.size()]));
 					}
-					if (itemMeta instanceof PotionMeta && serializedItem.containsKey("Custom potion effects")) {
+					if (itemMeta instanceof PotionMeta) {
 						PotionMeta potionMeta = (PotionMeta) itemMeta;
-						Map<String, Object> serializedCustomEffects = ObjectUtilities.getMap(serializedItem.get("Custom potion effects"));
-						if (!serializedCustomEffects.isEmpty()) {
-							for (Object serializedCustomEffect : serializedCustomEffects.values()) {
-								PotionEffect deserializedPotionEffect = deserializePotionEffect(ObjectUtilities.getMap(serializedCustomEffect));
-								if (deserializedPotionEffect != null)
-									potionMeta.addCustomEffect(deserializedPotionEffect, false);
+						if (serializedItem.containsKey("Potion")) {
+							Map<String, Object> serializedPotion = ObjectUtilities.getMap(serializedItem.get("Potion"));
+							if (!serializedPotion.isEmpty()) {
+								PotionData deserializedPotion = deserializePotionData(serializedPotion);
+								if (deserializedPotion != null) potionMeta.setBasePotionData(deserializedPotion);
+							}
+						}
+						if (serializedItem.containsKey("Custom potion effects")) {
+							Map<String, Object> serializedCustomEffects = ObjectUtilities.getMap(serializedItem.get("Custom potion effects"));
+							if (!serializedCustomEffects.isEmpty()) {
+								for (Object serializedCustomEffect : serializedCustomEffects.values()) {
+									PotionEffect deserializedPotionEffect = deserializePotionEffect(ObjectUtilities.getMap(serializedCustomEffect));
+									if (deserializedPotionEffect != null)
+										potionMeta.addCustomEffect(deserializedPotionEffect, false);
+								}
 							}
 						}
 					}
@@ -282,9 +281,21 @@ public class ItemUtilities {
 		return deserializedItem;
 	}
 
+	public static PotionData deserializePotionData(Map<String, Object> serializedPotionData) {
+		if (serializedPotionData != null && serializedPotionData.containsKey("Type")) {
+			PotionType potionType = PotionUtilities.getPotionType(ObjectUtilities.getObject(serializedPotionData, String.class, "Type").toUpperCase().replace(' ', '_'));
+			if (potionType != null) {
+				boolean extended = ObjectUtilities.getObject(serializedPotionData, Boolean.class, "Extended", false);
+				boolean upgraded = ObjectUtilities.getObject(serializedPotionData, Boolean.class, "Upgraded", false);
+				return new PotionData(potionType, extended, upgraded);
+			}
+		}
+		return null;
+	}
+
 	public static PotionEffect deserializePotionEffect(Map<String, Object> serializedPotion) {
 		if (serializedPotion != null && serializedPotion.containsKey("Type")) {
-			PotionEffectType potionEffectType = PotionEffectType.getByName(ObjectUtilities.getObject(serializedPotion, String.class, "Type").toUpperCase().replace(' ', '_'));
+			PotionEffectType potionEffectType = PotionEffectType.getByName(Utilities.getPotionName(ObjectUtilities.getObject(serializedPotion, String.class, "Type")));
 			if (potionEffectType != null) {
 				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
 				double duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).doubleValue();
@@ -432,16 +443,9 @@ public class ItemUtilities {
 				if (itemMeta.hasLore())
 					serializedItem.put("Lore", ChatUtilities.replaceChatColours(itemMeta.getLore()));
 				if (itemMeta instanceof PotionMeta) {
-					try {
-						if (PotionUtilities.isPotion(itemStack)) {
-							String strPotionType = PotionUtilities.getPotion(itemStack);
-							if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
-								serializedItem.put("Potion", strPotionType);
-						}
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
 					PotionMeta potionMeta = (PotionMeta) itemMeta;
+					if (potionMeta.getBasePotionData() != null)
+						serializedItem.put("Potion", serializePotionData(potionMeta.getBasePotionData()));
 					if (potionMeta.hasCustomEffects()) {
 						Map<String, Map<String, Object>> serializedCustomEffects = new LinkedHashMap<>();
 						List<PotionEffect> potionEffects = potionMeta.getCustomEffects();
@@ -525,6 +529,16 @@ public class ItemUtilities {
 			serializedItem.put("Type", getFriendlyName(null));
 		}
 		return serializedItem;
+	}
+
+	public static Map<String, Object> serializePotionData(PotionData potionData) {
+		Map<String, Object> serializedPotionData = new LinkedHashMap<>();
+		if (potionData != null) {
+			serializedPotionData.put("Type", StringUtilities.capitalizeFully(potionData.getType().toString().replace('_', ' ')));
+			serializedPotionData.put("Extended", potionData.isExtended());
+			serializedPotionData.put("Upgraded", potionData.isUpgraded());
+		}
+		return serializedPotionData;
 	}
 
 	public static Map<String, Object> serializePotionEffect(PotionEffect potionEffect) {

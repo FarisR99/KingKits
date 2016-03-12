@@ -2,6 +2,7 @@ package com.faris.kingkits.helper.util;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionType;
 
 /**
  * @author KingFaris10
@@ -51,6 +52,15 @@ public class PotionUtilities {
 						return strPotionType != null && strPotionType.isEmpty() ? null : strPotionType;
 					}
 				}
+			}
+		}
+		return null;
+	}
+
+	public static PotionType getPotionType(String name) {
+		if (name != null) {
+			for (PotionType potionType : PotionType.values()) {
+				if (potionType != null && potionType.name().equals(name)) return potionType;
 			}
 		}
 		return null;

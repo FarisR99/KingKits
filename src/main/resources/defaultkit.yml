@@ -67,7 +67,9 @@ Items:
       Unbreaking: 3
   Slot 1:
     Type: Potion
-    Potion: minecraft:strong_healing
+    Potion:
+      Type: Healing
+      Upgraded: true
   Slot 8:
     Type: Golden Apple
     Durability: 1

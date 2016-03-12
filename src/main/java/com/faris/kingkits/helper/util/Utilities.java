@@ -117,6 +117,10 @@ public class Utilities {
 				return Enchantment.WATER_WORKER.getName();
 			else if (friendlyName.equalsIgnoreCase("Depth Strider"))
 				return Enchantment.DEPTH_STRIDER.getName();
+			else if (friendlyName.equalsIgnoreCase("Frost Walker"))
+				return Enchantment.FROST_WALKER.getName();
+			else if (friendlyName.equalsIgnoreCase("Repair"))
+				return Enchantment.MENDING.getName();
 		}
 		return friendlyName != null ? friendlyName.replace(' ', '_').toUpperCase() : "";
 	}
