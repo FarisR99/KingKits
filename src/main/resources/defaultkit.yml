@@ -69,6 +69,7 @@ Items:
     Type: Potion
     Potion:
       Type: Healing
+      Extended: false
       Upgraded: true
   Slot 8:
     Type: Golden Apple

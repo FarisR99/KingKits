@@ -9,6 +9,7 @@ import org.bukkit.Color;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import java.io.Closeable;
 import java.math.BigDecimal;
@@ -151,6 +152,34 @@ public class Utilities {
 			else if (friendlyName.equalsIgnoreCase("Water")) return PotionEffectType.WATER_BREATHING.getName();
 		}
 		return friendlyName != null ? friendlyName.replace(' ', '_').toUpperCase() : "";
+	}
+
+	public static PotionType getPotionType(String name) {
+		if (name != null) {
+			for (PotionType potionType : PotionType.values()) {
+				if (potionType != null && potionType.name().equals(name)) return potionType;
+			}
+			switch (name) {
+				case "FATIGUE":
+					return PotionType.WEAKNESS;
+				case "HARM":
+				case "HARMING":
+				case "DAMAGE":
+					return PotionType.INSTANT_DAMAGE;
+				case "HEAL":
+				case "HEALTH":
+				case "HEALING":
+					return PotionType.INSTANT_HEAL;
+				case "LEAP":
+				case "LEAPING":
+					return PotionType.JUMP;
+				case "REGENERATION":
+					return PotionType.REGEN;
+				case "SLOW":
+					return PotionType.SLOWNESS;
+			}
+		}
+		return null;
 	}
 
 	public static boolean isNumber(Class<? extends Number> numberClass, Object objNumber) {

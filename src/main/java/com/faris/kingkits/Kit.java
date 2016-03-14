@@ -462,7 +462,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				for (Map.Entry<String, Object> itemEntry : itemsSection.entrySet()) {
 					ItemStack deserializedItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(itemEntry.getValue()));
 					if (deserializedItem != null) {
-						if (!itemEntry.getKey().equalsIgnoreCase("Offhand")) {
+						if (!itemEntry.getKey().equalsIgnoreCase("Offhand") && !itemEntry.getKey().equalsIgnoreCase("Slot Offhand")) {
 							String strSlot = itemEntry.getKey().startsWith("Slot ") ? itemEntry.getKey().substring(5) : itemEntry.getKey();
 							if (Utilities.isNumber(Integer.class, strSlot)) {
 								int slotNumber = Integer.parseInt(strSlot);

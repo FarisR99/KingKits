@@ -115,6 +115,15 @@ public class ItemUtilities {
 					}
 				}
 
+				// NBT Tags
+				if (material == Material.EGG && serializedItem.get("Egg") != null) {
+					try {
+						deserializedItem = NBTUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
+
 				ItemMeta itemMeta = deserializedItem.getItemMeta();
 				if (itemMeta != null) {
 					if (serializedItem.get("Item flags") instanceof List) {
@@ -283,7 +292,7 @@ public class ItemUtilities {
 
 	public static PotionData deserializePotionData(Map<String, Object> serializedPotionData) {
 		if (serializedPotionData != null && serializedPotionData.containsKey("Type")) {
-			PotionType potionType = PotionUtilities.getPotionType(ObjectUtilities.getObject(serializedPotionData, String.class, "Type").toUpperCase().replace(' ', '_'));
+			PotionType potionType = Utilities.getPotionType(ObjectUtilities.getObject(serializedPotionData, String.class, "Type").toUpperCase().replace(' ', '_'));
 			if (potionType != null) {
 				boolean extended = ObjectUtilities.getObject(serializedPotionData, Boolean.class, "Extended", false);
 				boolean upgraded = ObjectUtilities.getObject(serializedPotionData, Boolean.class, "Upgraded", false);
@@ -299,7 +308,7 @@ public class ItemUtilities {
 			if (potionEffectType != null) {
 				int level = ObjectUtilities.getObject(serializedPotion, Number.class, "Level", 0).intValue();
 				double duration = ObjectUtilities.getObject(serializedPotion, Number.class, "Duration", -1).doubleValue();
-				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", true);
+				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", false);
 				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
 				Color color = serializedPotion.containsKey("Color") ? Color.fromRGB(ObjectUtilities.getObject(serializedPotion, Number.class, "Color", Color.GRAY.asRGB()).intValue()) : null;
 				return new PotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
@@ -491,13 +500,10 @@ public class ItemUtilities {
 			}
 
 			// NBT Tags
-			if (itemStack.getType() == Material.TIPPED_ARROW) {
+			if (itemStack.getType() == Material.MONSTER_EGG) {
 				try {
-					if (PotionUtilities.isPotion(itemStack)) {
-						String strPotionType = PotionUtilities.getPotion(itemStack);
-						if (strPotionType != null && !strPotionType.equals("minecraft:empty"))
-							serializedItem.put("Potion", strPotionType);
-					}
+					String strEggType = NBTUtilities.getEgg(itemStack);
+					if (strEggType != null) serializedItem.put("Egg", strEggType);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -547,8 +553,8 @@ public class ItemUtilities {
 			serializedPotionEffect.put("Type", StringUtilities.capitalizeFully(potionEffect.getType().getName().replace('_', ' ')));
 			serializedPotionEffect.put("Level", potionEffect.getAmplifier());
 			serializedPotionEffect.put("Duration", potionEffect.getDuration() == Integer.MAX_VALUE ? -1D : (double) potionEffect.getDuration() / 20D);
-			if (!potionEffect.isAmbient()) serializedPotionEffect.put("Ambient", false);
-			if (!potionEffect.hasParticles()) serializedPotionEffect.put("Particles", false);
+			serializedPotionEffect.put("Ambient", potionEffect.isAmbient());
+			serializedPotionEffect.put("Particles", potionEffect.hasParticles());
 			if (potionEffect.getColor() != null) serializedPotionEffect.put("Color", potionEffect.getColor().asRGB());
 		}
 		return serializedPotionEffect;
