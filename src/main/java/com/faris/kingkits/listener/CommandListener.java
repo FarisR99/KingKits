@@ -8,10 +8,7 @@ import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
 import com.faris.kingkits.Permissions;
-import com.faris.kingkits.controller.ConfigController;
-import com.faris.kingkits.controller.KitController;
-import com.faris.kingkits.controller.PlayerController;
-import com.faris.kingkits.controller.SQLController;
+import com.faris.kingkits.controller.*;
 import com.faris.kingkits.helper.util.*;
 import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.player.OfflineKitPlayer;
@@ -67,6 +64,7 @@ public class CommandListener implements CommandExecutor {
 								ConfigController.getInstance().loadConfiguration();
 
 								KitController.getInstance().loadKits();
+								GuiController.getInstance().loadInventories();
 
 								SQLController.getInstance().setHandler(MySQLHandler.newInstance(this.plugin, ConfigController.getInstance().getSQLDetails()));
 								SQLController.getInstance().openConnection();

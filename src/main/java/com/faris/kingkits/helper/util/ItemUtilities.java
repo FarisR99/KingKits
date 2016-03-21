@@ -131,10 +131,19 @@ public class ItemUtilities {
 						List<ItemFlag> itemFlags = new LinkedList<>();
 						for (String strItemFlag : strItemFlags) {
 							try {
-								for (ItemFlag itemFlag : ItemFlag.values()) {
-									if (itemFlag.name().replace('_', ' ').equalsIgnoreCase(strItemFlag.replace('_', ' '))) {
-										itemFlags.add(itemFlag);
-										break;
+								if (strItemFlag.equals("*")) {
+									itemFlags.clear();
+									for (ItemFlag itemFlag : ItemFlag.values()) {
+										if (itemFlag != null) itemFlags.add(itemFlag);
+									}
+									break;
+								} else {
+									strItemFlag = strItemFlag.toUpperCase().replace(' ', '_');
+									for (ItemFlag itemFlag : ItemFlag.values()) {
+										if (itemFlag != null && itemFlag.name().equals(strItemFlag)) {
+											itemFlags.add(itemFlag);
+											break;
+										}
 									}
 								}
 							} catch (Exception ex) {

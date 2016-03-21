@@ -36,13 +36,11 @@ public class CommandRefill extends KingKitsCommand {
 									if (player.hasPermission(Permissions.COMMAND_SOUP_REFILL_SINGLE)) {
 										if (player.getInventory().getItemInMainHand() != null && player.getInventory().getItemInMainHand().getType() == Material.BOWL) {
 											int invContentsSize = 0;
-											ItemStack[] itemContents = player.getInventory().getStorageContents();
-											for (ItemStack itemContent : itemContents) {
-												if (itemContent != null) {
-													if (itemContent.getType() != Material.AIR) invContentsSize++;
-												}
+											ItemStack[] invContents = player.getInventory().getStorageContents();
+											for (ItemStack invContent : invContents) {
+												if (!ItemUtilities.isNull(invContent)) invContentsSize++;
 											}
-											if (invContentsSize < itemContents.length) {
+											if (invContentsSize < invContents.length) {
 												ItemStack itemInHand = player.getInventory().getItemInMainHand();
 												if (ConfigController.getInstance().getCostPerRefill() > 0D) {
 													double cost = ConfigController.getInstance().getCostPerRefill();
@@ -64,6 +62,34 @@ public class CommandRefill extends KingKitsCommand {
 											} else {
 												Messages.sendMessage(player, Messages.COMMAND_REFILL_FULL_INV);
 											}
+										} else if (player.getInventory().getItemInOffHand() != null && player.getInventory().getItemInOffHand().getType() == Material.BOWL) {
+											int invContentsSize = 0;
+											ItemStack[] invContents = player.getInventory().getStorageContents();
+											for (ItemStack invContent : invContents) {
+												if (!ItemUtilities.isNull(invContent)) invContentsSize++;
+											}
+											if (invContentsSize < invContents.length) {
+												ItemStack itemInHand = player.getInventory().getItemInOffHand();
+												if (ConfigController.getInstance().getCostPerRefill() > 0D) {
+													double cost = ConfigController.getInstance().getCostPerRefill();
+													if (PlayerUtilities.getBalance(player) >= cost) {
+														PlayerUtilities.incrementMoney(player, -cost);
+													} else {
+														Messages.sendMessage(player, Messages.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+														return true;
+													}
+												}
+												int amount = itemInHand.getAmount();
+												if (amount <= 1) {
+													player.getInventory().setItemInOffHand(new ItemStack(Material.MUSHROOM_SOUP));
+												} else {
+													itemInHand.setAmount(amount - 1);
+													player.getInventory().setItemInOffHand(itemInHand);
+													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP));
+												}
+											} else {
+												Messages.sendMessage(player, Messages.COMMAND_REFILL_FULL_INV);
+											}
 										} else {
 											Messages.sendMessage(player, Messages.COMMAND_REFILL_BOWL);
 										}
@@ -76,18 +102,15 @@ public class CommandRefill extends KingKitsCommand {
 											if (player.getInventory().getItemInMainHand() != null && player.getInventory().getItemInMainHand().getType() == Material.BOWL) {
 												int invContentsSize = 0;
 												ItemStack[] inventoryContents = player.getInventory().getStorageContents();
-												for (ItemStack itemContent : inventoryContents) {
-													if (!ItemUtilities.isNull(itemContent)) invContentsSize++;
+												for (ItemStack invContent : inventoryContents) {
+													if (!ItemUtilities.isNull(invContent)) invContentsSize++;
 												}
-												if (invContentsSize < player.getInventory().getSize()) {
+												if (invContentsSize < inventoryContents.length) {
 													int bowlAmount = player.getInventory().getItemInMainHand().getAmount();
 													int invSize = 0, bowlsToGive = 0;
-													ItemStack[] itemContents = player.getInventory().getStorageContents();
-													int invMaxSize = player.getInventory().getSize();
-													for (ItemStack itemContent : itemContents) {
-														if (itemContent != null) {
-															if (itemContent.getType() != Material.AIR) invSize++;
-														}
+													int invMaxSize = inventoryContents.length;
+													for (ItemStack invContent : inventoryContents) {
+														if (!ItemUtilities.isNull(invContent)) invSize++;
 													}
 													for (int i = 0; i < bowlAmount; i++) {
 														if (invSize + bowlsToGive < invMaxSize) {
@@ -121,6 +144,53 @@ public class CommandRefill extends KingKitsCommand {
 															}
 														}
 														player.getInventory().setItemInMainHand(new ItemStack(Material.MUSHROOM_SOUP));
+													}
+												}
+											} else if (player.getInventory().getItemInOffHand() != null && player.getInventory().getItemInOffHand().getType() == Material.BOWL) {
+												int invContentsSize = 0;
+												ItemStack[] inventoryContents = player.getInventory().getStorageContents();
+												for (ItemStack itemContent : inventoryContents) {
+													if (!ItemUtilities.isNull(itemContent)) invContentsSize++;
+												}
+												if (invContentsSize < inventoryContents.length) {
+													int bowlAmount = player.getInventory().getItemInOffHand().getAmount();
+													int invSize = 0, bowlsToGive = 0;
+													int invMaxSize = inventoryContents.length;
+													for (ItemStack invContent : inventoryContents) {
+														if (!ItemUtilities.isNull(invContent)) invSize++;
+													}
+													for (int i = 0; i < bowlAmount; i++) {
+														if (invSize + bowlsToGive < invMaxSize) {
+															bowlsToGive++;
+														}
+													}
+													if (ConfigController.getInstance().getCostPerRefill() > 0D) {
+														double cost = ConfigController.getInstance().getCostPerRefill() * bowlsToGive;
+														if (PlayerUtilities.getBalance(player) >= cost) {
+															PlayerUtilities.incrementMoney(player, -cost);
+														} else {
+															Messages.sendMessage(player, Messages.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+															return true;
+														}
+													}
+													for (int i = 0; i < bowlsToGive; i++)
+														player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
+													if (player.getInventory().getItemInOffHand().getAmount() - bowlsToGive > 0)
+														player.getInventory().setItemInOffHand(new ItemStack(Material.BOWL, player.getInventory().getItemInOffHand().getAmount() - bowlsToGive));
+													else
+														player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+												} else {
+													if (player.getInventory().getItemInOffHand().getAmount() == 1) {
+														if (ConfigController.getInstance().getCostPerRefill() > 0D) {
+															double cost = ConfigController.getInstance().getCostPerRefill();
+															if (PlayerUtilities.getBalance(player) >= cost) {
+																PlayerUtilities.incrementMoney(player, -cost);
+															} else {
+																Messages.sendMessage(player, Messages.COMMAND_REFILL_NOT_ENOUGH_MONEY);
+																return true;
+															}
+														}
+														player.getInventory().setItemInOffHand(new ItemStack(Material.MUSHROOM_SOUP));
 													}
 												}
 											} else {

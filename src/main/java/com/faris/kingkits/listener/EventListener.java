@@ -126,12 +126,12 @@ public class EventListener implements Listener {
 			try {
 				if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (event.getItem() != null) {
-						if (event.getMaterial() == ConfigController.getInstance().getGuiItemType() && (ConfigController.getInstance().getGuiItemData() == -1 || event.getItem().getDurability() == ConfigController.getInstance().getGuiItemData())) {
+						if (event.getItem().getType() == ConfigController.getInstance().getGuiItemType() && (ConfigController.getInstance().getGuiItemData() == -1 || event.getItem().getDurability() == ConfigController.getInstance().getGuiItemData())) {
 							if (Utilities.isPvPWorld(player.getWorld())) {
 								GuiController.getInstance().openKitsMenu(player);
 								event.setCancelled(true);
 							}
-						} else if (event.getMaterial() == Material.MUSHROOM_SOUP) {
+						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
 							if (ConfigController.getInstance().canQuickSoup()) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
@@ -146,6 +146,7 @@ public class EventListener implements Listener {
 												valid = false;
 											}
 											if (valid) {
+												event.setCancelled(true);
 												if (soupAmount == 1) {
 													if (event.getHand() == EquipmentSlot.HAND)
 														player.getInventory().setItemInMainHand(new ItemStack(Material.BOWL));
@@ -160,7 +161,6 @@ public class EventListener implements Listener {
 														player.getInventory().setItemInOffHand(newItem);
 													player.getInventory().addItem(new ItemStack(Material.BOWL));
 												}
-												event.setCancelled(true);
 											}
 										}
 									}

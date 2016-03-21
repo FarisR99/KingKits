@@ -35,11 +35,6 @@ local.properties
 .target/
 
 #################
-## Maven
-#################
-.src/test/
-
-#################
 ## Visual Studio
 #################
 
