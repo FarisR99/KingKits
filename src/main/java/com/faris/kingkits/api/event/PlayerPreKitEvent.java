@@ -28,40 +28,77 @@ public class PlayerPreKitEvent extends Event implements Cancellable {
 		this.kit = kit != null ? kit.clone() : new Kit("null");
 	}
 
+	/**
+	 * Get the kit the player chose.
+	 *
+	 * @return The kit.
+	 */
 	public Kit getKit() {
 		return this.kit;
 	}
 
+	/**
+	 * Get the player.
+	 * <p></p>
+	 * Use {@link KitPlayer#getBukkitPlayer()} to get the Bukkit player instance.
+	 *
+	 * @return The player.
+	 */
 	public KitPlayer getPlayer() {
 		return this.kitPlayer;
 	}
 
+	/**
+	 * Set the armour of the kit chosen (does not save)
+	 *
+	 * @param armour The armour
+	 */
 	public void setArmour(ItemStack[] armour) {
 		if (this.kit != null) {
 			this.kit.setArmour(armour != null ? armour : new ItemStack[4]);
 		}
 	}
 
+	/**
+	 * Set the items in the kit chosen (does not save)
+	 *
+	 * @param items The items
+	 */
 	public void setItems(Map<Integer, ItemStack> items) {
 		if (this.kit != null) {
 			this.kit.setItems(items != null ? items : new HashMap<Integer, ItemStack>());
 		}
 	}
 
+	/**
+	 * Set the off-hand item in the kit chosen (does not save)
+	 *
+	 * @param offHand The off-hand item
+	 */
 	public void setOffHand(ItemStack offHand) {
 		if (this.kit != null) {
 			this.kit.setOffHand(offHand == null ? new ItemStack(Material.AIR) : offHand);
 		}
 	}
 
+	/**
+	 * Set the potion effects added when the kit chosen is selected (does not save)
+	 *
+	 * @param potionEffects The potion effects
+	 */
 	public void setPotionEffects(List<PotionEffect> potionEffects) {
 		if (this.kit != null) {
 			this.kit.setPotionEffects(potionEffects != null ? potionEffects : new ArrayList<PotionEffect>());
 		}
 	}
 
+	/**
+	 * Set the kit chosen
+	 *
+	 * @param kit The kit
+	 */
 	public void setKit(Kit kit) {
-		if (kit != null) this.kit = kit;
+		if (kit != null) this.kit = kit.clone();
 		else this.setCancelled(true);
 	}
 

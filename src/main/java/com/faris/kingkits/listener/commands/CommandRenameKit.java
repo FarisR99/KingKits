@@ -28,7 +28,7 @@ public class CommandRenameKit extends KingKitsCommand {
 		if (cmd.getName().equals("renamekit")) {
 			try {
 				if (sender instanceof Player) {
-					if (!ConfigController.getInstance().getCommands()[3]) {
+					if (!ConfigController.getInstance().getCommands(((Player) sender).getWorld())[3]) {
 						Messages.sendMessage(sender, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

@@ -10,6 +10,7 @@ import com.faris.kingkits.player.OfflineKitPlayer;
 import com.faris.kingkits.storage.DataStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -28,6 +29,8 @@ public class ConfigController implements Controller {
 	public static final String CURRENT_CONFIG_VERSION = "3.3";
 
 	private MySQLDetails sqlDetails = null;
+
+	private Map<String, WorldSettings> worldSettingsMap = new HashMap<>();
 
 	/**
 	 * Plugin core settings.
@@ -230,95 +233,164 @@ public class ConfigController implements Controller {
 	public void loadConfiguration() {
 		this.saveDefaultConfig();
 
-		this.updaterEnabled = this.getConfig().getBoolean("Updater.Enabled", true);
-		this.updaterUpdate = this.getConfig().getBoolean("Updater.Update", false);
-		this.autoSavePlayerData = this.getConfig().getDouble("Auto-save player data", -1D);
+		try {
+			this.updaterEnabled = this.getConfig().getBoolean("Updater.Enabled", true);
+			this.updaterUpdate = this.getConfig().getBoolean("Updater.Update", false);
+			this.autoSavePlayerData = this.getConfig().getDouble("Auto-save player data", -1D);
 
-		this.sqlDetails = MySQLDetails.deserialize(ObjectUtilities.getMap(this.getConfig().get("MySQL")));
-		this.allowOpBypass = this.getConfig().getBoolean("OP bypass", true);
-		this.allowBlockPlacingAndBreaking = this.getConfig().getBoolean("Allow.Block modification", true);
-		this.allowDeathMessages = this.getConfig().getBoolean("Allow.Death messages", true);
-		this.allowItemDropping = this.getConfig().getBoolean("Allow.Item dropping", false);
-		this.allowItemDroppingOnDeath = this.getConfig().getBoolean("Allow.Item dropping on death", true);
-		this.allowItemPicking = this.getConfig().getBoolean("Allow.Item picking up", true);
-		this.allowQuickSoup = this.getConfig().getBoolean("Allow.Quick soup", true);
-		this.allowRightClickPreview = this.getConfig().getBoolean("Allow.Right click preview", true);
-		this.kkCommands = new boolean[]{
-				this.getConfig().getBoolean("Command.Kit", true),
-				this.getConfig().getBoolean("Command.Kit create", true),
-				this.getConfig().getBoolean("Command.Kit delete", true),
-				this.getConfig().getBoolean("Command.Kit rename", true),
-				this.getConfig().getBoolean("Command.User kit create", true),
-				this.getConfig().getBoolean("Command.User kit delete", true),
-				this.getConfig().getBoolean("Command.User kit rename", true),
-				this.getConfig().getBoolean("Command.Preview kit", true),
-				this.getConfig().getBoolean("Command.Refill", true)
-		};
-		this.economyEnabled = this.getConfig().getBoolean("Economy.Enabled", false);
-		this.economyCostPerRefill = this.getConfig().getDouble("Economy.Cost per refill", 2.5D);
-		this.economyMoneyPerDeath = this.getConfig().getDouble("Economy.Money per death", 5D);
-		this.economyMoneyPerKill = this.getConfig().getDouble("Economy.Money per kill", 7.5D);
-		this.guiSize = this.getConfig().getInt("Kit GUI.Size", 36);
-		this.guiShowOnJoin = this.getConfig().getBoolean("Kit GUI.Show on join", false);
-		this.guiShowOnRespawn = this.getConfig().getBoolean("Kit GUI.Show on respawn", false);
-		this.guiItemType = Material.matchMaterial(this.getConfig().getString("Kit GUI.GUI Item.Type", "None"));
-		this.guiItemData = (short) this.getConfig().getInt("Kit GUI.GUI Item.Data", 0);
-		this.guiNextButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Next button")), new ItemStack(Material.STONE_BUTTON));
-		this.guiPreviousButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Previous button")), new ItemStack(Material.STONE_BUTTON));
-		this.kitDefaultBreakableItems = this.getConfig().getBoolean("Kit defaults.Breakable items", true);
-		this.kitDefaultCommandAlias = this.getConfig().getBoolean("Kit defaults.Command alias", false);
-		this.kitDefaultCommands = this.getConfig().getStringList("Kit defaults.Commands");
-		this.kitDefaultCooldown = this.getConfig().getDouble("Kit defaults.Cooldown", 0D);
-		this.kitDefaultCost = this.getConfig().getDouble("Kit defaults.Cost", 0D);
-		this.kitDefaultKillstreakCommands = this.convertKillstreaksCommands(ObjectUtilities.getMap(this.getConfig().get("Kit defaults.Killstreak commands")));
-		this.kitDefaultMaxHealth = this.getConfig().getDouble("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth());
-		this.kitDefaultWalkSpeed = (float) this.getConfig().getDouble("Kit defaults.Walk speed", (double) PlayerUtilities.getDefaultWalkSpeed());
-		this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
-		this.multiInventoriesPluginName = this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories");
-		this.scoreChatPrefix = ChatUtilities.replaceChatCodes(this.getConfig().getString("Score.Chat prefix", "&6[&a%d&6] &f"));
-		this.scoreEnabled = this.getConfig().getBoolean("Score.Enabled", false);
-		this.scoreMax = this.getConfig().getInt("Score.Max", Integer.MAX_VALUE);
-		this.scorePerDeath = this.getConfig().getInt("Score.Per death", 0);
-		this.scorePerKill = this.getConfig().getInt("Score.Per kill", 2);
-		this.shouldAutoRespawn = this.getConfig().getBoolean("Should.Auto-respawn", false);
-		this.shouldClearItemsOnKitSelection = this.getConfig().getBoolean("Should.Clear items on kit selection", true);
-		this.shouldDecreaseScoreOnAutoUnlock = this.getConfig().getBoolean("Should.Decrease score on auto-unlock", false);
-		this.shouldDropItemsOnFullInventory = this.getConfig().getBoolean("Should.Drop items on full inventory", false);
-		this.shouldLockFoodLevel = this.getConfig().getBoolean("Should.Lock food level", true);
-		this.shouldPreventCreative = this.getConfig().getBoolean("Should.Prevent creative", true);
-		this.shouldRemoveKitOnDeath = this.getConfig().getBoolean("Should.Remove kit on death", true);
-		this.shouldRemoveItemsOnLeave = this.getConfig().getBoolean("Should.Remove kit on leave", true);
-		this.shouldRemoveItemsOnReload = this.getConfig().getBoolean("Should.Remove items on reload", true);
-		this.shouldRemovePotionEffectsOnLeave = this.getConfig().getBoolean("Should.Remove potion effects on leave", true);
-		this.shouldRemovePotionEffectsOnReload = this.getConfig().getBoolean("Should.Remove potion effects on reload", true);
-		this.shouldSetCompassToNearestPlayer = this.getConfig().getBoolean("Should.Set compass to nearest player", false);
-		this.shouldSetDefaultGamemodeOnKitSelection = this.getConfig().getBoolean("Should.Set to default gamemode on kit selection", true);
-		this.shouldSetMaxHealth = this.getConfig().getBoolean("Should.Set max health to kit max health", true);
-		this.shouldShowKitPreview = this.getConfig().getBoolean("Should.Show kit preview", true);
-		this.shouldSortKitsAlphanumerically = this.getConfig().getBoolean("Should.Sort kits alphanumerically", false);
-		this.shouldUsePermissionsForKitList = this.getConfig().getBoolean("Should.Use permissions for kit list", true);
-		this.signKit = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Kit.Unregistered", "[Kit]"), this.getConfig().getString("Sign.Kit.Valid", "[&1Kit&0]"), this.getConfig().getString("Sign.Kit.Invalid", "[&cKit&0]"));
-		this.signKitList = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Kit list.Unregistered", "[KList]"), this.getConfig().getString("Sign.Kit list.Valid", "[&1KList&0]"));
-		this.signRefill = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Refill sign.Unregistered", "[KRefill]"), this.getConfig().getString("Sign.Refill sign.Valid", "[&1KRefill&0]"));
-		this.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
-		this.kitListMode = this.getConfig().getString("Kit list mode", "GUI");
-		this.oneKitPerLife = this.getConfig().getBoolean("One kit per life", false);
-		this.commandsToRunOnDeath = this.getConfig().getStringList("Commands to run on death");
-		this.dropAnimationItems = this.getConfig().getIntegerList("Drop animation IDs");
-		this.foodLevelLock = this.getConfig().getInt("Food level lock", 20);
-		this.quickSoupHeal = this.getConfig().getDouble("Quick soup heal", 2.5D);
+			this.sqlDetails = MySQLDetails.deserialize(ObjectUtilities.getMap(this.getConfig().get("MySQL")));
+			this.allowOpBypass = this.getConfig().getBoolean("OP bypass", true);
+			this.allowBlockPlacingAndBreaking = this.getConfig().getBoolean("Allow.Block modification", true);
+			this.allowDeathMessages = this.getConfig().getBoolean("Allow.Death messages", true);
+			this.allowItemDropping = this.getConfig().getBoolean("Allow.Item dropping", false);
+			this.allowItemDroppingOnDeath = this.getConfig().getBoolean("Allow.Item dropping on death", true);
+			this.allowItemPicking = this.getConfig().getBoolean("Allow.Item picking up", true);
+			this.allowQuickSoup = this.getConfig().getBoolean("Allow.Quick soup", true);
+			this.allowRightClickPreview = this.getConfig().getBoolean("Allow.Right click preview", true);
+			this.kkCommands = new boolean[]{
+					this.getConfig().getBoolean("Command.Kit", true),
+					this.getConfig().getBoolean("Command.Kit create", true),
+					this.getConfig().getBoolean("Command.Kit delete", true),
+					this.getConfig().getBoolean("Command.Kit rename", true),
+					this.getConfig().getBoolean("Command.User kit create", true),
+					this.getConfig().getBoolean("Command.User kit delete", true),
+					this.getConfig().getBoolean("Command.User kit rename", true),
+					this.getConfig().getBoolean("Command.Preview kit", true),
+					this.getConfig().getBoolean("Command.Refill", true)
+			};
+			this.economyEnabled = this.getConfig().getBoolean("Economy.Enabled", false);
+			this.economyCostPerRefill = this.getConfig().getDouble("Economy.Cost per refill", 2.5D);
+			this.economyMoneyPerDeath = this.getConfig().getDouble("Economy.Money per death", 5D);
+			this.economyMoneyPerKill = this.getConfig().getDouble("Economy.Money per kill", 7.5D);
+			this.guiSize = this.getConfig().getInt("Kit GUI.Size", 36);
+			this.guiShowOnJoin = this.getConfig().getBoolean("Kit GUI.Show on join", false);
+			this.guiShowOnRespawn = this.getConfig().getBoolean("Kit GUI.Show on respawn", false);
+			this.guiItemType = Material.matchMaterial(this.getConfig().getString("Kit GUI.GUI Item.Type", "None"));
+			this.guiItemData = (short) this.getConfig().getInt("Kit GUI.GUI Item.Data", 0);
+			this.guiNextButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Next button")), new ItemStack(Material.STONE_BUTTON));
+			this.guiPreviousButton = ItemUtilities.deserializeItem(ObjectUtilities.getMap(this.getConfig().get("Kit GUI.Previous button")), new ItemStack(Material.STONE_BUTTON));
+			this.kitDefaultBreakableItems = this.getConfig().getBoolean("Kit defaults.Breakable items", true);
+			this.kitDefaultCommandAlias = this.getConfig().getBoolean("Kit defaults.Command alias", false);
+			this.kitDefaultCommands = this.getConfig().getStringList("Kit defaults.Commands");
+			this.kitDefaultCooldown = this.getConfig().getDouble("Kit defaults.Cooldown", 0D);
+			this.kitDefaultCost = this.getConfig().getDouble("Kit defaults.Cost", 0D);
+			this.kitDefaultKillstreakCommands = this.convertKillstreaksCommands(ObjectUtilities.getMap(this.getConfig().get("Kit defaults.Killstreak commands")));
+			this.kitDefaultMaxHealth = this.getConfig().getDouble("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth());
+			this.kitDefaultWalkSpeed = (float) this.getConfig().getDouble("Kit defaults.Walk speed", (double) PlayerUtilities.getDefaultWalkSpeed());
+			this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
+			this.multiInventoriesPluginName = this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories");
+			this.scoreChatPrefix = ChatUtilities.replaceChatCodes(this.getConfig().getString("Score.Chat prefix", "&6[&a%d&6] &f"));
+			this.scoreEnabled = this.getConfig().getBoolean("Score.Enabled", false);
+			this.scoreMax = this.getConfig().getInt("Score.Max", Integer.MAX_VALUE);
+			this.scorePerDeath = this.getConfig().getInt("Score.Per death", 0);
+			this.scorePerKill = this.getConfig().getInt("Score.Per kill", 2);
+			this.shouldAutoRespawn = this.getConfig().getBoolean("Should.Auto-respawn", false);
+			this.shouldClearItemsOnKitSelection = this.getConfig().getBoolean("Should.Clear items on kit selection", true);
+			this.shouldDecreaseScoreOnAutoUnlock = this.getConfig().getBoolean("Should.Decrease score on auto-unlock", false);
+			this.shouldDropItemsOnFullInventory = this.getConfig().getBoolean("Should.Drop items on full inventory", false);
+			this.shouldLockFoodLevel = this.getConfig().getBoolean("Should.Lock food level", true);
+			this.shouldPreventCreative = this.getConfig().getBoolean("Should.Prevent creative", true);
+			this.shouldRemoveKitOnDeath = this.getConfig().getBoolean("Should.Remove kit on death", true);
+			this.shouldRemoveItemsOnLeave = this.getConfig().getBoolean("Should.Remove kit on leave", true);
+			this.shouldRemoveItemsOnReload = this.getConfig().getBoolean("Should.Remove items on reload", true);
+			this.shouldRemovePotionEffectsOnLeave = this.getConfig().getBoolean("Should.Remove potion effects on leave", true);
+			this.shouldRemovePotionEffectsOnReload = this.getConfig().getBoolean("Should.Remove potion effects on reload", true);
+			this.shouldSetCompassToNearestPlayer = this.getConfig().getBoolean("Should.Set compass to nearest player", false);
+			this.shouldSetDefaultGamemodeOnKitSelection = this.getConfig().getBoolean("Should.Set to default gamemode on kit selection", true);
+			this.shouldSetMaxHealth = this.getConfig().getBoolean("Should.Set max health to kit max health", true);
+			this.shouldShowKitPreview = this.getConfig().getBoolean("Should.Show kit preview", true);
+			this.shouldSortKitsAlphanumerically = this.getConfig().getBoolean("Should.Sort kits alphanumerically", false);
+			this.shouldUsePermissionsForKitList = this.getConfig().getBoolean("Should.Use permissions for kit list", true);
+			this.signKit = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Kit.Unregistered", "[Kit]"), this.getConfig().getString("Sign.Kit.Valid", "[&1Kit&0]"), this.getConfig().getString("Sign.Kit.Invalid", "[&cKit&0]"));
+			this.signKitList = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Kit list.Unregistered", "[KList]"), this.getConfig().getString("Sign.Kit list.Valid", "[&1KList&0]"));
+			this.signRefill = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Refill sign.Unregistered", "[KRefill]"), this.getConfig().getString("Sign.Refill sign.Valid", "[&1KRefill&0]"));
+			this.pvpWorlds = this.getConfig().getStringList("PvP Worlds");
+			this.kitListMode = this.getConfig().getString("Kit list mode", "GUI");
+			this.oneKitPerLife = this.getConfig().getBoolean("One kit per life", false);
+			this.commandsToRunOnDeath = this.getConfig().getStringList("Commands to run on death");
+			this.dropAnimationItems = this.getConfig().getIntegerList("Drop animation IDs");
+			this.foodLevelLock = this.getConfig().getInt("Food level lock", 20);
+			this.quickSoupHeal = this.getConfig().getDouble("Quick soup heal", 2.5D);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		try {
+			this.worldSettingsMap.clear();
+			File worldsFolder = new File(KingKits.getInstance().getDataFolder(), "worlds");
+			File[] worldsFiles = FileUtilities.getFiles(worldsFolder);
+			for (File worldFile : worldsFiles) {
+				if (worldFile.getName().endsWith(".yml")) {
+					String strWorld = worldFile.getName().substring(0, worldFile.getName().length() - 4);
+					CustomConfiguration worldConfig = CustomConfiguration.loadConfiguration(worldFile);
+					WorldSettings worldSettings = new WorldSettings();
+
+					worldSettings.allowBlockPlacingAndBreaking = worldConfig.getBoolean("Allow.Block modification", true);
+					worldSettings.allowDeathMessages = worldConfig.getBoolean("Allow.Death messages", true);
+					worldSettings.allowItemDropping = worldConfig.getBoolean("Allow.Item dropping", false);
+					worldSettings.allowItemDroppingOnDeath = worldConfig.getBoolean("Allow.Item dropping on death", true);
+					worldSettings.allowItemPicking = worldConfig.getBoolean("Allow.Item picking up", true);
+					worldSettings.allowQuickSoup = worldConfig.getBoolean("Allow.Quick soup", true);
+					worldSettings.kkCommands = new boolean[]{
+							worldConfig.getBoolean("Command.Kit", true),
+							worldConfig.getBoolean("Command.Kit create", true),
+							worldConfig.getBoolean("Command.Kit delete", true),
+							worldConfig.getBoolean("Command.Kit rename", true),
+							worldConfig.getBoolean("Command.User kit create", true),
+							worldConfig.getBoolean("Command.User kit delete", true),
+							worldConfig.getBoolean("Command.User kit rename", true),
+							worldConfig.getBoolean("Command.Preview kit", true),
+							worldConfig.getBoolean("Command.Refill", true)
+					};
+					worldSettings.economyEnabled = worldConfig.getBoolean("Economy.Enabled", false);
+					worldSettings.economyCostPerRefill = worldConfig.getDouble("Economy.Cost per refill", 2.5D);
+					worldSettings.economyMoneyPerDeath = worldConfig.getDouble("Economy.Money per death", 5D);
+					worldSettings.economyMoneyPerKill = worldConfig.getDouble("Economy.Money per kill", 7.5D);
+					worldSettings.oneKitPerLife = worldConfig.getBoolean("One kit per life", false);
+					worldSettings.shouldClearItemsOnKitSelection = worldConfig.getBoolean("Should.Clear items on kit selection", true);
+					worldSettings.shouldLockFoodLevel = worldConfig.getBoolean("Should.Lock food level", true);
+					worldSettings.shouldRemoveItemsOnLeave = worldConfig.getBoolean("Should.Remove kit on leave", true);
+					worldSettings.shouldRemoveItemsOnReload = worldConfig.getBoolean("Should.Remove items on reload", true);
+					worldSettings.shouldRemovePotionEffectsOnLeave = worldConfig.getBoolean("Should.Remove potion effects on leave", true);
+					worldSettings.shouldRemovePotionEffectsOnReload = worldConfig.getBoolean("Should.Remove potion effects on reload", true);
+					worldSettings.shouldSetCompassToNearestPlayer = worldConfig.getBoolean("Should.Set compass to nearest player", false);
+					worldSettings.signKit = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit.Unregistered", "[Kit]"), worldConfig.getString("Sign.Kit.Valid", "[&1Kit&0]"), worldConfig.getString("Sign.Kit.Invalid", "[&cKit&0]"));
+					worldSettings.signKitList = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit list.Unregistered", "[KList]"), worldConfig.getString("Sign.Kit list.Valid", "[&1KList&0]"));
+					worldSettings.signRefill = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Refill sign.Unregistered", "[KRefill]"), worldConfig.getString("Sign.Refill sign.Valid", "[&1KRefill&0]"));
+					worldSettings.dropAnimationItems = worldConfig.getIntegerList("Drop animation IDs");
+
+					this.worldSettingsMap.put(strWorld.toLowerCase(), worldSettings);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 
 		this.checkConfig();
 	}
 
 	private void checkConfig() {
-		if (this.economyEnabled) {
-			if (!BukkitUtilities.hasPlugin("Vault")) {
+		if (!BukkitUtilities.hasPlugin("Vault")) {
+			boolean showWarning = false;
+			try {
+				if (this.economyEnabled) {
+					showWarning = true;
+					this.economyEnabled = false;
+					this.getConfig().set("Economy.Enabled", false);
+				}
+				for (Map.Entry<String, WorldSettings> worldSettingsEntry : new HashMap<>(this.worldSettingsMap).entrySet()) {
+					if (worldSettingsEntry.getValue().economyEnabled) {
+						showWarning = true;
+						worldSettingsEntry.getValue().economyEnabled = false;
+						this.worldSettingsMap.put(worldSettingsEntry.getKey(), worldSettingsEntry.getValue());
+					}
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			if (showWarning) {
 				Bukkit.getServer().getLogger().warning("Economy is enabled in the config but Vault is not enabled.");
 				Bukkit.getServer().getLogger().warning("You can download Vault at: http://dev.bukkit.org/bukkit-plugins/vault/");
-
-				this.economyEnabled = false;
-				this.getConfig().set("Economy.Enabled", false);
 			}
 		}
 
@@ -352,44 +424,51 @@ public class ConfigController implements Controller {
 		return killstreaksCommands;
 	}
 
-	public boolean canDropItems() {
-		return this.allowItemDropping;
+	public boolean canDropItems(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowItemDropping : this.worldSettingsMap.get(lowerCaseWorld).allowItemDropping;
 	}
 
-	public boolean canModifyBlocks() {
-		return this.allowBlockPlacingAndBreaking;
+	public boolean canModifyBlocks(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowBlockPlacingAndBreaking : this.worldSettingsMap.get(lowerCaseWorld).allowBlockPlacingAndBreaking;
 	}
 
 	public boolean canOpsBypass() {
 		return this.allowOpBypass;
 	}
 
-	public boolean canPickupItems() {
-		return this.allowItemPicking;
+	public boolean canPickupItems(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowItemPicking : this.worldSettingsMap.get(lowerCaseWorld).allowItemPicking;
 	}
 
-	public boolean canQuickSoup() {
-		return this.allowQuickSoup;
+	public boolean canQuickSoup(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowQuickSoup : this.worldSettingsMap.get(lowerCaseWorld).allowQuickSoup;
 	}
 
 	public double getAutoSavePlayerDataTime() {
 		return this.autoSavePlayerData;
 	}
 
-	public boolean[] getCommands() {
-		return this.kkCommands;
+	public boolean[] getCommands(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.kkCommands : this.worldSettingsMap.get(lowerCaseWorld).kkCommands;
 	}
 
 	public List<String> getCommandsToRunOnDeath() {
 		return this.commandsToRunOnDeath;
 	}
 
-	public double getCostPerRefill() {
-		return this.economyCostPerRefill;
+	public double getCostPerRefill(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.economyCostPerRefill : this.worldSettingsMap.get(lowerCaseWorld).economyCostPerRefill;
 	}
 
-	public List<Integer> getDropAnimationItems() {
-		return this.dropAnimationItems;
+	public List<Integer> getDropAnimationItems(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.dropAnimationItems : this.worldSettingsMap.get(lowerCaseWorld).dropAnimationItems;
 	}
 
 	public int getFoodLevelLock() {
@@ -456,12 +535,14 @@ public class ConfigController implements Controller {
 		return this.scoreMax;
 	}
 
-	public double getMoneyPerDeath() {
-		return this.economyMoneyPerDeath;
+	public double getMoneyPerDeath(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.economyMoneyPerDeath : this.worldSettingsMap.get(lowerCaseWorld).economyMoneyPerDeath;
 	}
 
-	public double getMoneyPerKill() {
-		return this.economyMoneyPerKill;
+	public double getMoneyPerKill(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.economyMoneyPerKill : this.worldSettingsMap.get(lowerCaseWorld).economyMoneyPerKill;
 	}
 
 	public String getMultiInventoriesPluginName() {
@@ -488,16 +569,19 @@ public class ConfigController implements Controller {
 		return this.scorePerKill;
 	}
 
-	public String[] getSignsKit() {
-		return this.signKit;
+	public String[] getSignsKit(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.signKit : this.worldSettingsMap.get(lowerCaseWorld).signKit;
 	}
 
-	public String[] getSignsKitList() {
-		return this.signKitList;
+	public String[] getSignsKitList(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.signKitList : this.worldSettingsMap.get(lowerCaseWorld).signKitList;
 	}
 
-	public String[] getSignsRefill() {
-		return this.signRefill;
+	public String[] getSignsRefill(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.signRefill : this.worldSettingsMap.get(lowerCaseWorld).signRefill;
 	}
 
 	public MySQLDetails getSQLDetails() {
@@ -508,12 +592,14 @@ public class ConfigController implements Controller {
 		return this.multiInventoriesPlugin;
 	}
 
-	public boolean isOneKitPerLife() {
-		return this.oneKitPerLife;
+	public boolean isOneKitPerLife(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.oneKitPerLife : this.worldSettingsMap.get(lowerCaseWorld).oneKitPerLife;
 	}
 
-	public boolean isEconomyEnabled() {
-		return this.economyEnabled;
+	public boolean isEconomyEnabled(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.economyEnabled : this.worldSettingsMap.get(lowerCaseWorld).economyEnabled;
 	}
 
 	public boolean isScoreEnabled() {
@@ -536,8 +622,9 @@ public class ConfigController implements Controller {
 		return this.updaterEnabled;
 	}
 
-	public boolean shouldClearItemsOnKitSelection() {
-		return this.shouldClearItemsOnKitSelection;
+	public boolean shouldClearItemsOnKitSelection(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldClearItemsOnKitSelection : this.worldSettingsMap.get(lowerCaseWorld).shouldClearItemsOnKitSelection;
 	}
 
 	public boolean shouldDecreaseScoreOnAutoUnlock() {
@@ -548,12 +635,14 @@ public class ConfigController implements Controller {
 		return this.shouldDropItemsOnFullInventory;
 	}
 
-	public boolean shouldDropItemsOnDeath() {
-		return this.allowItemDroppingOnDeath;
+	public boolean shouldDropItemsOnDeath(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowItemDroppingOnDeath : this.worldSettingsMap.get(lowerCaseWorld).allowItemDroppingOnDeath;
 	}
 
-	public boolean shouldLockFoodLevel() {
-		return this.shouldLockFoodLevel;
+	public boolean shouldLockFoodLevel(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldLockFoodLevel : this.worldSettingsMap.get(lowerCaseWorld).shouldLockFoodLevel;
 	}
 
 	public boolean shouldPreventCreative() {
@@ -564,24 +653,29 @@ public class ConfigController implements Controller {
 		return this.shouldRemoveKitOnDeath;
 	}
 
-	public boolean shouldRemoveItemsOnLeave() {
-		return this.shouldRemoveItemsOnLeave;
+	public boolean shouldRemoveItemsOnLeave(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldRemoveItemsOnLeave : this.worldSettingsMap.get(lowerCaseWorld).shouldRemoveItemsOnLeave;
 	}
 
-	public boolean shouldRemoveItemsOnReload() {
-		return this.shouldRemoveItemsOnReload;
+	public boolean shouldRemoveItemsOnReload(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldRemoveItemsOnReload : this.worldSettingsMap.get(lowerCaseWorld).shouldRemoveItemsOnReload;
 	}
 
-	public boolean shouldRemovePotionEffectsOnLeave() {
-		return this.shouldRemovePotionEffectsOnLeave;
+	public boolean shouldRemovePotionEffectsOnLeave(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldRemovePotionEffectsOnLeave : this.worldSettingsMap.get(lowerCaseWorld).shouldRemovePotionEffectsOnLeave;
 	}
 
-	public boolean shouldRemovePotionEffectsOnReload() {
-		return this.shouldRemovePotionEffectsOnReload;
+	public boolean shouldRemovePotionEffectsOnReload(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldRemovePotionEffectsOnReload : this.worldSettingsMap.get(lowerCaseWorld).shouldRemovePotionEffectsOnReload;
 	}
 
-	public boolean shouldSetCompassToNearestPlayer() {
-		return this.shouldSetCompassToNearestPlayer;
+	public boolean shouldSetCompassToNearestPlayer(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldSetCompassToNearestPlayer : this.worldSettingsMap.get(lowerCaseWorld).shouldSetCompassToNearestPlayer;
 	}
 
 	public boolean shouldSetDefaultGamemodeOnKitSelection() {
@@ -592,8 +686,9 @@ public class ConfigController implements Controller {
 		return this.shouldSetMaxHealth;
 	}
 
-	public boolean shouldShowDeathMessages() {
-		return this.allowDeathMessages;
+	public boolean shouldShowDeathMessages(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowDeathMessages : this.worldSettingsMap.get(lowerCaseWorld).allowDeathMessages;
 	}
 
 	public boolean shouldShowGuiOnJoin() {
@@ -627,7 +722,7 @@ public class ConfigController implements Controller {
 
 	public void reloadConfig() {
 		if (this.configFile == null) this.configFile = new File(KingKits.getInstance().getDataFolder(), "config.yml");
-		this.config = CustomConfiguration.loadConfiguration(this.configFile);
+		this.config = CustomConfiguration.loadConfigurationSafely(this.configFile);
 		this.config.setNewLineAfterHeader(true);
 		this.config.setNewLinePerKey(true);
 	}
@@ -645,9 +740,7 @@ public class ConfigController implements Controller {
 	private FileConfiguration playersConfig = null;
 
 	public void deletePlayersConfig() {
-		if (this.playersFile != null) {
-			this.playersFile.delete();
-		}
+		if (this.playersFile != null) this.playersFile.delete();
 	}
 
 	public FileConfiguration getPlayersConfig() {
@@ -1160,9 +1253,10 @@ public class ConfigController implements Controller {
 					plugin.getLogger().log(Level.WARNING, "Failed to migrate old player data.", ex);
 				}
 			}
-			if (this.getConfig().getString("Version", "").equals("3.0")) {
+			if (this.getConfig().getString("Version", "").startsWith("3.0")) {
 				// 1.9 changes
-				plugin.getLogger().log(Level.INFO, "Converting config v3.0 to v3.1...");
+				String oldVersion = this.getConfig().getString("Version");
+				plugin.getLogger().log(Level.INFO, "Converting config v" + oldVersion + " to v3.1...");
 
 				this.getConfig().set("Version", "3.1");
 				this.saveConfig();
@@ -1185,7 +1279,7 @@ public class ConfigController implements Controller {
 					if (kitsFolder.exists()) {
 						File[] kitFiles = FileUtilities.getFiles(kitsFolder);
 						if (kitFiles.length > 0) {
-							File oldFolder = new File(dataFolder, "old3.0");
+							File oldFolder = new File(dataFolder, "old" + oldVersion);
 							try {
 								if (!oldFolder.exists()) oldFolder.mkdirs();
 							} catch (Exception ex) {
@@ -1211,7 +1305,7 @@ public class ConfigController implements Controller {
 													saveItem = true;
 													serializedItem.remove("Data");
 												}
-												if (ObjectUtilities.getObject(serializedItem, String.class, "Type", "").toLowerCase().endsWith("potion")) {
+												if (oldVersion.equals("3.0") && ObjectUtilities.getObject(serializedItem, String.class, "Type", "").toLowerCase().endsWith("potion")) {
 													if (serializedItem.containsKey("Potion")) {
 														saveItem = true;
 														serializedItem.remove("Potion");
@@ -1320,7 +1414,7 @@ public class ConfigController implements Controller {
 											save = true;
 										}
 									}
-									if (kitConfig.contains("Potion effects")) {
+									if (oldVersion.equals("3.0") && kitConfig.contains("Potion effects")) {
 										Map<String, Object> serializedPotionEffects = ObjectUtilities.getMap(kitConfig.get("Potion effects"));
 										boolean savePotionEffects = false;
 										for (Map.Entry<String, Object> serializedPotionEffectEntry : new LinkedHashMap<>(serializedPotionEffects).entrySet()) {
@@ -1704,6 +1798,34 @@ public class ConfigController implements Controller {
 
 	private static boolean isPotion(short durability, int dataValue) {
 		return durability == dataValue || durability == (short) dataValue + (short) 8192;
+	}
+
+	private static class WorldSettings {
+		private boolean[] kkCommands = new boolean[9];
+
+		private String[] signKit = new String[3];
+		private String[] signKitList = new String[2];
+		private String[] signRefill = new String[3];
+
+		private boolean allowBlockPlacingAndBreaking = true;
+		private boolean allowDeathMessages = true;
+		private boolean allowItemDropping = false;
+		private boolean allowItemPicking = false;
+		private boolean allowItemDroppingOnDeath = false;
+		private boolean allowQuickSoup = true;
+		private boolean economyEnabled = false;
+		private double economyCostPerRefill = 2.5D;
+		private double economyMoneyPerKill = 5D, economyMoneyPerDeath = 7.5D;
+		private boolean oneKitPerLife = false;
+		private boolean shouldClearItemsOnKitSelection = true;
+		private boolean shouldLockFoodLevel = true;
+		private boolean shouldRemoveItemsOnLeave = true;
+		private boolean shouldRemoveItemsOnReload = true;
+		private boolean shouldRemovePotionEffectsOnLeave = true;
+		private boolean shouldRemovePotionEffectsOnReload = true;
+		private boolean shouldSetCompassToNearestPlayer = false;
+
+		private List<Integer> dropAnimationItems = new ArrayList<>();
 	}
 
 }

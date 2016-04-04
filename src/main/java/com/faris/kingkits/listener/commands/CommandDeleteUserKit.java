@@ -30,7 +30,7 @@ public class CommandDeleteUserKit extends KingKitsCommand {
 			try {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
-					if (!ConfigController.getInstance().getCommands()[5]) {
+					if (!ConfigController.getInstance().getCommands(player.getWorld())[5]) {
 						Messages.sendMessage(player, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

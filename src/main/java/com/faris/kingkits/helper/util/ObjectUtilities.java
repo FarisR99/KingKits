@@ -12,10 +12,6 @@ public class ObjectUtilities {
 	private ObjectUtilities() {
 	}
 
-	public static boolean equals(Object obj1, Object obj2) {
-		return (obj1 == obj2) || (obj1 != null && obj2 != null && obj1.equals(obj2));
-	}
-
 	public static <T> T getObject(JsonObject jsonObject, Class<T> unused, String key) {
 		return getObject(jsonObject, unused, key, null);
 	}

@@ -30,7 +30,7 @@ public class CommandRenameUserKit extends KingKitsCommand {
 			try {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
-					if (!ConfigController.getInstance().getCommands()[3]) {
+					if (!ConfigController.getInstance().getCommands(player.getWorld())[3]) {
 						Messages.sendMessage(sender, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

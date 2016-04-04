@@ -30,7 +30,7 @@ public class CommandRefill extends KingKitsCommand {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
 					if (player.hasPermission(Permissions.COMMAND_SOUP_REFILL_SINGLE) || player.hasPermission(Permissions.COMMAND_SOUP_REFILL_ALL)) {
-						if (ConfigController.getInstance().getCommands()[8]) {
+						if (ConfigController.getInstance().getCommands(player.getWorld())[8]) {
 							if (Utilities.isPvPWorld(player.getWorld())) {
 								if (args.length == 0) {
 									if (player.hasPermission(Permissions.COMMAND_SOUP_REFILL_SINGLE)) {
@@ -42,8 +42,8 @@ public class CommandRefill extends KingKitsCommand {
 											}
 											if (invContentsSize < invContents.length) {
 												ItemStack itemInHand = player.getInventory().getItemInMainHand();
-												if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-													double cost = ConfigController.getInstance().getCostPerRefill();
+												if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+													double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld());
 													if (PlayerUtilities.getBalance(player) >= cost) {
 														PlayerUtilities.incrementMoney(player, -cost);
 													} else {
@@ -59,6 +59,7 @@ public class CommandRefill extends KingKitsCommand {
 													player.getInventory().setItemInMainHand(itemInHand);
 													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP));
 												}
+												player.updateInventory();
 											} else {
 												Messages.sendMessage(player, Messages.COMMAND_REFILL_FULL_INV);
 											}
@@ -70,8 +71,8 @@ public class CommandRefill extends KingKitsCommand {
 											}
 											if (invContentsSize < invContents.length) {
 												ItemStack itemInHand = player.getInventory().getItemInOffHand();
-												if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-													double cost = ConfigController.getInstance().getCostPerRefill();
+												if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+													double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld());
 													if (PlayerUtilities.getBalance(player) >= cost) {
 														PlayerUtilities.incrementMoney(player, -cost);
 													} else {
@@ -87,6 +88,7 @@ public class CommandRefill extends KingKitsCommand {
 													player.getInventory().setItemInOffHand(itemInHand);
 													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP));
 												}
+												player.updateInventory();
 											} else {
 												Messages.sendMessage(player, Messages.COMMAND_REFILL_FULL_INV);
 											}
@@ -117,8 +119,8 @@ public class CommandRefill extends KingKitsCommand {
 															bowlsToGive++;
 														}
 													}
-													if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-														double cost = ConfigController.getInstance().getCostPerRefill() * bowlsToGive;
+													if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+														double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld()) * bowlsToGive;
 														if (PlayerUtilities.getBalance(player) >= cost) {
 															PlayerUtilities.incrementMoney(player, -cost);
 														} else {
@@ -132,10 +134,11 @@ public class CommandRefill extends KingKitsCommand {
 														player.getInventory().setItemInMainHand(new ItemStack(Material.BOWL, player.getInventory().getItemInMainHand().getAmount() - bowlsToGive));
 													else
 														player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+													player.updateInventory();
 												} else {
 													if (player.getInventory().getItemInMainHand().getAmount() == 1) {
-														if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-															double cost = ConfigController.getInstance().getCostPerRefill();
+														if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+															double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld());
 															if (PlayerUtilities.getBalance(player) >= cost) {
 																PlayerUtilities.incrementMoney(player, -cost);
 															} else {
@@ -144,6 +147,7 @@ public class CommandRefill extends KingKitsCommand {
 															}
 														}
 														player.getInventory().setItemInMainHand(new ItemStack(Material.MUSHROOM_SOUP));
+														player.updateInventory();
 													}
 												}
 											} else if (player.getInventory().getItemInOffHand() != null && player.getInventory().getItemInOffHand().getType() == Material.BOWL) {
@@ -164,8 +168,8 @@ public class CommandRefill extends KingKitsCommand {
 															bowlsToGive++;
 														}
 													}
-													if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-														double cost = ConfigController.getInstance().getCostPerRefill() * bowlsToGive;
+													if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+														double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld()) * bowlsToGive;
 														if (PlayerUtilities.getBalance(player) >= cost) {
 															PlayerUtilities.incrementMoney(player, -cost);
 														} else {
@@ -179,10 +183,11 @@ public class CommandRefill extends KingKitsCommand {
 														player.getInventory().setItemInOffHand(new ItemStack(Material.BOWL, player.getInventory().getItemInOffHand().getAmount() - bowlsToGive));
 													else
 														player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+													player.updateInventory();
 												} else {
 													if (player.getInventory().getItemInOffHand().getAmount() == 1) {
-														if (ConfigController.getInstance().getCostPerRefill() > 0D) {
-															double cost = ConfigController.getInstance().getCostPerRefill();
+														if (ConfigController.getInstance().getCostPerRefill(player.getWorld()) > 0D) {
+															double cost = ConfigController.getInstance().getCostPerRefill(player.getWorld());
 															if (PlayerUtilities.getBalance(player) >= cost) {
 																PlayerUtilities.incrementMoney(player, -cost);
 															} else {
@@ -191,6 +196,7 @@ public class CommandRefill extends KingKitsCommand {
 															}
 														}
 														player.getInventory().setItemInOffHand(new ItemStack(Material.MUSHROOM_SOUP));
+														player.updateInventory();
 													}
 												}
 											} else {

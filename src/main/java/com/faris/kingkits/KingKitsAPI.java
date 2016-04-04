@@ -9,7 +9,14 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
+/**
+ * The API class for KingKits.
+ * All methods are static.
+ */
 public class KingKitsAPI {
+
+	private KingKitsAPI() {
+	}
 
 	/**
 	 * Get the killstreak of a player.
@@ -116,6 +123,7 @@ public class KingKitsAPI {
 
 	/**
 	 * Check if a player is using a specified kit.
+	 * <p></p>
 	 * This returns false if the player is using a user kit.
 	 *
 	 * @param kitName The kit's name
@@ -211,9 +219,9 @@ public class KingKitsAPI {
 			if (KitController.getInstance().getKit(kit.getName()) != null) {
 				KitController.getInstance().removeKit(kit);
 				KitController.getInstance().deleteKit(kit);
-				KitController.getInstance().addKit(kit);
-				KitController.getInstance().saveKit(kit);
 			}
+			KitController.getInstance().addKit(kit);
+			KitController.getInstance().saveKit(kit);
 		}
 	}
 

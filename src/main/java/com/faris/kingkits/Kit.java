@@ -336,7 +336,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	@Override
 	public String toString() {
-		return this.serialize().toString();
+		return this.getName();
 	}
 
 	@Override

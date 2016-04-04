@@ -19,18 +19,40 @@ public class PlayerKitEvent extends Event {
 		this.kit = kit;
 	}
 
+	/**
+	 * Get the kit the player is using.
+	 *
+	 * @return The kit.
+	 */
 	public Kit getKit() {
 		return this.kit;
 	}
 
+	/**
+	 * Get the player.
+	 * <p></p>
+	 * Use {@link KitPlayer#getBukkitPlayer()} to get the Bukkit player instance.
+	 *
+	 * @return The player.
+	 */
 	public KitPlayer getPlayer() {
 		return this.kitPlayer;
 	}
 
+	/**
+	 * Get the kit the player was previously using.
+	 *
+	 * @return The previous kit.
+	 */
 	public Kit getPreviousKit() {
 		return this.oldKit;
 	}
 
+	/**
+	 * Check if the player was using a kit previously.
+	 *
+	 * @return Whether or not the player was using a kit previously.
+	 */
 	public boolean hasPreviousKit() {
 		return this.oldKit != null;
 	}

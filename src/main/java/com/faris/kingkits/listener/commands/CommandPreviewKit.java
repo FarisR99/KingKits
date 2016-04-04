@@ -28,7 +28,7 @@ public class CommandPreviewKit extends KingKitsCommand {
 			try {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
-					if (!ConfigController.getInstance().getCommands()[7]) {
+					if (!ConfigController.getInstance().getCommands(player.getWorld())[7]) {
 						Messages.sendMessage(player, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

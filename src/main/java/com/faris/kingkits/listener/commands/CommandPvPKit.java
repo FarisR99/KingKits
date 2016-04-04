@@ -35,7 +35,7 @@ public class CommandPvPKit extends KingKitsCommand {
 		if (cmd.getName().equals("pvpkit")) {
 			try {
 				if (sender instanceof Player) {
-					if (!ConfigController.getInstance().getCommands()[0]) {
+					if (!ConfigController.getInstance().getCommands(((Player) sender).getWorld())[0]) {
 						Messages.sendMessage(sender, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}
@@ -118,7 +118,7 @@ public class CommandPvPKit extends KingKitsCommand {
 		if (kit != null) {
 			strKit = kit.getName();
 			if (isOther || kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit)) {
-				if (ConfigController.getInstance().isOneKitPerLife()) {
+				if (ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return;
@@ -157,7 +157,7 @@ public class CommandPvPKit extends KingKitsCommand {
 
 					Kit oldKit = kitPlayer.getKit();
 					kitPlayer.setKit(kit);
-					if (ConfigController.getInstance().shouldClearItemsOnKitSelection()) {
+					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						for (PotionEffect activePotionEffect : player.getActivePotionEffects())

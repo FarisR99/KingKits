@@ -6,6 +6,8 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -187,6 +189,34 @@ public class CustomConfiguration extends YamlConfiguration {
 		} catch (FileNotFoundException ignored) {
 		} catch (IOException | InvalidConfigurationException ex) {
 			Bukkit.getLogger().log(Level.SEVERE, "Cannot load " + file, ex);
+		}
+		return config;
+	}
+
+	public static CustomConfiguration loadConfigurationSafely(File file) {
+		CustomConfiguration config = new CustomConfiguration();
+		try {
+			config.load(file);
+		} catch (Exception ex) {
+			if (ex.getClass() != FileNotFoundException.class)
+				Bukkit.getServer().getLogger().log(Level.SEVERE, "Cannot load " + file, ex);
+			if (file.exists()) {
+				String filePath = file.getAbsolutePath();
+				String brokenFilePath = (filePath.contains(".yml") ? filePath.substring(0, filePath.indexOf(".yml")) : filePath) + "-" + System.currentTimeMillis() + ".yml.broken";
+				File configDestination = new File(brokenFilePath);
+				try {
+					FileInputStream configFileInputStream = new FileInputStream(file);
+					Files.copy(configFileInputStream, configDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					configFileInputStream.close();
+					file.delete();
+				} catch (Exception ignored) {
+				}
+			}
+			try {
+				file.createNewFile();
+				return loadConfiguration(file);
+			} catch (Exception ignored) {
+			}
 		}
 		return config;
 	}

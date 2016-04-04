@@ -35,7 +35,7 @@ public class CommandCreateUserKit extends KingKitsCommand {
 			try {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
-					if (!ConfigController.getInstance().getCommands()[4]) {
+					if (!ConfigController.getInstance().getCommands(player.getWorld())[4]) {
 						Messages.sendMessage(player, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

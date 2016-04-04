@@ -38,6 +38,7 @@ public class KitUtilities {
 	public static KitSearchResult getKits(String kitName, KitPlayer kitPlayer) {
 		Kit exactKit = null;
 		List<Kit> kitList = new ArrayList<>();
+
 		if (kitName != null && kitPlayer != null) {
 			for (Map.Entry<String, Kit> kitEntry : kitPlayer.getKits().entrySet()) {
 				if (kitName.equals(kitEntry.getValue().getName())) exactKit = kitEntry.getValue();
@@ -71,10 +72,11 @@ public class KitUtilities {
 							String kitMessage = Messages.COMMAND_KIT_LIST_KITS.getMessage();
 							if (kitMessage.contains("%s")) {
 								ChatColor kitColour = (!ConfigController.getInstance().shouldUsePermissionsForKitList() || (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit))) ? ChatColor.GREEN : ChatColor.DARK_RED;
-								FancyMessage fancyKitMessage = new FancyMessage(kitMessage.substring(0, kitMessage.indexOf("%s")).replace("<colour>", kitColour.toString()).replace("<color>", kitColour.toString()));
+								FancyMessage fancyKitMessage = new FancyMessage(ChatColor.translateAlternateColorCodes('&', kitMessage.substring(0, kitMessage.indexOf("%s")).replace("<colour>", kitColour.toString()).replace("<color>", kitColour.toString())));
 								String afterKit = kitMessage.substring(kitMessage.indexOf("%s") + 2);
 								if (kitMessage.contains("<colour>") || kitMessage.contains("<color>"))
 									fancyKitMessage.then(kit.getName()).color(kitColour);
+								else fancyKitMessage.then(kit.getName());
 								fancyKitMessage.command("/pvpkit " + kit.getName());
 
 								if (kit.hasDescription()) {
@@ -142,7 +144,7 @@ public class KitUtilities {
 				return false;
 			}
 			if (kit.isUserKit() || (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit))) {
-				if (!ignoreOneKitPerLife && ConfigController.getInstance().isOneKitPerLife()) {
+				if (!ignoreOneKitPerLife && ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return false;
@@ -183,7 +185,7 @@ public class KitUtilities {
 					kitPlayer.setKit(kit);
 					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection())
 						player.setGameMode(player.getServer().getDefaultGameMode());
-					if (ConfigController.getInstance().shouldClearItemsOnKitSelection()) {
+					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						for (PotionEffect activePotionEffect : player.getActivePotionEffects())

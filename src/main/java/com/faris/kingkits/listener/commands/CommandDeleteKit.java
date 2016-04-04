@@ -27,7 +27,7 @@ public class CommandDeleteKit extends KingKitsCommand {
 		if (cmd.getName().equals("deletekit")) {
 			try {
 				if (sender instanceof Player) {
-					if (!ConfigController.getInstance().getCommands()[2]) {
+					if (!ConfigController.getInstance().getCommands(((Player) sender).getWorld())[2]) {
 						Messages.sendMessage(sender, Messages.GENERAL_COMMAND_DISABLED);
 						return true;
 					}

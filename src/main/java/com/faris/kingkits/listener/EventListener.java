@@ -75,11 +75,11 @@ public class EventListener implements Listener {
 
 			boolean inPvPWorld = Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit());
 			try {
-				if (inPvPWorld && ConfigController.getInstance().shouldRemoveItemsOnLeave()) {
+				if (inPvPWorld && ConfigController.getInstance().shouldRemoveItemsOnLeave(player.getWorld())) {
 					player.getInventory().clear();
 					player.getInventory().setArmorContents(null);
 				}
-				if (inPvPWorld && ConfigController.getInstance().shouldRemovePotionEffectsOnLeave()) {
+				if (inPvPWorld && ConfigController.getInstance().shouldRemovePotionEffectsOnLeave(player.getWorld())) {
 					for (PotionEffect activePotionEffect : player.getActivePotionEffects())
 						player.removePotionEffect(activePotionEffect.getType());
 				}
@@ -132,7 +132,7 @@ public class EventListener implements Listener {
 								event.setCancelled(true);
 							}
 						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
-							if (ConfigController.getInstance().canQuickSoup()) {
+							if (ConfigController.getInstance().canQuickSoup(player.getWorld())) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
 										int soupAmount = event.getItem().getAmount();
@@ -196,7 +196,7 @@ public class EventListener implements Listener {
 							Sign clickedSign = (Sign) event.getClickedBlock().getState();
 							String firstLine = clickedSign.getLine(0);
 
-							if (firstLine.equals(ConfigController.getInstance().getSignsKit()[1])) {
+							if (firstLine.equals(ConfigController.getInstance().getSignsKit(player.getWorld())[1])) {
 								event.setCancelled(true);
 								if (player.hasPermission(Permissions.SIGN_KIT_USE)) {
 									String strKit = ChatUtilities.stripColour(clickedSign.getLine(1));
@@ -218,14 +218,14 @@ public class EventListener implements Listener {
 								} else {
 									Messages.sendMessage(player, Messages.SIGN_USE_NO_PERMISSION, "kit");
 								}
-							} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList()[1])) {
+							} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList(player.getWorld())[1])) {
 								event.setCancelled(true);
 								if (player.hasPermission(Permissions.SIGN_KIT_LIST_USE)) {
 									KitUtilities.listKits(player);
 								} else {
 									Messages.sendMessage(player, Messages.SIGN_USE_NO_PERMISSION, "kit list");
 								}
-							} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill()[1])) {
+							} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill(player.getWorld())[1])) {
 								event.setCancelled(true);
 								if (player.hasPermission(Permissions.SIGN_REFILL_USE)) {
 									String strType = clickedSign.getLine(1);
@@ -251,7 +251,7 @@ public class EventListener implements Listener {
 				if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (event.getItem() != null) {
 						if (event.getItem().getType() == Material.COMPASS) {
-							if (ConfigController.getInstance().shouldSetCompassToNearestPlayer()) {
+							if (ConfigController.getInstance().shouldSetCompassToNearestPlayer(player.getWorld())) {
 								if (player.hasPermission(Permissions.COMPASS)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
 										Player nearestPlayer = null;
@@ -305,8 +305,9 @@ public class EventListener implements Listener {
 
 			boolean deathInPvPWorld = Utilities.isPvPWorld(player.getWorld());
 			if (deathInPvPWorld || kitPlayer.hasKit()) {
-				if (!ConfigController.getInstance().shouldShowDeathMessages()) event.setDeathMessage("");
-				if (!ConfigController.getInstance().shouldDropItemsOnDeath()) event.getDrops().clear();
+				if (!ConfigController.getInstance().shouldShowDeathMessages(player.getWorld()))
+					event.setDeathMessage("");
+				if (!ConfigController.getInstance().shouldDropItemsOnDeath(player.getWorld())) event.getDrops().clear();
 				if (ConfigController.getInstance().shouldRemoveKitOnDeath()) {
 					kitPlayer.setKit(null);
 
@@ -378,14 +379,14 @@ public class EventListener implements Listener {
 						ex.printStackTrace();
 					}
 				}
-				if (ConfigController.getInstance().isEconomyEnabled()) {
-					if (ConfigController.getInstance().getMoneyPerDeath() != 0D) {
-						PlayerUtilities.incrementMoney(player, -ConfigController.getInstance().getMoneyPerDeath());
-						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_DEATH, ConfigController.getInstance().getMoneyPerDeath(), killer != null ? killer.getName() : "unknown");
+				if (ConfigController.getInstance().isEconomyEnabled(player.getWorld())) {
+					if (ConfigController.getInstance().getMoneyPerDeath(player.getWorld()) != 0D) {
+						PlayerUtilities.incrementMoney(player, -ConfigController.getInstance().getMoneyPerDeath(player.getWorld()));
+						Messages.sendMessage(player, Messages.ECONOMY_MONEY_PER_DEATH, ConfigController.getInstance().getMoneyPerDeath(player.getWorld()), killer != null ? killer.getName() : "unknown");
 					}
-					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId()) && ConfigController.getInstance().getMoneyPerKill() != 0D) {
-						PlayerUtilities.incrementMoney(killer, ConfigController.getInstance().getMoneyPerKill());
-						Messages.sendMessage(killer, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(), player.getName());
+					if (killer != null && !player.getUniqueId().equals(killer.getUniqueId()) && ConfigController.getInstance().getMoneyPerKill(killer.getWorld()) != 0D) {
+						PlayerUtilities.incrementMoney(killer, ConfigController.getInstance().getMoneyPerKill(killer.getWorld()));
+						Messages.sendMessage(killer, Messages.ECONOMY_MONEY_PER_KILL, ConfigController.getInstance().getMoneyPerKill(killer.getWorld()), player.getName());
 					}
 				}
 				if (ConfigController.getInstance().shouldAutoRespawn()) {
@@ -456,7 +457,7 @@ public class EventListener implements Listener {
 	public void onPlayerBreakBlock(BlockBreakEvent event) {
 		try {
 			final Player player = event.getPlayer();
-			if (!ConfigController.getInstance().canModifyBlocks()) {
+			if (!ConfigController.getInstance().canModifyBlocks(event.getBlock().getWorld())) {
 				if (Utilities.isPvPWorld(player.getWorld())) {
 					if (!ConfigController.getInstance().canOpsBypass() || !player.isOp()) {
 						event.setCancelled(true);
@@ -473,7 +474,7 @@ public class EventListener implements Listener {
 	public void onPlayerPlaceBlock(BlockPlaceEvent event) {
 		try {
 			final Player player = event.getPlayer();
-			if (!ConfigController.getInstance().canModifyBlocks()) {
+			if (!ConfigController.getInstance().canModifyBlocks(event.getBlock().getWorld())) {
 				if (Utilities.isPvPWorld(player.getWorld())) {
 					if (!ConfigController.getInstance().canOpsBypass() || !player.isOp()) {
 						event.setCancelled(true);
@@ -492,8 +493,8 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canDropItems() && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
-					if (!ConfigController.getInstance().getDropAnimationItems().contains(event.getItemDrop().getItemStack().getTypeId()))
+				if (!ConfigController.getInstance().canDropItems(player.getWorld()) && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
+					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getTypeId()))
 						event.setCancelled(true);
 					else event.getItemDrop().remove();
 				}
@@ -509,7 +510,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canPickupItems() && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
+				if (!ConfigController.getInstance().canPickupItems(player.getWorld()) && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
 					event.setCancelled(true);
 				}
 			}
@@ -528,7 +529,7 @@ public class EventListener implements Listener {
 				if (!PlayerUtilities.checkPlayer(player, kitPlayer)) return;
 
 				String firstLine = event.getLine(0);
-				if (firstLine.equals(ConfigController.getInstance().getSignsKit()[0])) {
+				if (firstLine.equals(ConfigController.getInstance().getSignsKit(player.getWorld())[0])) {
 					if (player.hasPermission(Permissions.SIGN_KIT_CREATE)) {
 						String strKit = event.getLine(1);
 
@@ -541,27 +542,28 @@ public class EventListener implements Listener {
 								kit = kitResult.getOtherKits().get(0);
 							} else {
 								Messages.sendMessage(player, Messages.KIT_MULTIPLE_FOUND, strKit);
-								event.setLine(0, ConfigController.getInstance().getSignsKit()[2]);
+								event.setLine(0, ConfigController.getInstance().getSignsKit(player.getWorld())[2]);
 							}
 						} else {
 							Messages.sendMessage(player, Messages.KIT_NOT_FOUND, strKit);
-							event.setLine(0, ConfigController.getInstance().getSignsKit()[2]);
+							event.setLine(0, ConfigController.getInstance().getSignsKit(player.getWorld())[2]);
 						}
-						if (kit != null) event.setLine(0, ConfigController.getInstance().getSignsKit()[1]);
+						if (kit != null)
+							event.setLine(0, ConfigController.getInstance().getSignsKit(player.getWorld())[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "kit");
 						event.setCancelled(true);
 					}
-				} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList()[0])) {
+				} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList(player.getWorld())[0])) {
 					if (player.hasPermission(Permissions.SIGN_KIT_LIST_CREATE)) {
-						event.setLine(0, ConfigController.getInstance().getSignsKitList()[1]);
+						event.setLine(0, ConfigController.getInstance().getSignsKitList(player.getWorld())[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "kit list");
 						event.setCancelled(true);
 					}
-				} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill()[0])) {
+				} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill(player.getWorld())[0])) {
 					if (player.hasPermission(Permissions.SIGN_REFILL_CREATE)) {
-						event.setLine(0, ConfigController.getInstance().getSignsRefill()[1]);
+						event.setLine(0, ConfigController.getInstance().getSignsRefill(player.getWorld())[1]);
 					} else {
 						Messages.sendMessage(player, Messages.SIGN_CREATE_NO_PERMISSION, "refill");
 						event.setCancelled(true);
@@ -661,7 +663,7 @@ public class EventListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerFoodLevelChange(FoodLevelChangeEvent event) {
 		try {
-			if (ConfigController.getInstance().shouldLockFoodLevel()) {
+			if (ConfigController.getInstance().shouldLockFoodLevel(event.getEntity().getWorld())) {
 				if (Utilities.isPvPWorld(event.getEntity().getWorld())) {
 					event.setFoodLevel(Math.min(Math.abs(ConfigController.getInstance().getFoodLevelLock()), 20));
 				}

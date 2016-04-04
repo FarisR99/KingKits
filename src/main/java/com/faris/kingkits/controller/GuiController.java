@@ -361,7 +361,7 @@ public class GuiController implements Controller {
 				return;
 			}
 			if (selectedKit.isUserKit() || (kitPlayer.hasPermission(selectedKit) || kitPlayer.hasUnlocked(selectedKit))) {
-				if (ConfigController.getInstance().isOneKitPerLife()) {
+				if (ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return;
@@ -402,7 +402,7 @@ public class GuiController implements Controller {
 					kitPlayer.setKit(selectedKit);
 					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection())
 						player.setGameMode(player.getServer().getDefaultGameMode());
-					if (ConfigController.getInstance().shouldClearItemsOnKitSelection()) {
+					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
 						for (PotionEffect activePotionEffect : player.getActivePotionEffects())

@@ -44,8 +44,7 @@ public class KingKits extends JavaPlugin {
 		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version", "").equals(ConfigController.CURRENT_CONFIG_VERSION))
-			ConfigController.getInstance().migrateOldConfigs();
+		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION)) ConfigController.getInstance().migrateOldConfigs();
 		else ConfigController.getInstance().loadConfiguration();
 		try {
 			Messages.initMessages(this);
@@ -239,11 +238,11 @@ public class KingKits extends JavaPlugin {
 				if (player != null) {
 					boolean inPvPWorld = Utilities.isPvPWorld(player.getWorld());
 					if (inPvPWorld || kitPlayer.hasKit()) {
-						if (ConfigController.getInstance().shouldRemovePotionEffectsOnReload()) {
+						if (ConfigController.getInstance().shouldRemovePotionEffectsOnReload(player.getWorld())) {
 							for (PotionEffect potionEffect : player.getActivePotionEffects())
 								player.removePotionEffect(potionEffect.getType());
 						}
-						if (ConfigController.getInstance().shouldRemoveItemsOnReload()) {
+						if (ConfigController.getInstance().shouldRemoveItemsOnReload(player.getWorld())) {
 							if (kitPlayer.hasKit() && kitPlayer.getKit().getMaxHealth() != PlayerUtilities.getDefaultMaxHealth()) {
 								if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
 									player.setHealth(PlayerUtilities.getDefaultMaxHealth());
