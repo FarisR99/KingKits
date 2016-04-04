@@ -325,39 +325,39 @@ public class ConfigController implements Controller {
 					CustomConfiguration worldConfig = CustomConfiguration.loadConfiguration(worldFile);
 					WorldSettings worldSettings = new WorldSettings();
 
-					worldSettings.allowBlockPlacingAndBreaking = worldConfig.getBoolean("Allow.Block modification", true);
-					worldSettings.allowDeathMessages = worldConfig.getBoolean("Allow.Death messages", true);
-					worldSettings.allowItemDropping = worldConfig.getBoolean("Allow.Item dropping", false);
-					worldSettings.allowItemDroppingOnDeath = worldConfig.getBoolean("Allow.Item dropping on death", true);
-					worldSettings.allowItemPicking = worldConfig.getBoolean("Allow.Item picking up", true);
-					worldSettings.allowQuickSoup = worldConfig.getBoolean("Allow.Quick soup", true);
+					worldSettings.allowBlockPlacingAndBreaking = worldConfig.getBoolean("Allow.Block modification", this.getConfig().getBoolean("Allow.Block modification", true));
+					worldSettings.allowDeathMessages = worldConfig.getBoolean("Allow.Death messages", this.getConfig().getBoolean("Allow.Death messages", true));
+					worldSettings.allowItemDropping = worldConfig.getBoolean("Allow.Item dropping", this.getConfig().getBoolean("Allow.Item dropping", false));
+					worldSettings.allowItemDroppingOnDeath = worldConfig.getBoolean("Allow.Item dropping on death", this.getConfig().getBoolean("Allow.Item dropping on death", true));
+					worldSettings.allowItemPicking = worldConfig.getBoolean("Allow.Item picking up", this.getConfig().getBoolean("Allow.Item picking up", true));
+					worldSettings.allowQuickSoup = worldConfig.getBoolean("Allow.Quick soup", this.getConfig().getBoolean("Allow.Quick soup", true));
 					worldSettings.kkCommands = new boolean[]{
-							worldConfig.getBoolean("Command.Kit", true),
-							worldConfig.getBoolean("Command.Kit create", true),
-							worldConfig.getBoolean("Command.Kit delete", true),
-							worldConfig.getBoolean("Command.Kit rename", true),
-							worldConfig.getBoolean("Command.User kit create", true),
-							worldConfig.getBoolean("Command.User kit delete", true),
-							worldConfig.getBoolean("Command.User kit rename", true),
-							worldConfig.getBoolean("Command.Preview kit", true),
-							worldConfig.getBoolean("Command.Refill", true)
+							worldConfig.getBoolean("Command.Kit", this.getConfig().getBoolean("Command.Kit", true)),
+							worldConfig.getBoolean("Command.Kit create", this.getConfig().getBoolean("Command.Kit create", true)),
+							worldConfig.getBoolean("Command.Kit delete", this.getConfig().getBoolean("Command.Kit delete", true)),
+							worldConfig.getBoolean("Command.Kit rename", this.getConfig().getBoolean("Command.Kit rename", true)),
+							worldConfig.getBoolean("Command.User kit create", this.getConfig().getBoolean("Command.User kit create", true)),
+							worldConfig.getBoolean("Command.User kit delete", this.getConfig().getBoolean("Command.User kit delete", true)),
+							worldConfig.getBoolean("Command.User kit rename", this.getConfig().getBoolean("Command.User kit rename", true)),
+							worldConfig.getBoolean("Command.Preview kit", this.getConfig().getBoolean("Command.Preview kit", true)),
+							worldConfig.getBoolean("Command.Refill", this.getConfig().getBoolean("Command.Refill", true))
 					};
-					worldSettings.economyEnabled = worldConfig.getBoolean("Economy.Enabled", false);
-					worldSettings.economyCostPerRefill = worldConfig.getDouble("Economy.Cost per refill", 2.5D);
-					worldSettings.economyMoneyPerDeath = worldConfig.getDouble("Economy.Money per death", 5D);
-					worldSettings.economyMoneyPerKill = worldConfig.getDouble("Economy.Money per kill", 7.5D);
-					worldSettings.oneKitPerLife = worldConfig.getBoolean("One kit per life", false);
-					worldSettings.shouldClearItemsOnKitSelection = worldConfig.getBoolean("Should.Clear items on kit selection", true);
-					worldSettings.shouldLockFoodLevel = worldConfig.getBoolean("Should.Lock food level", true);
-					worldSettings.shouldRemoveItemsOnLeave = worldConfig.getBoolean("Should.Remove kit on leave", true);
-					worldSettings.shouldRemoveItemsOnReload = worldConfig.getBoolean("Should.Remove items on reload", true);
-					worldSettings.shouldRemovePotionEffectsOnLeave = worldConfig.getBoolean("Should.Remove potion effects on leave", true);
-					worldSettings.shouldRemovePotionEffectsOnReload = worldConfig.getBoolean("Should.Remove potion effects on reload", true);
-					worldSettings.shouldSetCompassToNearestPlayer = worldConfig.getBoolean("Should.Set compass to nearest player", false);
-					worldSettings.signKit = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit.Unregistered", "[Kit]"), worldConfig.getString("Sign.Kit.Valid", "[&1Kit&0]"), worldConfig.getString("Sign.Kit.Invalid", "[&cKit&0]"));
-					worldSettings.signKitList = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit list.Unregistered", "[KList]"), worldConfig.getString("Sign.Kit list.Valid", "[&1KList&0]"));
-					worldSettings.signRefill = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Refill sign.Unregistered", "[KRefill]"), worldConfig.getString("Sign.Refill sign.Valid", "[&1KRefill&0]"));
-					worldSettings.dropAnimationItems = worldConfig.getIntegerList("Drop animation IDs");
+					worldSettings.economyEnabled = worldConfig.getBoolean("Economy.Enabled", this.getConfig().getBoolean("Economy.Enabled", false));
+					worldSettings.economyCostPerRefill = worldConfig.getDouble("Economy.Cost per refill", this.getConfig().getDouble("Economy.Cost per refill", 2.5D));
+					worldSettings.economyMoneyPerDeath = worldConfig.getDouble("Economy.Money per death", this.getConfig().getDouble("Economy.Money per death", 5D));
+					worldSettings.economyMoneyPerKill = worldConfig.getDouble("Economy.Money per kill", this.getConfig().getDouble("Economy.Money per kill", 7.5D));
+					worldSettings.oneKitPerLife = worldConfig.getBoolean("One kit per life", this.getConfig().getBoolean("One kit per life", false));
+					worldSettings.shouldClearItemsOnKitSelection = worldConfig.getBoolean("Should.Clear items on kit selection", this.getConfig().getBoolean("Should.Clear items on kit selection", true));
+					worldSettings.shouldLockFoodLevel = worldConfig.getBoolean("Should.Lock food level", this.getConfig().getBoolean("Should.Lock food level", true));
+					worldSettings.shouldRemoveItemsOnLeave = worldConfig.getBoolean("Should.Remove kit on leave", this.getConfig().getBoolean("Should.Remove kit on leave", true));
+					worldSettings.shouldRemoveItemsOnReload = worldConfig.getBoolean("Should.Remove items on reload", this.getConfig().getBoolean("Should.Remove items on reload", true));
+					worldSettings.shouldRemovePotionEffectsOnLeave = worldConfig.getBoolean("Should.Remove potion effects on leave", this.getConfig().getBoolean("Should.Remove potion effects on leave", true));
+					worldSettings.shouldRemovePotionEffectsOnReload = worldConfig.getBoolean("Should.Remove potion effects on reload", this.getConfig().getBoolean("Should.Remove potion effects on reload", true));
+					worldSettings.shouldSetCompassToNearestPlayer = worldConfig.getBoolean("Should.Set compass to nearest player", this.getConfig().getBoolean("Should.Set compass to nearest player", false));
+					worldSettings.signKit = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit.Unregistered", this.getConfig().getString("Sign.Kit.Unregistered", "[Kit]")), worldConfig.getString("Sign.Kit.Valid", this.getConfig().getString("Sign.Kit.Valid", "[&1Kit&0]")), worldConfig.getString("Sign.Kit.Invalid", this.getConfig().getString("Sign.Kit.Invalid", "[&cKit&0]")));
+					worldSettings.signKitList = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit list.Unregistered", this.getConfig().getString("Sign.Kit list.Unregistered", "[KList]")), worldConfig.getString("Sign.Kit list.Valid", this.getConfig().getString("Sign.Kit list.Valid", "[&1KList&0]")));
+					worldSettings.signRefill = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Refill sign.Unregistered", this.getConfig().getString("Sign.Refill sign.Unregistered", "[KRefill]")), worldConfig.getString("Sign.Refill sign.Valid", this.getConfig().getString("Sign.Refill sign.Valid", "[&1KRefill&0]")));
+					worldSettings.dropAnimationItems = worldConfig.contains("Drop animation IDs") ? worldConfig.getIntegerList("Drop animation IDs") : this.getConfig().getIntegerList("Drop animation IDs");
 
 					this.worldSettingsMap.put(strWorld.toLowerCase(), worldSettings);
 				}
