@@ -519,7 +519,7 @@ public class EventListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerChangeSign(SignChangeEvent event) {
 		try {
 			final Player player = event.getPlayer();
