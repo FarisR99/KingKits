@@ -118,7 +118,7 @@ public class GuiController implements Controller {
 	public Inventory createKitPreviewInventory(Player player, Kit kit) {
 		Inventory kitPreviewInv = null;
 		if (player != null) {
-			kitPreviewInv = Bukkit.getServer().createInventory(player, this.previewInventory.getSize(), StringUtilities.trimString(this.previewInventory.getTitle().replace("<kit>", kit != null ? kit.getName() : "null"), 32));
+			kitPreviewInv = Bukkit.getServer().createInventory(player, this.previewInventory.getSize(), StringUtilities.trimString(ChatUtilities.replaceChatCodes(this.previewInventory.getTitle().replace("<kit>", kit != null ? kit.getDisplayName() : "null")), 32));
 			kitPreviewInv.setContents(this.previewInventory.getContents());
 
 			if (kit != null) {
@@ -543,13 +543,14 @@ public class GuiController implements Controller {
 					try {
 						ItemStack guiItem = availableKit.getGuiItem().clone();
 						if (!ItemUtilities.hasName(guiItem))
-							ItemUtilities.renameItem(guiItem, "&a" + availableKit.getName());
+							ItemUtilities.renameItem(guiItem, "&a" + availableKit.getDisplayName());
 						if (availableKit.hasDescription()) {
 							final List<String> kitDescription = new ArrayList<>();
 							for (String descriptionLine : availableKit.getDescription()) {
 								descriptionLine = ChatUtilities.replaceChatCodes(descriptionLine);
 								if (descriptionLine.contains("<player>")) continue;
 								descriptionLine = descriptionLine.replace("<name>", availableKit.getName());
+								descriptionLine = descriptionLine.replace("<displayname>", availableKit.getDisplayName());
 								descriptionLine = descriptionLine.replace("<cost>", String.valueOf(availableKit.getCost()));
 								descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(availableKit.getCooldown()));
 								descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(availableKit.getMaxHealth()));

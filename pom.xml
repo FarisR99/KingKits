@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>5.2.5</version>
+    <version>5.2.6</version>
 
     <packaging>jar</packaging>
 
@@ -85,6 +85,7 @@
                         <configuration>
                             <artifactSet>
                                 <includes>
+                                    <include>org.mcstats.*</include>
                                     <include>com.google.code.gson</include>
                                 </includes>
                                 <excludes>

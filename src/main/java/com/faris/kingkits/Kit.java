@@ -16,7 +16,8 @@ import java.util.*;
 public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializable {
 
 	// Kit variables
-	private String kitName;
+	private String kitName = "";
+	private String kitDisplayName = ""; // TODO: Add this. It is the name displayed on the GUI.
 	private List<String> kitDescription = new ArrayList<>();
 	private double kitCost = ConfigController.getInstance().getKitDefaultCost();
 	private double kitCooldown = ConfigController.getInstance().getKitDefaultCooldown();
@@ -46,6 +47,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(kitName);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.offHand = new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
 	}
@@ -54,6 +56,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(kitName);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitCost = kitCost;
 		this.offHand = new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
@@ -64,6 +67,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(kitItems);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitItems = kitItems;
 		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.guiItem = new ItemStack(Material.DIAMOND_SWORD);
@@ -75,6 +79,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(potionEffects);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitItems = kitItems;
 		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.potionEffects = potionEffects;
@@ -88,6 +93,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(potionEffects);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitItems = kitItems;
 		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitArmour = kitArmour;
@@ -100,6 +106,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(kitItems);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitItems = kitItems;
 		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitCost = kitCost;
@@ -112,6 +119,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		Validate.notNull(potionEffects);
 		Validate.notEmpty(kitName);
 		this.kitName = kitName;
+		this.kitDisplayName = kitName;
 		this.kitItems = kitItems;
 		this.offHand = offHand != null ? offHand.clone() : new ItemStack(Material.AIR);
 		this.kitCost = kitCost;
@@ -131,6 +139,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			ex.printStackTrace();
 
 			Kit kit = new Kit(this.kitName);
+			kit.setDisplayName(this.getDisplayName());
 			kit.setUserKit(this.isUserKit());
 			kit.setAlias(this.hasCommandAlias());
 			kit.setAutoUnlockScore(this.getAutoUnlockScore());
@@ -176,6 +185,10 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	public List<String> getDescription() {
 		return this.kitDescription;
+	}
+
+	public String getDisplayName() {
+		return this.kitDisplayName;
 	}
 
 	public ItemStack getGuiItem() {
@@ -270,6 +283,11 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		return this;
 	}
 
+	public Kit setDisplayName(String displayName) {
+		if (displayName != null) this.kitDisplayName = displayName;
+		return this;
+	}
+
 	public Kit setGuiItem(ItemStack guiItem) {
 		this.guiItem = guiItem != null ? guiItem : new ItemStack(Material.AIR);
 		return this;
@@ -343,6 +361,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 	public Map<String, Object> serialize() {
 		Map<String, Object> serializedMap = new LinkedHashMap<>();
 		serializedMap.put("Name", this.kitName);
+		if (!this.kitDisplayName.equals(this.kitName)) serializedMap.put("Display name", this.kitDisplayName);
 		serializedMap.put("Command alias", this.commandAlias);
 		serializedMap.put("Description", ChatUtilities.replaceChatColours(this.kitDescription));
 		serializedMap.put("Cost", this.kitCost);
@@ -385,6 +404,8 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		final Kit deserializedKit;
 		if (serializedKit != null && serializedKit.get("Name") != null) {
 			deserializedKit = new Kit(ObjectUtilities.getObject(serializedKit, String.class, "Name"));
+			if (serializedKit.containsKey("Display name"))
+				deserializedKit.setDisplayName(ObjectUtilities.getObject(serializedKit, String.class, "Display name", deserializedKit.getName()));
 			if (serializedKit.containsKey("Command alias"))
 				deserializedKit.setAlias(ObjectUtilities.getObject(serializedKit, Boolean.class, "Command alias", false));
 			if (serializedKit.containsKey("Description"))

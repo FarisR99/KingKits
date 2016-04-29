@@ -11,7 +11,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
-import java.io.Closeable;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -236,7 +235,7 @@ public class Utilities {
 		return serializedColor;
 	}
 
-	public static boolean silentlyClose(Closeable closeable) {
+	public static boolean silentlyClose(AutoCloseable closeable) {
 		try {
 			if (closeable != null) closeable.close();
 			return true;

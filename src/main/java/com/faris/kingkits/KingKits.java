@@ -21,6 +21,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+import org.mcstats.Metrics;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +33,8 @@ import java.util.logging.Level;
 
 public class KingKits extends JavaPlugin {
 
+	private static String SERVER_VERSION = "";
+
 	private EventListener eventListener = null;
 
 	private int autoSaveTaskID = -1;
@@ -39,12 +42,36 @@ public class KingKits extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		final boolean isSpigot = this.getServer().getVersion().contains("Spigot");
+
+		try {
+			String packageName = this.getServer().getClass().getPackage().getName();
+			SERVER_VERSION = packageName.substring(packageName.lastIndexOf('.') + 1);
+
+			if (SERVER_VERSION.startsWith("v1_7_")) {
+				this.getLogger().log(Level.WARNING, "KingKits v" + this.getDescription().getVersion() + " does not support MC 1.7. This plugin will not work.");
+				this.disablePlugin();
+				return;
+			} else if (SERVER_VERSION.startsWith("v1_8_")) {
+				this.getLogger().log(Level.SEVERE, "KingKits v5.2.0 and above do not support MC 1.8. This plugin will not work.");
+				if (isSpigot && SERVER_VERSION.startsWith("v1_8_R3")) {
+					this.getLogger().log(Level.INFO, "You can download KingKits v5.2.4 for MC 1.8.8 (unsupported) here:");
+					this.getLogger().log(Level.INFO, "http://www.mediafire.com/download/oen0ohpi3ehj045/KingKits-v1_8_R3-5.2.4.jar");
+				}
+				this.disablePlugin();
+				return;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 		ConfigurationSerialization.registerClass(Kit.class);
 		ConfigurationSerialization.registerClass(OfflineKitPlayer.class);
 		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION)) ConfigController.getInstance().migrateOldConfigs();
+		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION))
+			ConfigController.getInstance().migrateOldConfigs();
 		else ConfigController.getInstance().loadConfiguration();
 		try {
 			Messages.initMessages(this);
@@ -216,6 +243,13 @@ public class KingKits extends JavaPlugin {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (Exception ex) {
+			this.getLogger().log(Level.INFO, "Failed to start metrics", ex);
+		}
 	}
 
 	@Override
@@ -281,6 +315,18 @@ public class KingKits extends JavaPlugin {
 		return this.allowJoining;
 	}
 
+	private void disablePlugin() {
+		final KingKits pluginInstance = this;
+		this.getServer().getScheduler().runTaskLater(this, new Runnable() {
+			@Override
+			public void run() {
+				if (getServer().getPluginManager().isPluginEnabled(pluginInstance)) {
+					getServer().getPluginManager().disablePlugin(pluginInstance);
+				}
+			}
+		}, 20L);
+	}
+
 	public void saveResource(String resourcePath, boolean replace, File outFile) {
 		if (resourcePath != null && !resourcePath.equals("")) {
 			resourcePath = resourcePath.replace('\\', '/');
@@ -333,6 +379,10 @@ public class KingKits extends JavaPlugin {
 
 	public static KingKits getInstance() {
 		return (KingKits) JavaPlugin.getProvidingPlugin(KingKits.class);
+	}
+
+	public static String getServerVersion() {
+		return SERVER_VERSION;
 	}
 
 }

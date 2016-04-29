@@ -1,5 +1,6 @@
 package com.faris.kingkits.config;
 
+import com.faris.kingkits.helper.util.Utilities;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -68,7 +69,7 @@ public class CustomConfiguration extends YamlConfiguration {
 			String configReadLine;
 			while ((configReadLine = configReader.readLine()) != null) configLines.add(configReadLine);
 		} finally {
-			if (configReader != null) configReader.close();
+			Utilities.silentlyClose(configReader);
 		}
 
 		boolean hasHeader = configLines.size() < 2 || !trim(configLines.get(1)).isEmpty();
@@ -105,7 +106,7 @@ public class CustomConfiguration extends YamlConfiguration {
 			String configReadLine;
 			while ((configReadLine = configReader.readLine()) != null) configContent.add(configReadLine);
 		} finally {
-			if (configReader != null) configReader.close();
+			Utilities.silentlyClose(configReader);
 		}
 
 		BufferedWriter configWriter = null;
@@ -142,7 +143,7 @@ public class CustomConfiguration extends YamlConfiguration {
 				}
 			}
 		} finally {
-			if (configWriter != null) configWriter.close();
+			Utilities.silentlyClose(configWriter);
 		}
 	}
 

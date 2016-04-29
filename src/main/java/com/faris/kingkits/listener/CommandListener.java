@@ -230,7 +230,7 @@ public class CommandListener implements CommandExecutor {
 																	if (sqlQuery.startsWith("INSERT ")) this.success++;
 																} finally {
 																	if (preparedStatement != null)
-																		preparedStatement.close();
+																		Utilities.silentlyClose(preparedStatement);
 																}
 															}
 														} catch (Exception ex) {
