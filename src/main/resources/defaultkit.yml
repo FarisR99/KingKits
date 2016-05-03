@@ -54,7 +54,7 @@ GUI:
 # The items in the kit.
 # Supported item types: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 # Supported enchantments: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
-# Supported potions: http://minecraft.gamepedia.com/Potion#Item_data
+# Supported potions: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionType.html
 Items:
   Offhand:
     Type: Shield
