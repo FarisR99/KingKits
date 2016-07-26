@@ -1,5 +1,6 @@
 package com.faris.kingkits.controller;
 
+import com.comphenix.attributes.Attributes;
 import com.faris.easysql.mysql.MySQLDetails;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
@@ -26,7 +27,7 @@ import java.util.logging.Level;
 public class ConfigController implements Controller {
 
 	private static ConfigController instance = null;
-	public static final String CURRENT_CONFIG_VERSION = "3.3";
+	public static final String CURRENT_CONFIG_VERSION = "3.4";
 
 	private MySQLDetails sqlDetails = null;
 
@@ -76,7 +77,7 @@ public class ConfigController implements Controller {
 	private boolean allowItemDropping = false;
 	private boolean allowItemPicking = false;
 	private boolean allowItemDroppingOnDeath = false;
-	private boolean allowOpBypass = true;
+	private boolean allowAdminBypass = true;
 	private boolean allowQuickSoup = true;
 	private boolean allowRightClickPreview = true;
 	private boolean economyEnabled = false;
@@ -138,7 +139,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Updater.Enabled", true, "Set to 'false' if you want to disable the checking of new updates.");
 		this.getConfig().addDefault("Updater.Update", true, "Set to 'true' if you want to auto-update the plugin if a new version has been found.", "This only works for Bukkit.");
 		this.getConfig().addDefault("MySQL", new MySQLDetails().serialize(), "MySQL authentication information and details.");
-		this.getConfig().addDefault("OP bypass", true, "Set to 'true' if you want OPs to be able to drop/pickup items and do other activities even if disabled in the config.");
+		this.getConfig().addDefault("Admin bypass", true, "Set to 'true' if you want OPs or players with 'kingkits.admin' node to be able to drop/pickup items and do other activities even if disabled in the config.");
 		this.getConfig().addDefault("Auto-save player data", -1D, "Every time the set number of minutes passes, player data is saved asynchronously.", "Set to -1 to disable auto-save.");
 		if (!this.getConfig().contains("Allow"))
 			this.getConfig().createSection("Allow", "Allow/disallow (enable/disable) various things.");
@@ -239,7 +240,7 @@ public class ConfigController implements Controller {
 			this.autoSavePlayerData = this.getConfig().getDouble("Auto-save player data", -1D);
 
 			this.sqlDetails = MySQLDetails.deserialize(ObjectUtilities.getMap(this.getConfig().get("MySQL")));
-			this.allowOpBypass = this.getConfig().getBoolean("OP bypass", true);
+			this.allowAdminBypass = this.getConfig().getBoolean("Admin bypass", true);
 			this.allowBlockPlacingAndBreaking = this.getConfig().getBoolean("Allow.Block modification", true);
 			this.allowDeathMessages = this.getConfig().getBoolean("Allow.Death messages", true);
 			this.allowItemDropping = this.getConfig().getBoolean("Allow.Item dropping", false);
@@ -434,8 +435,8 @@ public class ConfigController implements Controller {
 		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.allowBlockPlacingAndBreaking : this.worldSettingsMap.get(lowerCaseWorld).allowBlockPlacingAndBreaking;
 	}
 
-	public boolean canOpsBypass() {
-		return this.allowOpBypass;
+	public boolean canAdminsBypass() {
+		return this.allowAdminBypass;
 	}
 
 	public boolean canPickupItems(World world) {
@@ -1458,19 +1459,6 @@ public class ConfigController implements Controller {
 				this.getConfig().set("Version", "3.2");
 				this.saveConfig();
 
-				this.reloadConfigs();
-				this.loadConfiguration();
-				try {
-					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
-						SQLController.getInstance();
-						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
-					} else {
-						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
-					}
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-
 				try {
 					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
 					if (kitsFolder.exists()) {
@@ -1618,13 +1606,6 @@ public class ConfigController implements Controller {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-			}
-			if (this.getConfig().getString("Version", "").equals("3.2")) {
-				// 1.9 changes
-				plugin.getLogger().log(Level.INFO, "Converting config v3.2 to v3.3...");
-
-				this.getConfig().set("Version", "3.3");
-				this.saveConfig();
 
 				this.reloadConfigs();
 				this.loadConfiguration();
@@ -1638,6 +1619,13 @@ public class ConfigController implements Controller {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+			}
+			if (this.getConfig().getString("Version", "").equals("3.2")) {
+				// 1.9 changes
+				plugin.getLogger().log(Level.INFO, "Converting config v3.2 to v3.3...");
+
+				this.getConfig().set("Version", "3.3");
+				this.saveConfig();
 
 				try {
 					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
@@ -1783,6 +1771,107 @@ public class ConfigController implements Controller {
 
 							if (FileUtilities.getFiles(oldFolder).length == 0) FileUtilities.delete(oldFolder);
 						}
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+
+				this.reloadConfigs();
+				this.loadConfiguration();
+				try {
+					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+						SQLController.getInstance();
+						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					} else {
+						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+			if (this.getConfig().getString("Version", "").equals("3.3")) {
+				plugin.getLogger().log(Level.INFO, "Converting config v3.3 to v3.4...");
+
+				this.getConfig().set("Version", "3.4");
+				this.saveConfig();
+
+				try {
+					if (this.getConfig().contains("OP bypass")) {
+						this.getConfig().set("Admin bypass", this.getConfig().getBoolean("OP bypass"));
+						this.getConfig().set("OP bypass", null);
+						this.saveConfig();
+					}
+
+					File kitsFolder = new File(KingKits.getInstance().getDataFolder(), "kits");
+					if (kitsFolder.exists()) {
+						File[] kitFiles = FileUtilities.getFiles(kitsFolder);
+						if (kitFiles.length > 0) {
+							File oldFolder = new File(dataFolder, "old3.3");
+							try {
+								if (!oldFolder.exists()) oldFolder.mkdirs();
+							} catch (Exception ex) {
+								plugin.getLogger().log(Level.WARNING, "Could not create 'old' folder", ex);
+								oldFolder = null;
+							}
+
+							for (File kitFile : kitFiles) {
+								if (kitFile.getName().endsWith(".yml")) {
+									CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
+									kitConfig.setNewLineAfterHeader(true);
+									kitConfig.setNewLinePerKey(true);
+
+									boolean save = false;
+									if (kitConfig.contains("Items")) {
+										Map<String, Object> itemsMap = ObjectUtilities.getMap(kitConfig.get("Items"));
+										for (Map.Entry<String, Object> serializedItemEntry : new LinkedHashMap<>(itemsMap).entrySet()) {
+											Map<String, Object> serializedItem = ObjectUtilities.getMap(serializedItemEntry.getValue());
+											if (!serializedItem.isEmpty()) {
+												if (serializedItem.containsKey("Attributes")) {
+													Map<String, Object> serializedAttributes = ObjectUtilities.getMap(serializedItem.get("Attributes"));
+													for (Map.Entry<String, Object> serializedAttributesEntry : serializedAttributes.entrySet()) {
+														Map<String, Object> serializedAttribute = ObjectUtilities.getMap(serializedAttributesEntry.getValue());
+														if (serializedAttribute.containsKey("Type")) {
+															String strKeyPrefix = "Items." + serializedItemEntry.getKey() + ".Attributes." + serializedAttributesEntry.getKey();
+															String strAttrType = ObjectUtilities.getObject(serializedAttribute, String.class, "Type", "");
+															save = true;
+															kitConfig.set(strKeyPrefix + ".Name", strAttrType.replace(' ', '_').toUpperCase());
+															Attributes.AttributeType deserializedAttrType = Attributes.AttributeType.valueOf(strAttrType);
+															if (deserializedAttrType != null) {
+																kitConfig.set(strKeyPrefix + ".Type", deserializedAttrType.getMinecraftId());
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+									if (save) {
+										if (oldFolder == null) {
+											kitConfig.save(kitFile);
+											continue;
+										}
+										FileUtil.copy(kitFile, new File(oldFolder, kitFile.getName()));
+										FileUtilities.delete(kitFile);
+										kitConfig.save(kitFile);
+									}
+								}
+							}
+
+							if (FileUtilities.getFiles(oldFolder).length == 0) FileUtilities.delete(oldFolder);
+						}
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+
+				this.reloadConfigs();
+				this.loadConfiguration();
+				try {
+					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+						SQLController.getInstance();
+						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					} else {
+						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();

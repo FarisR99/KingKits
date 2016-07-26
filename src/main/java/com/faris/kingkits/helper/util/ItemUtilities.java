@@ -1,7 +1,7 @@
 package com.faris.kingkits.helper.util;
 
-import nl.arfie.bukkit.attributes.Attribute;
-import nl.arfie.bukkit.attributes.Attributes;
+import com.comphenix.attributes.Attributes;
+import com.comphenix.attributes.Attributes.Attribute;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -99,12 +99,18 @@ public class ItemUtilities {
 
 				if (serializedItem.get("Attributes") != null) {
 					Map<String, Object> attributesMap = ObjectUtilities.getMap(serializedItem.get("Attributes"));
-					List<Attribute> attributes = new ArrayList<>();
+					List<Attribute> attributesList = new ArrayList<>();
 					for (Object serializedAttribute : attributesMap.values()) {
 						Attribute deserializedAttribute = Attribute.deserialize(ObjectUtilities.getMap(serializedAttribute));
-						if (deserializedAttribute != null) attributes.add(deserializedAttribute);
+						if (deserializedAttribute != null) attributesList.add(deserializedAttribute);
 					}
-					if (!attributes.isEmpty()) Attributes.apply(deserializedItem, attributes, true);
+					if (!attributesList.isEmpty()) {
+						Attributes itemAttributes  = new Attributes(deserializedItem);
+						for (Attribute attribute : attributesList) {
+							itemAttributes.add(attribute);
+						}
+						deserializedItem = itemAttributes.getStack();
+					}
 				}
 				if (serializedItem.get("Enchantments") != null) {
 					Map<String, Object> enchantmentsMap = ObjectUtilities.getMap(serializedItem.get("Enchantments"));
@@ -190,12 +196,13 @@ public class ItemUtilities {
 						Map<String, Object> serializedBanner = ObjectUtilities.getMap(serializedItem.get("Banner"));
 						if (serializedBanner.containsKey("Base")) {
 							Color deserializedBaseColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedBanner.get("Base")));
-							if (deserializedBaseColor != null)
+							if (deserializedBaseColor != null) {
 								bannerMeta.setBaseColor(DyeColor.getByColor(deserializedBaseColor));
+							}
 						}
 						if (serializedBanner.containsKey("Patterns")) {
 							List<Pattern> patterns = new ArrayList<>();
-							Map<String, Object> serializedPatterns = ObjectUtilities.getMap(serializedItem.get("Patterns"));
+							Map<String, Object> serializedPatterns = ObjectUtilities.getMap(serializedBanner.get("Patterns"));
 							for (Object objSerializedPattern : serializedPatterns.values()) {
 								Map<String, Object> serializedPattern = ObjectUtilities.getMap(objSerializedPattern);
 								Pattern pattern = null;
@@ -203,7 +210,7 @@ public class ItemUtilities {
 								if (serializedPattern.get("Pattern") != null) {
 									String strPatternType = ObjectUtilities.toString(serializedPattern.get("Pattern"));
 									patternType = PatternType.getByIdentifier(strPatternType);
-									if (patternType != null) {
+									if (patternType == null) {
 										for (PatternType aPatternType : PatternType.values()) {
 											if (aPatternType.name().replace('_', ' ').equalsIgnoreCase(strPatternType)) {
 												patternType = aPatternType;
@@ -214,8 +221,9 @@ public class ItemUtilities {
 								}
 								if (patternType != null && serializedPattern.get("Color") != null) {
 									Color deserializedPatternColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedPattern.get("Color")));
-									if (deserializedPatternColor != null)
+									if (deserializedPatternColor != null) {
 										pattern = new Pattern(DyeColor.getByColor(deserializedPatternColor), patternType);
+									}
 								}
 								if (pattern != null) patterns.add(pattern);
 							}
@@ -235,7 +243,7 @@ public class ItemUtilities {
 							}
 							if (serializedBanner.containsKey("Patterns")) {
 								List<Pattern> patterns = new ArrayList<>();
-								Map<String, Object> serializedPatterns = ObjectUtilities.getMap(serializedItem.get("Patterns"));
+								Map<String, Object> serializedPatterns = ObjectUtilities.getMap(serializedBanner.get("Patterns"));
 								for (Object objSerializedPattern : serializedPatterns.values()) {
 									Map<String, Object> serializedPattern = ObjectUtilities.getMap(objSerializedPattern);
 									Pattern pattern = null;
@@ -243,7 +251,7 @@ public class ItemUtilities {
 									if (serializedPattern.get("Pattern") != null) {
 										String strPatternType = ObjectUtilities.toString(serializedPattern.get("Pattern"));
 										patternType = PatternType.getByIdentifier(strPatternType);
-										if (patternType != null) {
+										if (patternType == null) {
 											for (PatternType aPatternType : PatternType.values()) {
 												if (aPatternType.name().replace('_', ' ').equalsIgnoreCase(strPatternType)) {
 													patternType = aPatternType;
@@ -254,8 +262,9 @@ public class ItemUtilities {
 									}
 									if (patternType != null && serializedPattern.get("Color") != null) {
 										Color deserializedPatternColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedPattern.get("Color")));
-										if (deserializedPatternColor != null)
+										if (deserializedPatternColor != null) {
 											pattern = new Pattern(DyeColor.getByColor(deserializedPatternColor), patternType);
+										}
 									}
 									if (pattern != null) patterns.add(pattern);
 								}
@@ -518,7 +527,7 @@ public class ItemUtilities {
 				}
 			}
 
-			final List<Attribute> itemAttributes = Attributes.fromStack(itemStack);
+			final List<Attribute> itemAttributes = new Attributes(itemStack).getAll();
 			if (!itemAttributes.isEmpty()) {
 				Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();
 				for (int i = 0; i < itemAttributes.size(); i++)

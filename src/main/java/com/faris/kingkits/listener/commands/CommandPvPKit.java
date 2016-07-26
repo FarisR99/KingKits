@@ -133,7 +133,7 @@ public class CommandPvPKit extends KingKitsCommand {
 				} else {
 					kit = preEvent.getKit();
 				}
-				long kitTimestamp = player.isOp() && ConfigController.getInstance().canOpsBypass() ? -1L : kitPlayer.getKitTimestamp(kit);
+				long kitTimestamp = player.hasPermission(Permissions.ADMIN) && ConfigController.getInstance().canAdminsBypass() ? -1L : kitPlayer.getKitTimestamp(kit);
 				if (kit.hasCooldown()) {
 					if (kitTimestamp != -1L) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (kit.getCooldown() * 1_000D)) {
@@ -143,7 +143,7 @@ public class CommandPvPKit extends KingKitsCommand {
 					}
 				}
 				if (kitTimestamp == -1L) {
-					if (kit.getCost() > 0D && (!player.isOp() || !ConfigController.getInstance().canOpsBypass())) {
+					if (kit.getCost() > 0D && (!player.hasPermission(Permissions.ADMIN) || !ConfigController.getInstance().canAdminsBypass())) {
 						double playerBalance = PlayerUtilities.getBalance(player);
 						if (playerBalance >= kit.getCost()) {
 							playerBalance -= kit.getCost();

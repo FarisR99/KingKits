@@ -3,6 +3,7 @@ package com.faris.kingkits.controller;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.api.event.PlayerKitEvent;
 import com.faris.kingkits.api.event.PlayerPreKitEvent;
 import com.faris.kingkits.helper.util.*;
@@ -376,7 +377,7 @@ public class GuiController implements Controller {
 				} else {
 					selectedKit = preEvent.getKit();
 				}
-				long kitTimestamp = selectedKit.isUserKit() || (player.isOp() && ConfigController.getInstance().canOpsBypass()) ? -1L : kitPlayer.getKitTimestamp(selectedKit);
+				long kitTimestamp = selectedKit.isUserKit() || (player.hasPermission(Permissions.ADMIN) && ConfigController.getInstance().canAdminsBypass()) ? -1L : kitPlayer.getKitTimestamp(selectedKit);
 				if (kitTimestamp != -1L) {
 					if (selectedKit.hasCooldown()) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (selectedKit.getCooldown() * 1_000D)) {
@@ -386,7 +387,7 @@ public class GuiController implements Controller {
 					}
 				}
 				if (kitTimestamp == -1L) {
-					if (selectedKit.getCost() > 0D && (!player.isOp() || !ConfigController.getInstance().canOpsBypass())) {
+					if (selectedKit.getCost() > 0D && (!player.hasPermission(Permissions.ADMIN) || !ConfigController.getInstance().canAdminsBypass())) {
 						double playerBalance = PlayerUtilities.getBalance(player);
 						if (playerBalance >= selectedKit.getCost()) {
 							playerBalance -= selectedKit.getCost();
@@ -490,6 +491,10 @@ public class GuiController implements Controller {
 	public static GuiController getInstance() {
 		if (instance == null) instance = new GuiController();
 		return instance;
+	}
+
+	public static boolean hasInstance() {
+		return instance != null;
 	}
 
 	public enum GuiType {

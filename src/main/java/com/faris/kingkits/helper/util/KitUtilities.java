@@ -2,6 +2,7 @@ package com.faris.kingkits.helper.util;
 
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
+import com.faris.kingkits.Permissions;
 import com.faris.kingkits.api.event.PlayerKitEvent;
 import com.faris.kingkits.api.event.PlayerPreKitEvent;
 import com.faris.kingkits.controller.ConfigController;
@@ -131,7 +132,7 @@ public class KitUtilities {
 	}
 
 	public static boolean setKit(final Player player, Kit kit) {
-		return setKit(player, kit, false, player != null && player.isOp() && ConfigController.getInstance().canOpsBypass(), player != null && player.isOp() && ConfigController.getInstance().canOpsBypass());
+		return setKit(player, kit, false, player != null && player.hasPermission(Permissions.ADMIN) && ConfigController.getInstance().canAdminsBypass(), player != null && player.isOp() && ConfigController.getInstance().canAdminsBypass());
 	}
 
 	public static boolean setKit(final Player player, Kit kit, boolean ignoreOneKitPerLife, boolean ignoreCooldown, boolean ignoreCost) {

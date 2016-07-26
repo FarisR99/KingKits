@@ -459,7 +459,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			if (!ConfigController.getInstance().canModifyBlocks(event.getBlock().getWorld())) {
 				if (Utilities.isPvPWorld(player.getWorld())) {
-					if (!ConfigController.getInstance().canOpsBypass() || !player.isOp()) {
+					if (!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) {
 						event.setCancelled(true);
 						Messages.sendMessage(player, Messages.EVENT_BLOCK_BREAK);
 					}
@@ -476,7 +476,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			if (!ConfigController.getInstance().canModifyBlocks(event.getBlock().getWorld())) {
 				if (Utilities.isPvPWorld(player.getWorld())) {
-					if (!ConfigController.getInstance().canOpsBypass() || !player.isOp()) {
+					if (!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) {
 						event.setCancelled(true);
 						Messages.sendMessage(player, Messages.EVENT_BLOCK_PLACE);
 					}
@@ -493,7 +493,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canDropItems(player.getWorld()) && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
+				if (!ConfigController.getInstance().canDropItems(player.getWorld()) && (!player.hasPermission(Permissions.ADMIN) || ConfigController.getInstance().canAdminsBypass())) {
 					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getTypeId()))
 						event.setCancelled(true);
 					else event.getItemDrop().remove();
@@ -510,7 +510,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
-				if (!ConfigController.getInstance().canPickupItems(player.getWorld()) && (!player.isOp() || ConfigController.getInstance().canOpsBypass())) {
+				if (!ConfigController.getInstance().canPickupItems(player.getWorld()) && (!player.hasPermission(Permissions.ADMIN) || ConfigController.getInstance().canAdminsBypass())) {
 					event.setCancelled(true);
 				}
 			}
@@ -679,7 +679,7 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			if (ConfigController.getInstance().shouldPreventCreative()) {
 				if (event.getNewGameMode() == GameMode.CREATIVE) {
-					if (!ConfigController.getInstance().canOpsBypass() || !player.isOp()) {
+					if (!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) {
 						if (Utilities.isPvPWorld(player.getWorld())) {
 							event.setCancelled(true);
 						}

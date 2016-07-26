@@ -17,7 +17,6 @@ public final class Reflection {
 	private static String _versionString;
 
 	private Reflection() {
-
 	}
 
 	/**
@@ -42,11 +41,11 @@ public final class Reflection {
 	/**
 	 * Stores loaded classes from the {@code net.minecraft.server} package.
 	 */
-	private static final Map<String, Class<?>> _loadedNMSClasses = new HashMap<String, Class<?>>();
+	private static final Map<String, Class<?>> _loadedNMSClasses = new HashMap<>();
 	/**
 	 * Stores loaded classes from the {@code org.bukkit.craftbukkit} package (and subpackages).
 	 */
-	private static final Map<String, Class<?>> _loadedOBCClasses = new HashMap<String, Class<?>>();
+	private static final Map<String, Class<?>> _loadedOBCClasses = new HashMap<>();
 
 	/**
 	 * Gets a {@link Class} object representing a type contained within the {@code net.minecraft.server} versioned package.
@@ -116,7 +115,7 @@ public final class Reflection {
 		}
 	}
 
-	private static final Map<Class<?>, Map<String, Field>> _loadedFields = new HashMap<Class<?>, Map<String, Field>>();
+	private static final Map<Class<?>, Map<String, Field>> _loadedFields = new HashMap<>();
 
 	/**
 	 * Retrieves a {@link Field} instance declared by the specified class with the specified name.
@@ -139,7 +138,7 @@ public final class Reflection {
 	public synchronized static Field getField(Class<?> clazz, String name) {
 		Map<String, Field> loaded;
 		if (!_loadedFields.containsKey(clazz)) {
-			loaded = new HashMap<String, Field>();
+			loaded = new HashMap<>();
 			_loadedFields.put(clazz, loaded);
 		} else {
 			loaded = _loadedFields.get(clazz);
@@ -166,7 +165,7 @@ public final class Reflection {
 	 * Contains loaded methods in a cache.
 	 * The map maps [types to maps of [method names to maps of [parameter types to method instances]]].
 	 */
-	private static final Map<Class<?>, Map<String, Map<ArrayWrapper<Class<?>>, Method>>> _loadedMethods = new HashMap<Class<?>, Map<String, Map<ArrayWrapper<Class<?>>, Method>>>();
+	private static final Map<Class<?>, Map<String, Map<ArrayWrapper<Class<?>>, Method>>> _loadedMethods = new HashMap<>();
 
 	/**
 	 * Retrieves a {@link Method} instance declared by the specified class with the specified name and argument types.
@@ -189,8 +188,7 @@ public final class Reflection {
 	 * @param args The formal argument types of the method.
 	 * @return A method object with the specified name declared by the specified class.
 	 */
-	public synchronized static Method getMethod(Class<?> clazz, String name,
-												Class<?>... args) {
+	public synchronized static Method getMethod(Class<?> clazz, String name, Class<?>... args) {
 		if (!_loadedMethods.containsKey(clazz)) {
 			_loadedMethods.put(clazz, new HashMap<String, Map<ArrayWrapper<Class<?>>, Method>>());
 		}
@@ -201,7 +199,7 @@ public final class Reflection {
 		}
 
 		Map<ArrayWrapper<Class<?>>, Method> loadedSignatures = loadedMethodNames.get(name);
-		ArrayWrapper<Class<?>> wrappedArg = new ArrayWrapper<Class<?>>(args);
+		ArrayWrapper<Class<?>> wrappedArg = new ArrayWrapper<>(args);
 		if (loadedSignatures.containsKey(wrappedArg)) {
 			return loadedSignatures.get(wrappedArg);
 		}

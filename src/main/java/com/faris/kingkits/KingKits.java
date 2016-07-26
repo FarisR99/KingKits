@@ -1,5 +1,7 @@
 package com.faris.kingkits;
 
+import com.comphenix.attributes.Attributes;
+import com.comphenix.attributes.Attributes.Attribute;
 import com.faris.easysql.mysql.MySQLDetails;
 import com.faris.kingkits.controller.*;
 import com.faris.kingkits.helper.util.BukkitUtilities;
@@ -15,7 +17,6 @@ import com.faris.kingkits.storage.DataStorage;
 import com.faris.kingkits.storage.FlatFileStorage;
 import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
-import nl.arfie.bukkit.attributes.Attribute;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
@@ -42,6 +43,8 @@ public class KingKits extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		Attributes.AttributeType.initialiseNameMap();
+
 		final boolean isSpigot = this.getServer().getVersion().contains("Spigot");
 
 		try {
@@ -70,7 +73,7 @@ public class KingKits extends JavaPlugin {
 		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION))
+		if (new File(this.getDataFolder(), "config.yml").exists() && (!ConfigController.getInstance().getConfig().contains("Version") || !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION)))
 			ConfigController.getInstance().migrateOldConfigs();
 		else ConfigController.getInstance().loadConfiguration();
 		try {
@@ -261,7 +264,7 @@ public class KingKits extends JavaPlugin {
 
 		this.getServer().getScheduler().cancelTasks(this);
 
-		GuiController.getInstance().shutdownController();
+		if (GuiController.hasInstance()) GuiController.getInstance().shutdownController();
 
 		for (KitPlayer kitPlayer : PlayerController.getInstance().getAllPlayers()) {
 			Player player = kitPlayer.getBukkitPlayer();
