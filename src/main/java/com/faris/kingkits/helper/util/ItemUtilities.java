@@ -105,7 +105,7 @@ public class ItemUtilities {
 						if (deserializedAttribute != null) attributesList.add(deserializedAttribute);
 					}
 					if (!attributesList.isEmpty()) {
-						Attributes itemAttributes  = new Attributes(deserializedItem);
+						Attributes itemAttributes = new Attributes(deserializedItem);
 						for (Attribute attribute : attributesList) {
 							itemAttributes.add(attribute);
 						}

@@ -166,6 +166,7 @@ public class Attributes {
 			setAttributeType(builder.type);
 			setName(builder.name);
 			setUUID(builder.uuid);
+			if (builder.slot != null) setSlot(builder.slot);
 		}
 
 		private Attribute(NbtCompound data) {
@@ -212,9 +213,22 @@ public class Attributes {
 		}
 
 		public void setUUID(UUID id) {
-			Preconditions.checkNotNull("id", "id cannot be NULL.");
+			Preconditions.checkNotNull(id, "id cannot be NULL.");
 			data.put("UUIDLeast", id.getLeastSignificantBits());
 			data.put("UUIDMost", id.getMostSignificantBits());
+		}
+
+		public String getSlot() {
+			return data.getString("Slot", null);
+		}
+
+		private boolean hasSlot() {
+			return data.containsKey("Slot") && data.get("Slot") != null;
+		}
+
+		public void setSlot(String slot) {
+			Preconditions.checkNotNull(slot, "slot cannot be NULL.");
+			data.put("Slot", slot);
 		}
 
 		/**
@@ -233,6 +247,7 @@ public class Attributes {
 			serializedAttribute.put("Name", this.getName());
 			serializedAttribute.put("Type", this.getAttributeType().getMinecraftId());
 			serializedAttribute.put("Amount", this.getAmount());
+			if (this.hasSlot()) serializedAttribute.put("Slot", this.getSlot());
 			Operation operation = this.getOperation();
 			if (operation != null) serializedAttribute.put("Operation", operation.name());
 			return serializedAttribute;
@@ -257,6 +272,7 @@ public class Attributes {
 					if (operation == null) operation = Operation.ADD_NUMBER;
 					Builder attributeBuilder = new Builder().name(ObjectUtilities.getObject(serializedAttribute, String.class, "Name")).type(attributeType).operation(operation).amount(attributeAmount);
 					if (attributeUUID != null) attributeBuilder.uuid(attributeUUID);
+					if (serializedAttribute.containsKey("Slot")) attributeBuilder.slot(ObjectUtilities.getObject(serializedAttribute, String.class, "Slot"));
 					deserializedAttribute = attributeBuilder.build();
 				}
 			}
@@ -270,6 +286,7 @@ public class Attributes {
 			private AttributeType type;
 			private String name;
 			private UUID uuid;
+			private String slot;
 
 			private Builder() {
 				// Don't make this accessible
@@ -297,6 +314,11 @@ public class Attributes {
 
 			public Builder uuid(UUID uuid) {
 				this.uuid = uuid;
+				return this;
+			}
+
+			public Builder slot(String slot) {
+				this.slot = slot;
 				return this;
 			}
 
