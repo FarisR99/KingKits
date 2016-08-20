@@ -130,6 +130,7 @@ public class EventListener implements Listener {
 							if (Utilities.isPvPWorld(player.getWorld())) {
 								GuiController.getInstance().openKitsMenu(player);
 								event.setCancelled(true);
+								return;
 							}
 						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
 							if (ConfigController.getInstance().canQuickSoup(player.getWorld())) {
@@ -161,6 +162,7 @@ public class EventListener implements Listener {
 														player.getInventory().setItemInOffHand(newItem);
 													player.getInventory().addItem(new ItemStack(Material.BOWL));
 												}
+												return;
 											}
 										}
 									}
@@ -172,8 +174,6 @@ public class EventListener implements Listener {
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to execute the item detection code.", ex);
 			}
-
-			if (event.isCancelled()) return;
 
 			try {
 				if (event.getItem() != null) {
@@ -218,6 +218,7 @@ public class EventListener implements Listener {
 								} else {
 									Messages.sendMessage(player, Messages.SIGN_USE_NO_PERMISSION, "kit");
 								}
+								return;
 							} else if (firstLine.equals(ConfigController.getInstance().getSignsKitList(player.getWorld())[1])) {
 								event.setCancelled(true);
 								if (player.hasPermission(Permissions.SIGN_KIT_LIST_USE)) {
@@ -225,6 +226,7 @@ public class EventListener implements Listener {
 								} else {
 									Messages.sendMessage(player, Messages.SIGN_USE_NO_PERMISSION, "kit list");
 								}
+								return;
 							} else if (firstLine.equals(ConfigController.getInstance().getSignsRefill(player.getWorld())[1])) {
 								event.setCancelled(true);
 								if (player.hasPermission(Permissions.SIGN_REFILL_USE)) {
@@ -237,6 +239,7 @@ public class EventListener implements Listener {
 								} else {
 									Messages.sendMessage(player, Messages.SIGN_USE_NO_PERMISSION, "refill");
 								}
+								return;
 							}
 						}
 					}
@@ -244,8 +247,6 @@ public class EventListener implements Listener {
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to check block for any valid signs.", ex);
 			}
-
-			if (event.isCancelled()) return;
 
 			try {
 				if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -258,16 +259,14 @@ public class EventListener implements Listener {
 										double distance = -1D;
 										for (Player target : player.getWorld().getPlayers()) {
 											if (!target.getUniqueId().equals(player.getUniqueId())) {
-												if (player.getLocation().getWorld().getUID().equals(target.getLocation().getWorld().getUID())) {
-													if (distance == -1D) {
-														distance = player.getLocation().distanceSquared(target.getLocation());
+												if (distance == -1D) {
+													distance = player.getLocation().distanceSquared(target.getLocation());
+													nearestPlayer = target;
+												} else {
+													double distanceSquared = player.getLocation().distanceSquared(target.getLocation());
+													if (distanceSquared <= distance) {
+														distance = distanceSquared;
 														nearestPlayer = target;
-													} else {
-														double distanceSquared = player.getLocation().distanceSquared(target.getLocation());
-														if (distanceSquared <= distance) {
-															distance = distanceSquared;
-															nearestPlayer = target;
-														}
 													}
 												}
 											}

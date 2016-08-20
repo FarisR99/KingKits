@@ -58,8 +58,8 @@ public class KingKits extends JavaPlugin {
 			} else if (SERVER_VERSION.startsWith("v1_8_")) {
 				this.getLogger().log(Level.SEVERE, "KingKits v5.2.0 and above do not support MC 1.8. This plugin will not work.");
 				if (isSpigot && SERVER_VERSION.startsWith("v1_8_R3")) {
-					this.getLogger().log(Level.INFO, "You can download KingKits v5.2.4 for MC 1.8.8 (unsupported) here:");
-					this.getLogger().log(Level.INFO, "http://www.mediafire.com/download/oen0ohpi3ehj045/KingKits-v1_8_R3-5.2.4.jar");
+					this.getLogger().log(Level.INFO, "You can download KingKits v5.2.9 for MC 1.8.8 (unsupported) here:");
+					this.getLogger().log(Level.INFO, "https://www.dropbox.com/s/78gduhsicu3ti4e/KingKits-v1_8_R3-5.2.9.jar?dl=0");
 				}
 				this.disablePlugin();
 				return;
@@ -108,7 +108,7 @@ public class KingKits extends JavaPlugin {
 					try {
 						this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
 					} catch (Exception ex) {
-						this.getServer().getConsoleSender().sendMessage("KingKits");
+						this.getLogger().info("KingKits");
 					}
 					this.getLogger().info(title);
 					this.getLogger().info("A new version is available: KingKits v" + updater.getVersion());
@@ -122,13 +122,13 @@ public class KingKits extends JavaPlugin {
 							this.getLogger().warning("Plugin updater disabled in the updater's configuration.");
 							break;
 						case BAD_RESOURCE_ID:
-							this.getLogger().warning("Download failed: Bad resource ID.");
+							this.getLogger().warning("Check failed: Bad resource ID.");
 							break;
 						case FAIL_SPIGOT:
-							this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
+							this.getLogger().warning("Check failed: Could not connect to Spigot.");
 							break;
 						case FAIL_NO_VERSION:
-							this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+							this.getLogger().warning("Check failed: The latest version has an incorrect title.");
 							break;
 						default:
 							this.getLogger().info("No new update found.");
@@ -145,7 +145,7 @@ public class KingKits extends JavaPlugin {
 					try {
 						this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
 					} catch (Exception ex) {
-						this.getServer().getConsoleSender().sendMessage("== KingKits ==");
+						this.getLogger().info("== KingKits ==");
 					}
 					this.getLogger().info(header);
 					this.getLogger().info("A new version is available: " + updater.getLatestName());
