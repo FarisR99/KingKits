@@ -330,6 +330,10 @@ public class KingKits extends JavaPlugin {
 		}, 20L);
 	}
 
+	public EventListener getEventListener() {
+		return this.eventListener;
+	}
+
 	public void saveResource(String resourcePath, boolean replace, File outFile) {
 		if (resourcePath != null && !resourcePath.equals("")) {
 			resourcePath = resourcePath.replace('\\', '/');

@@ -272,7 +272,8 @@ public class Attributes {
 					if (operation == null) operation = Operation.ADD_NUMBER;
 					Builder attributeBuilder = new Builder().name(ObjectUtilities.getObject(serializedAttribute, String.class, "Name")).type(attributeType).operation(operation).amount(attributeAmount);
 					if (attributeUUID != null) attributeBuilder.uuid(attributeUUID);
-					if (serializedAttribute.containsKey("Slot")) attributeBuilder.slot(ObjectUtilities.getObject(serializedAttribute, String.class, "Slot"));
+					if (serializedAttribute.containsKey("Slot"))
+						attributeBuilder.slot(ObjectUtilities.getObject(serializedAttribute, String.class, "Slot"));
 					deserializedAttribute = attributeBuilder.build();
 				}
 			}

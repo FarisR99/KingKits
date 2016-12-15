@@ -118,7 +118,7 @@ public class CommandPvPKit extends KingKitsCommand {
 		if (kit != null) {
 			strKit = kit.getName();
 			if (isOther || kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit)) {
-				if (ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
+				if ((!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) && ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return;

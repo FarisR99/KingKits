@@ -362,7 +362,7 @@ public class GuiController implements Controller {
 				return;
 			}
 			if (selectedKit.isUserKit() || (kitPlayer.hasPermission(selectedKit) || kitPlayer.hasUnlocked(selectedKit))) {
-				if (ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
+				if ((!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) && ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return;

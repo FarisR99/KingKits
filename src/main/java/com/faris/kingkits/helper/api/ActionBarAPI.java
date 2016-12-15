@@ -2,7 +2,6 @@ package com.faris.kingkits.helper.api;
 
 import com.faris.kingkits.helper.util.ReflectionUtilities;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -56,15 +55,7 @@ public class ActionBarAPI {
 
 			initialised = true;
 		} catch (Exception ex) {
-			try {
-				String rawVersion = Bukkit.getServer().getClass().getPackage().getName();
-				String version = rawVersion.substring(rawVersion.lastIndexOf('.') + 1);
-
-				if (Class.forName("com.faris.gb.helper.nms." + version) == null) ex.printStackTrace();
-			} catch (Exception ex2) {
-				ex.printStackTrace();
-			}
-
+			ex.printStackTrace();
 			initialised = false;
 		}
 	}

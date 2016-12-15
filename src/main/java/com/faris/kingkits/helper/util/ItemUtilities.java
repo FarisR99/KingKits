@@ -43,6 +43,7 @@ public class ItemUtilities {
 		this.add(Material.SHIELD);
 		this.add(Material.FLINT_AND_STEEL);
 		this.add(Material.FISHING_ROD);
+		this.add(Material.SHEARS);
 	}};
 
 	private ItemUtilities() {

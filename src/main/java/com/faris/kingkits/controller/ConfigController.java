@@ -607,6 +607,10 @@ public class ConfigController implements Controller {
 		return this.scoreEnabled;
 	}
 
+	public void setSQLDetails(MySQLDetails details) {
+		this.sqlDetails = details;
+	}
+
 	public boolean shouldAllowRightClickPreview() {
 		return this.allowRightClickPreview;
 	}

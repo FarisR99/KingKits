@@ -37,7 +37,8 @@ public class EventListener implements Listener {
 
 	private final KingKits plugin;
 
-	private Map<UUID, Integer> tasksJoinKitMenu = new HashMap<>();
+	private Map<UUID, Integer> joinTasks = new HashMap<>();
+	private Map<UUID, Integer> updateInventoryTasks = new HashMap<>();
 
 	public EventListener(KingKits pluginInstance) {
 		this.plugin = pluginInstance;
@@ -70,8 +71,12 @@ public class EventListener implements Listener {
 			final Player player = event.getPlayer();
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 
-			if (this.tasksJoinKitMenu.containsKey(player.getUniqueId()))
-				BukkitUtilities.cancelTask(this.tasksJoinKitMenu.remove(player.getUniqueId()));
+			if (this.joinTasks.containsKey(player.getUniqueId())) {
+				BukkitUtilities.cancelTask(this.joinTasks.remove(player.getUniqueId()));
+			}
+			if (this.updateInventoryTasks.containsKey(player.getUniqueId())) {
+				BukkitUtilities.cancelTask(this.updateInventoryTasks.remove(player.getUniqueId()));
+			}
 
 			boolean inPvPWorld = Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit());
 			try {
@@ -493,9 +498,24 @@ public class EventListener implements Listener {
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
 				if (!ConfigController.getInstance().canDropItems(player.getWorld()) && (!player.hasPermission(Permissions.ADMIN) || ConfigController.getInstance().canAdminsBypass())) {
-					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getTypeId()))
+					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getTypeId())) {
 						event.setCancelled(true);
-					else event.getItemDrop().remove();
+						final UUID playerUUID = player.getUniqueId();
+						if (this.updateInventoryTasks.containsKey(playerUUID)) {
+							BukkitUtilities.cancelTask(this.updateInventoryTasks.remove(playerUUID));
+						}
+						this.updateInventoryTasks.put(playerUUID, player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
+							@Override
+							public void run() {
+								updateInventoryTasks.remove(playerUUID);
+								if (player.isOnline()) {
+									player.updateInventory();
+								}
+							}
+						}, 2L).getTaskId());
+					} else {
+						event.getItemDrop().remove();
+					}
 				}
 			}
 		} catch (Exception ex) {
@@ -862,6 +882,10 @@ public class EventListener implements Listener {
 	}
 
 	public void handleJoinEvent(final Player player) throws Exception {
+		this.handleJoinEvent(player, false);
+	}
+
+	public void handleJoinEvent(final Player player, final boolean onlyReload) throws Exception {
 		final KitPlayer kitPlayer = PlayerController.getInstance().registerPlayer(player);
 
 		final long currentTime = System.currentTimeMillis();
@@ -871,7 +895,7 @@ public class EventListener implements Listener {
 				if (player.isOnline()) {
 					try {
 						if (ConfigController.getInstance().shouldShowGuiOnJoin() && Utilities.isPvPWorld(player.getWorld())) {
-							tasksJoinKitMenu.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
+							EventListener.this.joinTasks.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
 								@SuppressWarnings("deprecation")
 								public void run() {
 									if (player.isOnline()) GuiController.getInstance().openKitsMenu(player);
@@ -906,7 +930,7 @@ public class EventListener implements Listener {
 							return;
 						}
 					}
-					Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
+					if (!onlyReload) Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 

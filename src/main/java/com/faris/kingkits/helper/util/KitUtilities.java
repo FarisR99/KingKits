@@ -145,7 +145,7 @@ public class KitUtilities {
 				return false;
 			}
 			if (kit.isUserKit() || (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit))) {
-				if (!ignoreOneKitPerLife && ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
+				if (!ignoreOneKitPerLife && (!ConfigController.getInstance().canAdminsBypass() || !player.hasPermission(Permissions.ADMIN)) && ConfigController.getInstance().isOneKitPerLife(player.getWorld())) {
 					if (kitPlayer.hasKit()) {
 						Messages.sendMessage(player, Messages.KIT_ONE_PER_LIFE);
 						return false;

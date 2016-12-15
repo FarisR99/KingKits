@@ -6,7 +6,7 @@
 
     <groupId>com.faris</groupId>
     <artifactId>KingKits</artifactId>
-    <version>5.2.9</version>
+    <version>5.3.0</version>
 
     <packaging>jar</packaging>
 
@@ -88,10 +88,6 @@
                                     <include>org.mcstats.*</include>
                                     <include>com.google.code.gson</include>
                                 </includes>
-                                <excludes>
-                                    <exclude>org.spigotmc</exclude>
-                                    <exclude>org.bukkit</exclude>
-                                </excludes>
                             </artifactSet>
                         </configuration>
                     </execution>
@@ -145,6 +141,7 @@
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
             <version>1.10.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

@@ -58,7 +58,8 @@ public class CommandListener implements CommandExecutor {
 							try {
 								this.plugin.stopAutoSaveTask();
 
-								SQLController.getInstance().closeConnection();
+								if (SQLController.hasInstance()) SQLController.getInstance().closeConnection();
+								PlayerController.getInstance().shutdownController();
 
 								ConfigController.getInstance().reloadConfigs();
 								ConfigController.getInstance().loadConfiguration();
@@ -66,8 +67,26 @@ public class CommandListener implements CommandExecutor {
 								KitController.getInstance().loadKits();
 								GuiController.getInstance().loadInventories();
 
-								SQLController.getInstance().setHandler(MySQLHandler.newInstance(this.plugin, ConfigController.getInstance().getSQLDetails()));
-								SQLController.getInstance().openConnection();
+								PlayerController.getInstance();
+								if (ConfigController.getInstance().getSQLDetails() != null && ConfigController.getInstance().getSQLDetails().isEnabled()) {
+									SQLController.getInstance().setHandler(MySQLHandler.newInstance(this.plugin, ConfigController.getInstance().getSQLDetails()));
+									SQLController.getInstance().openConnection();
+								}
+								if (DataStorage.getInstance() == null) {
+									if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
+										DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+									} else {
+										DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+									}
+								}
+
+								try {
+									for (Player player : sender.getServer().getOnlinePlayers()) {
+										this.plugin.getEventListener().handleJoinEvent(player);
+									}
+								} catch (Exception ex) {
+									ex.printStackTrace();
+								}
 
 								this.plugin.startAutoSaveTask();
 

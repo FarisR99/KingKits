@@ -1,5 +1,6 @@
 package com.faris.kingkits.controller;
 
+import com.faris.easysql.mysql.MySQLDetails;
 import com.faris.easysql.mysql.MySQLHandler;
 import com.faris.kingkits.KingKits;
 
@@ -14,6 +15,9 @@ public class SQLController implements Controller {
 	private MySQLHandler sqlHandler = null;
 
 	private SQLController() {
+		if (ConfigController.getInstance().getSQLDetails() == null) {
+			ConfigController.getInstance().setSQLDetails(new MySQLDetails());
+		}
 		this.sqlHandler = MySQLHandler.newInstance(KingKits.getInstance(), ConfigController.getInstance().getSQLDetails());
 	}
 
@@ -51,6 +55,10 @@ public class SQLController implements Controller {
 	public static SQLController getInstance() {
 		if (instance == null) instance = new SQLController();
 		return instance;
+	}
+
+	public static boolean hasInstance() {
+		return instance != null;
 	}
 
 }
