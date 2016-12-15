@@ -56,10 +56,6 @@ public class ActionBarAPI {
 			initialised = true;
 		} catch (Exception ex) {
 			ex.printStackTrace();
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
 			initialised = false;
 		}
 	}
