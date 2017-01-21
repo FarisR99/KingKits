@@ -64,8 +64,9 @@ public class CommandCreateKit extends KingKitsCommand {
 							if (player.getInventory().getContents() != null) {
 								ItemStack[] playerInventoryContents = player.getInventory().getStorageContents();
 								for (int i = 0; i < playerInventoryContents.length; i++) {
-									if (!ItemUtilities.isNull(playerInventoryContents[i]))
+									if (!ItemUtilities.isNull(playerInventoryContents[i])) {
 										kitItems.put(i, playerInventoryContents[i]);
+									}
 								}
 							}
 							for (PotionEffect potionEffect : player.getActivePotionEffects()) {

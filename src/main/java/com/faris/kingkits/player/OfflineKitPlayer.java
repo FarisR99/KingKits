@@ -37,8 +37,9 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 
 	public void addKit(Kit kit) {
 		if (kit != null) {
-			if (this.loaded && (!this.playerKits.containsKey(kit.getName()) || !kit.equals(this.playerKits.get(kit.getName()))))
+			if (this.loaded && (!this.playerKits.containsKey(kit.getName()) || !kit.equals(this.playerKits.get(kit.getName())))) {
 				this.modified = true;
+			}
 			this.playerKits.put(kit.getName(), kit);
 		}
 	}
@@ -146,8 +147,10 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 					if (this.loaded) this.modified = true;
 				}
 			} else {
-				this.unlockedKits.remove(kitName);
-				if (this.loaded) this.modified = true;
+				if (this.unlockedKits.contains(kitName)) {
+					this.unlockedKits.remove(kitName);
+					if (this.loaded) this.modified = true;
+				}
 			}
 		}
 	}

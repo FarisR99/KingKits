@@ -372,8 +372,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		serializedMap.put("Breakable items", this.itemBreaking);
 		serializedMap.put("Commands", this.kitCommands);
 		serializedMap.put("Killstreak commands", new LinkedHashMap<String, List<String>>() {{
-			for (Map.Entry<Integer, List<String>> killstreakCommandsEntry : killstreakCommands.entrySet())
+			for (Map.Entry<Integer, List<String>> killstreakCommandsEntry : killstreakCommands.entrySet()) {
 				this.put("Killstreak " + killstreakCommandsEntry.getKey(), killstreakCommandsEntry.getValue());
+			}
 		}});
 		serializedMap.put("GUI", new LinkedHashMap<String, Object>() {{
 			this.put("Position", guiPosition);
@@ -382,8 +383,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		serializedMap.put("Items", new LinkedHashMap<String, Map<String, Object>>() {{
 			if (!ItemUtilities.isNull(offHand)) this.put("Offhand", ItemUtilities.serializeItem(offHand));
 			for (Map.Entry<Integer, ItemStack> itemEntry : kitItems.entrySet()) {
-				if (!ItemUtilities.isNull(itemEntry.getValue()))
+				if (!ItemUtilities.isNull(itemEntry.getValue())) {
 					this.put("Slot " + itemEntry.getKey(), ItemUtilities.serializeItem(itemEntry.getValue()));
+				}
 			}
 		}});
 		if (this.heldItemSlot != -1) serializedMap.put("Held item slot", this.heldItemSlot);
@@ -394,8 +396,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			if (!ItemUtilities.isNull(kitArmour[0])) this.put("Boots", ItemUtilities.serializeItem(kitArmour[0]));
 		}});
 		serializedMap.put("Potion effects", new LinkedHashMap<Integer, Map<String, Object>>() {{
-			for (int i = 0; i < potionEffects.size(); i++)
+			for (int i = 0; i < potionEffects.size(); i++) {
 				this.put((i + 1), ItemUtilities.serializePotionEffect(potionEffects.get(i)));
+			}
 		}});
 		return serializedMap;
 	}
@@ -434,16 +437,18 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 							if (Utilities.isNumber(Integer.class, strKillstreak)) {
 								int killstreak = Integer.parseInt(strKillstreak);
 								List<String> commands = Utilities.toStringList((List) killstreakEntry.getValue());
-								if (commands != null && !commands.isEmpty())
+								if (commands != null && !commands.isEmpty()) {
 									killstreaksCommands.put(killstreak, commands);
+								}
 							}
 						} else if (killstreakEntry.getValue() instanceof String) {
 							String strKillstreak = killstreakEntry.getKey().startsWith("Killstreak ") ? killstreakEntry.getKey().substring(11) : killstreakEntry.getKey();
 							if (Utilities.isNumber(Integer.class, strKillstreak)) {
 								int killstreak = Integer.parseInt(strKillstreak);
 								String command = (String) killstreakEntry.getValue();
-								if (command != null && !command.isEmpty())
+								if (command != null && !command.isEmpty()) {
 									killstreaksCommands.put(killstreak, new ArrayList<>(Collections.singletonList(command)));
+								}
 							}
 						}
 					} catch (Exception ignored) {

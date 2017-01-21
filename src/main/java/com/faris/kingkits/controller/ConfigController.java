@@ -80,6 +80,7 @@ public class ConfigController implements Controller {
 	private boolean allowAdminBypass = true;
 	private boolean allowQuickSoup = true;
 	private boolean allowRightClickPreview = true;
+	private Map<String, String> chatPlaceholders = new HashMap<>();
 	private boolean economyEnabled = false;
 	private double economyCostPerRefill = 2.5D;
 	private double economyMoneyPerKill = 5D, economyMoneyPerDeath = 7.5D;
@@ -150,6 +151,8 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Allow.Item picking up", true, "Set to 'false' if you want to ban players from picking up items.");
 		this.getConfig().addDefault("Allow.Quick soup", true, "Set to 'false' if you want to disable players from using mushroom stew to heal themselves.");
 		this.getConfig().addDefault("Allow.Right click preview", true, "Set to 'false' if you do not want players to be able to right click a kit in the GUI to preview it.");
+		this.getConfig().addDefault("Chat placeholders.Has kit text", "&a<kit>");
+		this.getConfig().addDefault("Chat placeholders.No kit text", "&cNo");
 		if (!this.getConfig().contains("Command")) {
 			this.getConfig().set("Command", new LinkedHashMap<String, Boolean>() {{
 				this.put("Kit", true);
@@ -248,6 +251,12 @@ public class ConfigController implements Controller {
 			this.allowItemPicking = this.getConfig().getBoolean("Allow.Item picking up", true);
 			this.allowQuickSoup = this.getConfig().getBoolean("Allow.Quick soup", true);
 			this.allowRightClickPreview = this.getConfig().getBoolean("Allow.Right click preview", true);
+			this.chatPlaceholders.clear();
+			for (Map.Entry<String, Object> placeholderEntry : ObjectUtilities.getMap(this.getConfig().get("Chat placeholders")).entrySet()) {
+				if (placeholderEntry.getValue() instanceof String) {
+					this.chatPlaceholders.put(placeholderEntry.getKey(), String.valueOf(placeholderEntry.getValue()));
+				}
+			}
 			this.kkCommands = new boolean[]{
 					this.getConfig().getBoolean("Command.Kit", true),
 					this.getConfig().getBoolean("Command.Kit create", true),
@@ -451,6 +460,10 @@ public class ConfigController implements Controller {
 
 	public double getAutoSavePlayerDataTime() {
 		return this.autoSavePlayerData;
+	}
+
+	public String getChatPlaceholder(String configKey, String defaultValue) {
+		return this.chatPlaceholders.containsKey(configKey) ? this.chatPlaceholders.get(configKey) : defaultValue;
 	}
 
 	public boolean[] getCommands(World world) {

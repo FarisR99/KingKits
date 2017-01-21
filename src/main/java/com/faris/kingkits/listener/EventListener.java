@@ -360,9 +360,10 @@ public class EventListener implements Listener {
 									if (kit.getAutoUnlockScore() <= killerPlayer.getScore()) {
 										try {
 											if (!killerPlayer.hasUnlocked(kit) && !killer.hasPermission("kingkits.kits." + kit.getName().toLowerCase())) {
-												killerPlayer.addKit(kit);
-												if (ConfigController.getInstance().shouldDecreaseScoreOnAutoUnlock())
+												killerPlayer.setUnlockedKit(kit.getName(), true);
+												if (ConfigController.getInstance().shouldDecreaseScoreOnAutoUnlock()) {
 													killerPlayer.setScore(Math.max(killerPlayer.getScore() - kit.getAutoUnlockScore(), 0));
+												}
 												Messages.sendMessage(killer, Messages.KIT_UNLOCK, kit.getName());
 											}
 										} catch (Exception ex) {
@@ -430,8 +431,9 @@ public class EventListener implements Listener {
 						player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
 							@Override
 							public void run() {
-								if (player.isOnline() && Utilities.isPvPWorld(player.getWorld()))
+								if (player.isOnline() && Utilities.isPvPWorld(player.getWorld())) {
 									GuiController.getInstance().openKitsMenu(player);
+								}
 							}
 						}, 5L);
 					}
@@ -446,11 +448,21 @@ public class EventListener implements Listener {
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		try {
 			final Player player = event.getPlayer();
+			boolean inPvPWorld = Utilities.isPvPWorld(player.getWorld());
+			KitPlayer kitPlayer = null;
 			if (ConfigController.getInstance().isScoreEnabled()) {
-				if (Utilities.isPvPWorld(player.getWorld())) {
-					KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+				if (inPvPWorld) {
+					kitPlayer = PlayerController.getInstance().getPlayer(player);
 					event.setFormat(ChatUtilities.replaceChatCodes(String.format(ConfigController.getInstance().getScoreChatPrefix(), kitPlayer != null ? kitPlayer.getScore() : 0)) + ChatColor.WHITE + event.getFormat());
 				}
+			}
+			String chatFormat = event.getFormat();
+			if (chatFormat.contains("{kingkits_")) {
+				if (kitPlayer == null) kitPlayer = PlayerController.getInstance().getPlayer(player);
+				chatFormat = chatFormat.replace("{kingkits_score}", String.valueOf(kitPlayer != null ? kitPlayer.getScore() : 0));
+				chatFormat = chatFormat.replace("{kingkits_kit}", ChatUtilities.replaceChatCodes(String.valueOf(kitPlayer != null && kitPlayer.getKit() != null ? ConfigController.getInstance().getChatPlaceholder("Has kit text", "").replace("<kit>", kitPlayer.getKit().getName()) : ConfigController.getInstance().getChatPlaceholder("No kit text", ""))));
+				chatFormat = chatFormat.replace("{kingkits_killstreak}", String.valueOf(kitPlayer != null ? kitPlayer.getKillstreak() : 0));
+				event.setFormat(chatFormat);
 			}
 		} catch (Exception ex) {
 			Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to modify the chat format.", ex);

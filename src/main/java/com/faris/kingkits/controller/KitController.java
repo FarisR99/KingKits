@@ -127,8 +127,9 @@ public class KitController implements Controller {
 
 			CustomConfiguration configKit = CustomConfiguration.loadConfiguration(kitFile);
 			configKit.setNewLinePerKey(true);
-			for (Map.Entry<String, Object> serializationEntry : serializedKit.entrySet())
+			for (Map.Entry<String, Object> serializationEntry : serializedKit.entrySet()) {
 				configKit.set(serializationEntry.getKey(), serializationEntry.getValue());
+			}
 			try {
 				configKit.save(kitFile);
 			} catch (IOException ex) {

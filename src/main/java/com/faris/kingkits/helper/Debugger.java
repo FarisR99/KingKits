@@ -16,8 +16,9 @@ public class Debugger {
 	}
 
 	public static void debugException(String message, Exception ex) {
-		if (debugging)
+		if (debugging) {
 			KingKits.getInstance().getLogger().log(Level.WARNING, message != null ? "[Debug] " + message : "Debug error", ex);
+		}
 	}
 
 	public static void debugMessage(String message) {

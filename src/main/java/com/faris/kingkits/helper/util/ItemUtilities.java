@@ -271,6 +271,7 @@ public class ItemUtilities {
 								}
 								banner.setPatterns(patterns);
 							}
+							banner.update();
 							blockStateMeta.setBlockState(banner);
 						}
 					}
@@ -408,15 +409,18 @@ public class ItemUtilities {
 		Map<String, Object> serializedBanner = new LinkedHashMap<>();
 		if (banner != null) {
 			DyeColor baseDyeColor = banner.getBaseColor();
-			if (baseDyeColor != null) serializedBanner.put("Base", Utilities.serializeColor(baseDyeColor.getColor()));
+			if (baseDyeColor != null) {
+				serializedBanner.put("Base", Utilities.serializeColor(baseDyeColor.getColor()));
+			}
 			List<Pattern> bannerPatterns = banner.getPatterns();
 			if (bannerPatterns != null && !bannerPatterns.isEmpty()) {
 				Map<String, Map<String, Object>> serializedPatterns = new LinkedHashMap<>();
 				for (int patternIndex = 0; patternIndex < bannerPatterns.size(); patternIndex++) {
 					Pattern bannerPattern = bannerPatterns.get(patternIndex);
 					Map<String, Object> serializedPattern = new LinkedHashMap<>();
-					if (bannerPattern.getColor() != null)
+					if (bannerPattern.getColor() != null) {
 						serializedPattern.put("Color", Utilities.serializeColor(bannerPattern.getColor().getColor()));
+					}
 					serializedPattern.put("Pattern", StringUtilities.capitalizeFully(bannerPattern.getPattern().name().replace('_', ' ')));
 					serializedPatterns.put("Pattern " + (patternIndex + 1), serializedPattern);
 				}
@@ -430,15 +434,18 @@ public class ItemUtilities {
 		Map<String, Object> serializedBanner = new LinkedHashMap<>();
 		if (bannerMeta != null) {
 			DyeColor baseDyeColor = bannerMeta.getBaseColor();
-			if (baseDyeColor != null) serializedBanner.put("Base", Utilities.serializeColor(baseDyeColor.getColor()));
+			if (baseDyeColor != null) {
+				serializedBanner.put("Base", Utilities.serializeColor(baseDyeColor.getColor()));
+			}
 			List<Pattern> bannerPatterns = bannerMeta.getPatterns();
 			if (bannerPatterns != null && !bannerPatterns.isEmpty()) {
 				Map<String, Map<String, Object>> serializedPatterns = new LinkedHashMap<>();
 				int patternIndex = 1;
 				for (Pattern bannerPattern : bannerPatterns) {
 					Map<String, Object> serializedPattern = new LinkedHashMap<>();
-					if (bannerPattern.getColor() != null)
+					if (bannerPattern.getColor() != null) {
 						serializedPattern.put("Color", Utilities.serializeColor(bannerPattern.getColor().getColor()));
+					}
 					serializedPattern.put("Pattern", StringUtilities.capitalizeFully(bannerPattern.getPattern().name().replace('_', ' ')));
 					serializedPatterns.put("Pattern " + patternIndex++, serializedPattern);
 				}
@@ -480,8 +487,9 @@ public class ItemUtilities {
 						for (int i = 0; i < potionEffects.size(); i++) {
 							serializedCustomEffects.put("Potion " + (i + 1), serializePotionEffect(potionEffects.get(i)));
 						}
-						if (!serializedCustomEffects.isEmpty())
+						if (!serializedCustomEffects.isEmpty()) {
 							serializedItem.put("Custom potion effects", serializedCustomEffects);
+						}
 					}
 				}
 				if (itemMeta instanceof LeatherArmorMeta) {

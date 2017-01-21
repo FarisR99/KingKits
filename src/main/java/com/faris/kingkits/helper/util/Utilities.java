@@ -75,7 +75,8 @@ public class Utilities {
 				return Enchantment.DAMAGE_ARTHROPODS.getName();
 			else if (friendlyName.equalsIgnoreCase("Smite") || friendlyName.equalsIgnoreCase("Undead"))
 				return Enchantment.DAMAGE_UNDEAD.getName();
-			else if (friendlyName.equalsIgnoreCase("Power")) return Enchantment.ARROW_DAMAGE.getName();
+			else if (friendlyName.equalsIgnoreCase("Power"))
+				return Enchantment.ARROW_DAMAGE.getName();
 			else if (friendlyName.equalsIgnoreCase("Flame") || friendlyName.equalsIgnoreCase("Flames"))
 				return Enchantment.ARROW_FIRE.getName();
 			else if (friendlyName.equalsIgnoreCase("Infinite") || friendlyName.equalsIgnoreCase("Infinity"))
@@ -121,6 +122,10 @@ public class Utilities {
 				return Enchantment.FROST_WALKER.getName();
 			else if (friendlyName.equalsIgnoreCase("Repair"))
 				return Enchantment.MENDING.getName();
+			else if (friendlyName.equalsIgnoreCase("Binding"))
+				return "BINDING_CURSE";
+			else if (friendlyName.equalsIgnoreCase("Vanishing"))
+				return "VANISHING_CURSE";
 		}
 		return friendlyName != null ? friendlyName.replace(' ', '_').toUpperCase() : "";
 	}
