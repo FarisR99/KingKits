@@ -75,9 +75,11 @@ public class KitUtilities {
 								ChatColor kitColour = (!ConfigController.getInstance().shouldUsePermissionsForKitList() || (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit))) ? ChatColor.GREEN : ChatColor.DARK_RED;
 								FancyMessage fancyKitMessage = new FancyMessage(ChatColor.translateAlternateColorCodes('&', kitMessage.substring(0, kitMessage.indexOf("%s")).replace("<colour>", kitColour.toString()).replace("<color>", kitColour.toString())));
 								String afterKit = kitMessage.substring(kitMessage.indexOf("%s") + 2);
-								if (kitMessage.contains("<colour>") || kitMessage.contains("<color>"))
+								if (kitMessage.contains("<colour>") || kitMessage.contains("<color>")) {
 									fancyKitMessage.then(kit.getName()).color(kitColour);
-								else fancyKitMessage.then(kit.getName());
+								} else {
+									fancyKitMessage.then(kit.getName());
+								}
 								fancyKitMessage.command("/pvpkit " + kit.getName());
 
 								if (kit.hasDescription()) {
@@ -122,8 +124,9 @@ public class KitUtilities {
 				}
 				Messages.sendMessage(sender, Messages.COMMAND_KIT_LIST_TITLE, kitList.size());
 				if (!kitList.isEmpty()) {
-					for (Kit kit : kitList)
+					for (Kit kit : kitList) {
 						sender.sendMessage(Messages.COMMAND_KIT_LIST_KITS.getMessage(kit.getName()).replace("<colour>", (!(sender instanceof Player) || ConfigController.getInstance().shouldUsePermissionsForKitList() || (kitPlayer != null && (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit)))) ? ChatColor.GREEN.toString() : ChatColor.DARK_RED.toString()));
+					}
 				} else {
 					Messages.sendMessage(sender, Messages.COMMAND_KIT_LIST_NONE);
 				}
@@ -184,13 +187,15 @@ public class KitUtilities {
 
 					Kit oldKit = kitPlayer.getKit();
 					kitPlayer.setKit(kit);
-					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection())
+					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection()) {
 						player.setGameMode(player.getServer().getDefaultGameMode());
+					}
 					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
-						for (PotionEffect activePotionEffect : player.getActivePotionEffects())
+						for (PotionEffect activePotionEffect : player.getActivePotionEffects()) {
 							player.removePotionEffect(activePotionEffect.getType());
+						}
 
 						for (Map.Entry<Integer, ItemStack> kitItemEntry : kit.getItems().entrySet()) {
 							try {
@@ -199,33 +204,54 @@ public class KitUtilities {
 								ex.printStackTrace();
 							}
 						}
-						if (!ItemUtilities.isNull(kit.getOffHand()))
+						if (!ItemUtilities.isNull(kit.getOffHand())) {
 							player.getInventory().setItemInOffHand(kit.getOffHand());
+						}
 						player.getInventory().setArmorContents(kit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : kit.getItems().values()) {
 							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
-						if (!ItemUtilities.isNull(kit.getOffHand()))
+						if (!ItemUtilities.isNull(kit.getOffHand())) {
 							itemsToDrop.addAll(player.getInventory().addItem(kit.getOffHand()).values());
-						for (ItemStack kitArmour : kit.getArmour()) {
-							if (!ItemUtilities.isNull(kitArmour))
+						}
+						ItemStack[] armour = kit.getArmour();
+						for (int i = 0; i < armour.length; i++) {
+							ItemStack kitArmour = armour[i];
+							if (!ItemUtilities.isNull(kitArmour)) {
+								if (i == 0 && ItemUtilities.isNull(player.getInventory().getBoots())) {
+									player.getInventory().setBoots(kitArmour);
+									continue;
+								} else if (i == 1 && ItemUtilities.isNull(player.getInventory().getLeggings())) {
+									player.getInventory().setLeggings(kitArmour);
+									continue;
+								} else if (i == 2 && ItemUtilities.isNull(player.getInventory().getChestplate())) {
+									player.getInventory().setChestplate(kitArmour);
+									continue;
+								} else if (i == 3 && ItemUtilities.isNull(player.getInventory().getHelmet())) {
+									player.getInventory().setHelmet(kitArmour);
+									continue;
+								}
 								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
+							}
 						}
 						if (ConfigController.getInstance().shouldDropItemsOnFullInventory()) {
-							for (ItemStack itemToDrop : itemsToDrop)
+							for (ItemStack itemToDrop : itemsToDrop) {
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
+							}
 						}
 					}
 					if (kit.getHeldItemSlot() != -1) player.getInventory().setHeldItemSlot(kit.getHeldItemSlot());
 					player.setWalkSpeed(kit.getWalkSpeed());
-					if (player.getHealth() > kit.getMaxHealth())
+					if (player.getHealth() > kit.getMaxHealth()) {
 						player.setHealth(kit.getMaxHealth());
+					}
 					if (ConfigController.getInstance().shouldSetMaxHealth()) {
 						player.setMaxHealth(kit.getMaxHealth());
-						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
+						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth()) {
 							player.setHealth(kit.getMaxHealth());
+						}
 					}
 					player.addPotionEffects(kit.getPotionEffects());
 
@@ -236,8 +262,9 @@ public class KitUtilities {
 						BukkitUtilities.performCommand(command);
 					}
 
-					if (kit.hasCooldown())
+					if (kit.hasCooldown()) {
 						kitPlayer.setKitTimestamp(kit, System.currentTimeMillis());
+					}
 
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, kit));
 					Messages.sendMessage(player, Messages.KIT_SET, kit.getName());

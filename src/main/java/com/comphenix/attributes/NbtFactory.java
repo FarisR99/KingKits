@@ -150,7 +150,18 @@ public class NbtFactory {
 		}
 
 		public Long getLong(String key, Long defaultValue) {
-			return containsKey(key) ? (Long) get(key) : defaultValue;
+			if (containsKey(key)) {
+				Object objVal = get(key);
+				if (objVal instanceof Integer) {
+					return ((Integer) objVal).longValue();
+				} else if (objVal instanceof Double) {
+					return ((Double) objVal).longValue();
+				} else {
+					return (Long) objVal;
+				}
+			} else {
+				return defaultValue;
+			}
 		}
 
 		public Float getFloat(String key, Float defaultValue) {

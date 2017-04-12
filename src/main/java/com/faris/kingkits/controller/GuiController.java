@@ -106,8 +106,26 @@ public class GuiController implements Controller {
 			kitsInv = Bukkit.getServer().createInventory(player, this.kitsInventory.getSize(), this.kitsInventory.getTitle());
 			kitsInv.setContents(this.kitsInventory.getContents());
 
-			GuiKits guiKits = new GuiKits(KitController.getInstance().getKits().values());
-			guiKits.fillInventory(kitsInv);
+			Collection<Kit> kitList = ConfigController.getInstance().shouldSortKitsAlphanumerically() ? KitUtilities.sortAlphabetically(KitController.getInstance().getKits().values()) : KitController.getInstance().getKits().values();
+			GuiKits guiKits = null;
+			if (ConfigController.getInstance().shouldUsePermissionsForKitList()) {
+				KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+				if (kitPlayer != null && kitPlayer.isLoaded()) {
+					List<Kit> filteredKitList = new ArrayList<>();
+					for (Kit kit : kitList) {
+						if (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit)) {
+							filteredKitList.add(kit);
+						}
+					}
+					guiKits = new GuiKits(filteredKitList);
+				} else {
+					guiKits = new GuiKits(new ArrayList<Kit>());
+				}
+			} else {
+				guiKits = new GuiKits(kitList);
+			}
+
+			guiKits.fillInventory(player, kitsInv);
 			this.guiKits.put(player.getUniqueId(), guiKits);
 		} else {
 			kitsInv = Bukkit.getServer().createInventory(null, InventoryType.CHEST);
@@ -127,8 +145,9 @@ public class GuiController implements Controller {
 					if (kitItemEntry.getKey() >= 0 && kitItemEntry.getKey() < kitPreviewInv.getSize() - 18)
 						kitPreviewInv.setItem(kitItemEntry.getKey(), kitItemEntry.getValue());
 				}
-				if (!ItemUtilities.isNull(kit.getOffHand()))
+				if (!ItemUtilities.isNull(kit.getOffHand())) {
 					kitPreviewInv.setItem(kitPreviewInv.getSize() - 5, kit.getOffHand());
+				}
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 17, kit.getArmour()[3]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 15, kit.getArmour()[2]);
 				kitPreviewInv.setItem(kitPreviewInv.getSize() - 13, kit.getArmour()[1]);
@@ -148,8 +167,8 @@ public class GuiController implements Controller {
 			userKitsInv = Bukkit.getServer().createInventory(player, this.userKitsInventory.getSize(), this.userKitsInventory.getTitle());
 			userKitsInv.setContents(this.userKitsInventory.getContents());
 
-			GuiKits guiKits = new GuiKits(kitPlayer.getKits().values());
-			guiKits.fillInventory(userKitsInv);
+			GuiKits guiKits = new GuiKits(ConfigController.getInstance().shouldSortKitsAlphanumerically() ? KitUtilities.sortAlphabetically(kitPlayer.getKits().values()) : kitPlayer.getKits().values());
+			guiKits.fillInventory(player, userKitsInv);
 			this.guiKits.put(player.getUniqueId(), guiKits);
 		} else {
 			userKitsInv = Bukkit.getServer().createInventory(null, InventoryType.CHEST);
@@ -274,13 +293,13 @@ public class GuiController implements Controller {
 							if (event.getRawSlot() == event.getInventory().getSize() - 9) {
 								if (guiKit.hasPrevious()) {
 									guiKit.previous();
-									guiKit.fillInventory(event.getInventory());
+									guiKit.fillInventory(player, event.getInventory());
 									guiKits.put(player.getUniqueId(), guiKit);
 								}
 							} else if (event.getRawSlot() == event.getInventory().getSize() - 1) {
 								if (guiKit.hasNext()) {
 									guiKit.next();
-									guiKit.fillInventory(event.getInventory());
+									guiKit.fillInventory(player, event.getInventory());
 									guiKits.put(player.getUniqueId(), guiKit);
 								}
 							}
@@ -301,13 +320,13 @@ public class GuiController implements Controller {
 							if (event.getRawSlot() == event.getInventory().getSize() - 9) {
 								if (guiKit.hasPrevious()) {
 									guiKit.previous();
-									guiKit.fillInventory(event.getInventory());
+									guiKit.fillInventory(player, event.getInventory());
 									guiKits.put(player.getUniqueId(), guiKit);
 								}
 							} else if (event.getRawSlot() == event.getInventory().getSize() - 1) {
 								if (guiKit.hasNext()) {
 									guiKit.next();
-									guiKit.fillInventory(event.getInventory());
+									guiKit.fillInventory(player, event.getInventory());
 									guiKits.put(player.getUniqueId(), guiKit);
 								}
 							}
@@ -401,13 +420,15 @@ public class GuiController implements Controller {
 
 					Kit oldKit = kitPlayer.getKit();
 					kitPlayer.setKit(selectedKit);
-					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection())
+					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection()) {
 						player.setGameMode(player.getServer().getDefaultGameMode());
+					}
 					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
-						for (PotionEffect activePotionEffect : player.getActivePotionEffects())
+						for (PotionEffect activePotionEffect : player.getActivePotionEffects()) {
 							player.removePotionEffect(activePotionEffect.getType());
+						}
 
 						for (Map.Entry<Integer, ItemStack> kitItemEntry : selectedKit.getItems().entrySet()) {
 							try {
@@ -416,34 +437,56 @@ public class GuiController implements Controller {
 								ex.printStackTrace();
 							}
 						}
-						if (!ItemUtilities.isNull(selectedKit.getOffHand()))
+						if (!ItemUtilities.isNull(selectedKit.getOffHand())) {
 							player.getInventory().setItemInOffHand(selectedKit.getOffHand());
+						}
 						player.getInventory().setArmorContents(selectedKit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : selectedKit.getItems().values()) {
 							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
-						if (!ItemUtilities.isNull(selectedKit.getOffHand()))
+						if (!ItemUtilities.isNull(selectedKit.getOffHand())) {
 							itemsToDrop.addAll(player.getInventory().addItem(selectedKit.getOffHand()).values());
-						for (ItemStack kitArmour : selectedKit.getArmour()) {
-							if (!ItemUtilities.isNull(kitArmour))
+						}
+						ItemStack[] armour = selectedKit.getArmour();
+						for (int i = 0; i < armour.length; i++) {
+							ItemStack kitArmour = armour[i];
+							if (!ItemUtilities.isNull(kitArmour)) {
+								if (i == 0 && ItemUtilities.isNull(player.getInventory().getBoots())) {
+									player.getInventory().setBoots(kitArmour);
+									continue;
+								} else if (i == 1 && ItemUtilities.isNull(player.getInventory().getLeggings())) {
+									player.getInventory().setLeggings(kitArmour);
+									continue;
+								} else if (i == 2 && ItemUtilities.isNull(player.getInventory().getChestplate())) {
+									player.getInventory().setChestplate(kitArmour);
+									continue;
+								} else if (i == 3 && ItemUtilities.isNull(player.getInventory().getHelmet())) {
+									player.getInventory().setHelmet(kitArmour);
+									continue;
+								}
 								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
+							}
 						}
 						if (ConfigController.getInstance().shouldDropItemsOnFullInventory()) {
-							for (ItemStack itemToDrop : itemsToDrop)
+							for (ItemStack itemToDrop : itemsToDrop) {
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
+							}
 						}
 					}
-					if (selectedKit.getHeldItemSlot() != -1)
+					if (selectedKit.getHeldItemSlot() != -1) {
 						player.getInventory().setHeldItemSlot(selectedKit.getHeldItemSlot());
+					}
 					player.setWalkSpeed(selectedKit.getWalkSpeed());
-					if (player.getHealth() > selectedKit.getMaxHealth())
+					if (player.getHealth() > selectedKit.getMaxHealth()) {
 						player.setHealth(selectedKit.getMaxHealth());
+					}
 					if (ConfigController.getInstance().shouldSetMaxHealth()) {
 						player.setMaxHealth(selectedKit.getMaxHealth());
-						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
+						if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth()) {
 							player.setHealth(selectedKit.getMaxHealth());
+						}
 					}
 					player.addPotionEffects(selectedKit.getPotionEffects());
 
@@ -454,10 +497,12 @@ public class GuiController implements Controller {
 						BukkitUtilities.performCommand(command);
 					}
 
-					if (selectedKit.hasCooldown())
+					if (selectedKit.hasCooldown()) {
 						kitPlayer.setKitTimestamp(selectedKit, System.currentTimeMillis());
+					}
 
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, selectedKit));
+					Messages.sendMessage(player, Messages.KIT_SET, selectedKit.getName());
 				} else {
 					PlayerUtilities.sendKitDelayMessage(player, selectedKit, kitTimestamp);
 				}
@@ -534,6 +579,10 @@ public class GuiController implements Controller {
 		}
 
 		public void fillInventory(Inventory inventory) {
+			this.fillInventory(null, inventory);
+		}
+
+		public void fillInventory(Player player, Inventory inventory) {
 			if (inventory != null) {
 				inventory.clear();
 				this.kitsSlot.clear();
@@ -547,8 +596,9 @@ public class GuiController implements Controller {
 					if (availableKit == null) continue;
 					try {
 						ItemStack guiItem = availableKit.getGuiItem().clone();
-						if (!ItemUtilities.hasName(guiItem))
+						if (!ItemUtilities.hasName(guiItem)) {
 							ItemUtilities.renameItem(guiItem, "&a" + availableKit.getDisplayName());
+						}
 						if (availableKit.hasDescription()) {
 							final List<String> kitDescription = new ArrayList<>();
 							for (String descriptionLine : availableKit.getDescription()) {
@@ -558,6 +608,26 @@ public class GuiController implements Controller {
 								descriptionLine = descriptionLine.replace("<displayname>", availableKit.getDisplayName());
 								descriptionLine = descriptionLine.replace("<cost>", String.valueOf(availableKit.getCost()));
 								descriptionLine = descriptionLine.replace("<cooldown>", String.valueOf(availableKit.getCooldown()));
+								if (availableKit.hasCooldown() && !availableKit.isUserKit()) {
+									if (player != null) {
+										KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+										if (kitPlayer != null && kitPlayer.isLoaded()) {
+											long kitTimestamp = kitPlayer.getKitTimestamp(availableKit);
+											if (kitTimestamp != -1L) {
+												long timeRemaining = (long) (availableKit.getCooldown() * 1_000D) - (System.currentTimeMillis() - kitTimestamp);
+												descriptionLine = descriptionLine.replace("<oncooldown>", timeRemaining > 0L ? Messages.COMMAND_KIT_LIST_COOLDOWN_ON.getMessage() : Messages.COMMAND_KIT_LIST_COOLDOWN_OFF.getRawMessage());
+											} else {
+												descriptionLine = descriptionLine.replace("<oncooldown>", Messages.COMMAND_KIT_LIST_COOLDOWN_OFF.getRawMessage());
+											}
+										} else {
+											descriptionLine = descriptionLine.replace("<oncooldown>", Messages.COMMAND_KIT_LIST_COOLDOWN_NONE.getRawMessage());
+										}
+									} else {
+										descriptionLine = descriptionLine.replace("<oncooldown>", Messages.COMMAND_KIT_LIST_COOLDOWN_NONE.getRawMessage());
+									}
+								} else {
+									descriptionLine = descriptionLine.replace("<oncooldown>", Messages.COMMAND_KIT_LIST_COOLDOWN_NONE.getRawMessage());
+								}
 								descriptionLine = descriptionLine.replace("<maxhealth>", String.valueOf(availableKit.getMaxHealth()));
 								descriptionLine = descriptionLine.replace("<walkspeed>", String.valueOf(availableKit.getWalkSpeed()));
 								kitDescription.add(descriptionLine);
@@ -568,6 +638,8 @@ public class GuiController implements Controller {
 							if (availableKit.getGuiPosition() >= 0 && availableKit.getGuiPosition() < inventory.getSize()) {
 								inventory.setItem(availableKit.getGuiPosition(), guiItem);
 								this.kitsSlot.put(availableKit.getGuiPosition(), availableKit);
+							} else {
+								leftOverKits.put(availableKit, guiItem);
 							}
 						} else {
 							leftOverKits.put(availableKit, guiItem);

@@ -51,7 +51,7 @@ public class KitPlayer extends OfflineKitPlayer {
 	}
 
 	public boolean hasPermission(Kit kit) {
-		return kit != null && (kit.isUserKit() ? this.playerKits.containsKey(kit.getName()) && this.playerKits.containsValue(kit) : player.hasPermission("kingkits.kits." + kit.getName().toLowerCase()));
+		return kit != null && (kit.isUserKit() ? this.playerKits.containsKey(kit.getName()) && this.playerKits.containsValue(kit) : this.player.hasPermission("kingkits.kits." + kit.getName().toLowerCase()));
 	}
 
 	public boolean hasUnlocked(Kit kit) {

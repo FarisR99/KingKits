@@ -25,13 +25,15 @@ public class StringUtilities {
 			if (name.length() > 1) {
 				if (name.contains("_")) {
 					StringBuilder sbName = new StringBuilder();
-					for (String subName : name.split("_"))
+					for (String subName : name.split("_")) {
 						sbName.append(subName.substring(0, 1).toUpperCase()).append(subName.substring(1).toLowerCase()).append(" ");
+					}
 					return sbName.toString().substring(0, sbName.length() - 1);
 				} else if (name.contains(" ")) {
 					StringBuilder sbName = new StringBuilder();
-					for (String subName : name.split(" "))
+					for (String subName : name.split(" ")) {
 						sbName.append(subName.substring(0, 1).toUpperCase()).append(subName.substring(1).toLowerCase()).append(" ");
+					}
 					return sbName.toString().substring(0, sbName.length() - 1);
 				} else {
 					return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();

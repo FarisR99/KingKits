@@ -41,6 +41,9 @@ public enum Messages {
 	COMMAND_KIT_LIST_TITLE("Command.Kit.List.Title", "&6Kits (%d):"),
 	COMMAND_KIT_LIST_KITS("Command.Kit.List.Message", "<colour>%s"),
 	COMMAND_KIT_LIST_NONE("Command.Kit.List.No kits", "&4There are no kits available."),
+	COMMAND_KIT_LIST_COOLDOWN_ON("Command.Kit.List.Cooldown on", "&cOn cooldown"),
+	COMMAND_KIT_LIST_COOLDOWN_OFF("Command.Kit.List.Cooldown off", "&aAvailable"),
+	COMMAND_KIT_LIST_COOLDOWN_NONE("Command.Kit.List.No cooldown", "&aNo cooldown"),
 
 	COMMAND_KIT_RENAME("Command.Rename kit.Renamed", "&6Successfully renamed &c%s &6to &c%s&6."),
 	COMMAND_KIT_RENAME_USER("Command.Rename user kit.Renamed", "&6Successfully renamed &c%s &6to &c%s&6."),

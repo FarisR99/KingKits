@@ -78,8 +78,9 @@ public class KingKitsAPI {
 	public static Map<String, String> getPlayersKits() {
 		return new HashMap<String, String>() {{
 			for (KitPlayer kitPlayer : PlayerController.getInstance().getAllPlayers()) {
-				if (kitPlayer.getUsername() != null && kitPlayer.hasKit())
+				if (kitPlayer.getUsername() != null && kitPlayer.hasKit()) {
 					this.put(kitPlayer.getUsername(), kitPlayer.getKit().getName());
+				}
 			}
 		}};
 	}

@@ -2,6 +2,7 @@ package com.faris.kingkits.helper.util;
 
 import com.comphenix.attributes.Attributes;
 import com.comphenix.attributes.Attributes.Attribute;
+import com.faris.kingkits.KingKits;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -98,7 +99,7 @@ public class ItemUtilities {
 				if (!deserializedItem.hasItemMeta())
 					deserializedItem.setItemMeta(ItemUtilities.createMeta(material));
 
-				if (serializedItem.get("Attributes") != null) {
+				if (serializedItem.get("Attributes") != null && material != Material.AIR) {
 					Map<String, Object> attributesMap = ObjectUtilities.getMap(serializedItem.get("Attributes"));
 					List<Attribute> attributesList = new ArrayList<>();
 					for (Object serializedAttribute : attributesMap.values()) {
@@ -122,12 +123,16 @@ public class ItemUtilities {
 					}
 				}
 
-				// NBT Tags
-				if (material == Material.EGG && serializedItem.get("Egg") != null) {
-					try {
-						deserializedItem = NBTUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
-					} catch (Exception ex) {
-						ex.printStackTrace();
+				// Eggs
+				if (material == Material.MONSTER_EGG && serializedItem.get("Egg") != null) {
+					if (KingKits.getServerVersion().startsWith("v1_9_") || KingKits.getServerVersion().startsWith("v1_10_")) {
+						try {
+							deserializedItem = NBTUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					} else {
+						EggUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
 					}
 				}
 
@@ -502,10 +507,12 @@ public class ItemUtilities {
 				}
 				if (itemMeta instanceof BlockStateMeta) {
 					BlockStateMeta blockStateMeta = (BlockStateMeta) itemMeta;
-					BlockState state = blockStateMeta.getBlockState();
-					if (state instanceof Banner) {
-						Banner bannerState = (Banner) state;
-						serializedItem.put("Block state", serializeBanner(bannerState));
+					if (blockStateMeta.hasBlockState()) {
+						BlockState state = blockStateMeta.getBlockState();
+						if (state instanceof Banner) {
+							Banner bannerState = (Banner) state;
+							serializedItem.put("Block state", serializeBanner(bannerState));
+						}
 					}
 				}
 				if (itemMeta instanceof BookMeta) {
@@ -528,33 +535,43 @@ public class ItemUtilities {
 
 			// NBT Tags
 			if (itemStack.getType() == Material.MONSTER_EGG) {
-				try {
-					String strEggType = NBTUtilities.getEgg(itemStack);
+				if (KingKits.getServerVersion().startsWith("v1_9_") || KingKits.getServerVersion().startsWith("v1_10_")) {
+					try {
+						String strEggType = NBTUtilities.getEgg(itemStack);
+						if (strEggType != null) serializedItem.put("Egg", strEggType);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				} else {
+					String strEggType = EggUtilities.getEgg(itemStack);
 					if (strEggType != null) serializedItem.put("Egg", strEggType);
-				} catch (Exception ex) {
-					ex.printStackTrace();
 				}
 			}
 
-			final List<Attribute> itemAttributes = new Attributes(itemStack).getAll();
-			if (!itemAttributes.isEmpty()) {
-				Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();
-				for (int i = 0; i < itemAttributes.size(); i++)
-					serializedAttributes.put(i, itemAttributes.get(i).serialize());
-				serializedItem.put("Attributes", serializedAttributes);
+			if (itemStack.getType() != Material.AIR) {
+				final List<Attribute> itemAttributes = new Attributes(itemStack).getAll();
+				if (!itemAttributes.isEmpty()) {
+					Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();
+					for (int i = 0; i < itemAttributes.size(); i++) {
+						serializedAttributes.put(i, itemAttributes.get(i).serialize());
+					}
+					serializedItem.put("Attributes", serializedAttributes);
+				}
 			}
 			if (!itemStack.getEnchantments().isEmpty()) {
 				serializedItem.put("Enchantments", new LinkedHashMap<String, Integer>() {{
-					for (Map.Entry<Enchantment, Integer> enchantmentEntry : itemStack.getEnchantments().entrySet())
+					for (Map.Entry<Enchantment, Integer> enchantmentEntry : itemStack.getEnchantments().entrySet()) {
 						this.put(StringUtilities.capitalizeFully(enchantmentEntry.getKey().getName().replace('_', ' ')), enchantmentEntry.getValue());
+					}
 				}});
 			}
 			if (itemStack.getItemMeta() != null) {
 				final Set<ItemFlag> itemFlags = itemStack.getItemMeta().getItemFlags();
 				if (itemFlags != null && !itemFlags.isEmpty()) {
 					serializedItem.put("Item flags", new LinkedList<String>() {{
-						for (ItemFlag itemFlag : itemFlags)
+						for (ItemFlag itemFlag : itemFlags) {
 							this.add(StringUtilities.capitalizeFully(itemFlag.name().replace('_', ' ')));
+						}
 					}});
 				}
 			}

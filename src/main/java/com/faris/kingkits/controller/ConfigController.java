@@ -152,7 +152,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Allow.Quick soup", true, "Set to 'false' if you want to disable players from using mushroom stew to heal themselves.");
 		this.getConfig().addDefault("Allow.Right click preview", true, "Set to 'false' if you do not want players to be able to right click a kit in the GUI to preview it.");
 		this.getConfig().addDefault("Chat placeholders.Has kit text", "&a<kit>");
-		this.getConfig().addDefault("Chat placeholders.No kit text", "&cNo");
+		this.getConfig().addDefault("Chat placeholders.No kit text", "&cNone");
 		if (!this.getConfig().contains("Command")) {
 			this.getConfig().set("Command", new LinkedHashMap<String, Boolean>() {{
 				this.put("Kit", true);
@@ -287,7 +287,7 @@ public class ConfigController implements Controller {
 			this.kitDefaultKillstreakCommands = this.convertKillstreaksCommands(ObjectUtilities.getMap(this.getConfig().get("Kit defaults.Killstreak commands")));
 			this.kitDefaultMaxHealth = this.getConfig().getDouble("Kit defaults.Max health", PlayerUtilities.getDefaultMaxHealth());
 			this.kitDefaultWalkSpeed = (float) this.getConfig().getDouble("Kit defaults.Walk speed", (double) PlayerUtilities.getDefaultWalkSpeed());
-			this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", false);
+			this.multiInventoriesPlugin = this.getConfig().getBoolean("Multi-inventories.Enabled", true);
 			this.multiInventoriesPluginName = this.getConfig().getString("Multi-inventories.Plugin", "Multiverse-Inventories");
 			this.scoreChatPrefix = ChatUtilities.replaceChatCodes(this.getConfig().getString("Score.Chat prefix", "&6[&a%d&6] &f"));
 			this.scoreEnabled = this.getConfig().getBoolean("Score.Enabled", false);

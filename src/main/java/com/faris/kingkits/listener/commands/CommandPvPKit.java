@@ -157,11 +157,15 @@ public class CommandPvPKit extends KingKitsCommand {
 
 					Kit oldKit = kitPlayer.getKit();
 					kitPlayer.setKit(kit);
+					if (ConfigController.getInstance().shouldSetDefaultGamemodeOnKitSelection()) {
+						player.setGameMode(player.getServer().getDefaultGameMode());
+					}
 					if (ConfigController.getInstance().shouldClearItemsOnKitSelection(player.getWorld())) {
 						player.getInventory().clear();
 						player.getInventory().setArmorContents(null);
-						for (PotionEffect activePotionEffect : player.getActivePotionEffects())
+						for (PotionEffect activePotionEffect : player.getActivePotionEffects()) {
 							player.removePotionEffect(activePotionEffect.getType());
+						}
 
 						for (Map.Entry<Integer, ItemStack> kitItemEntry : kit.getItems().entrySet()) {
 							try {
@@ -170,32 +174,53 @@ public class CommandPvPKit extends KingKitsCommand {
 								ex.printStackTrace();
 							}
 						}
-						if (!ItemUtilities.isNull(kit.getOffHand()))
+						if (!ItemUtilities.isNull(kit.getOffHand())) {
 							player.getInventory().setItemInOffHand(kit.getOffHand());
+						}
 						player.getInventory().setArmorContents(kit.getArmour());
 					} else {
 						List<ItemStack> itemsToDrop = new ArrayList<>();
 						for (ItemStack kitItem : kit.getItems().values()) {
 							itemsToDrop.addAll(player.getInventory().addItem(kitItem).values());
 						}
-						if (!ItemUtilities.isNull(kit.getOffHand()))
+						if (!ItemUtilities.isNull(kit.getOffHand())) {
 							itemsToDrop.addAll(player.getInventory().addItem(kit.getOffHand()).values());
-						for (ItemStack kitArmour : kit.getArmour()) {
-							if (!ItemUtilities.isNull(kitArmour))
+						}
+						ItemStack[] armour = kit.getArmour();
+						for (int i = 0; i < armour.length; i++) {
+							ItemStack kitArmour = armour[i];
+							if (!ItemUtilities.isNull(kitArmour)) {
+								if (i == 0 && ItemUtilities.isNull(player.getInventory().getBoots())) {
+									player.getInventory().setBoots(kitArmour);
+									continue;
+								} else if (i == 1 && ItemUtilities.isNull(player.getInventory().getLeggings())) {
+									player.getInventory().setLeggings(kitArmour);
+									continue;
+								} else if (i == 2 && ItemUtilities.isNull(player.getInventory().getChestplate())) {
+									player.getInventory().setChestplate(kitArmour);
+									continue;
+								} else if (i == 3 && ItemUtilities.isNull(player.getInventory().getHelmet())) {
+									player.getInventory().setHelmet(kitArmour);
+									continue;
+								}
 								itemsToDrop.addAll(player.getInventory().addItem(kitArmour).values());
+							}
 						}
 						if (ConfigController.getInstance().shouldDropItemsOnFullInventory()) {
-							for (ItemStack itemToDrop : itemsToDrop)
+							for (ItemStack itemToDrop : itemsToDrop) {
 								player.getWorld().dropItem(player.getLocation(), itemToDrop);
+							}
 						}
 					}
 					if (kit.getHeldItemSlot() != -1) player.getInventory().setHeldItemSlot(kit.getHeldItemSlot());
 					player.setWalkSpeed(kit.getWalkSpeed());
-					if (player.getHealth() > kit.getMaxHealth())
+					if (player.getHealth() > kit.getMaxHealth()) {
 						player.setHealth(kit.getMaxHealth());
+					}
 					if (ConfigController.getInstance().shouldSetMaxHealth()) player.setMaxHealth(kit.getMaxHealth());
-					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth())
+					if (player.getHealth() >= PlayerUtilities.getDefaultMaxHealth()) {
 						player.setHealth(kit.getMaxHealth());
+					}
 					player.addPotionEffects(kit.getPotionEffects());
 
 					for (String command : kit.getCommands()) {

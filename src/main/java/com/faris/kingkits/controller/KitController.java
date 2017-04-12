@@ -2,6 +2,7 @@ package com.faris.kingkits.controller;
 
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
+import com.faris.kingkits.api.event.KitLoadEvent;
 import com.faris.kingkits.config.CustomConfiguration;
 import com.faris.kingkits.helper.util.FileUtilities;
 import com.faris.kingkits.player.KitPlayer;
@@ -97,10 +98,15 @@ public class KitController implements Controller {
 					try {
 						CustomConfiguration kitConfig = CustomConfiguration.loadConfiguration(kitFile);
 						Kit kit = Kit.deserialize(kitConfig.getValues(false));
-						if (kit != null)
-							this.addKit(kit);
-						else
+						if (kit != null) {
+							KitLoadEvent kitLoadEvent = new KitLoadEvent(kit, kitConfig);
+							Bukkit.getServer().getPluginManager().callEvent(kitLoadEvent);
+							if (kitLoadEvent.getKit() != null) {
+								this.addKit(kitLoadEvent.getKit());
+							}
+						} else {
 							Bukkit.getServer().getLogger().log(Level.WARNING, "Failed to deserialize the kit '" + kitFile.getName() + "' because it is null.");
+						}
 					} catch (Exception ex) {
 						Bukkit.getServer().getLogger().log(Level.WARNING, "Failed to deserialize the kit '" + kitFile.getName() + "'", ex);
 					}

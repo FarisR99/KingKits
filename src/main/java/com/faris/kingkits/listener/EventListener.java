@@ -161,10 +161,11 @@ public class EventListener implements Listener {
 												} else {
 													ItemStack newItem = event.getItem();
 													newItem.setAmount(soupAmount - 1);
-													if (event.getHand() == EquipmentSlot.HAND)
+													if (event.getHand() == EquipmentSlot.HAND) {
 														player.getInventory().setItemInMainHand(newItem);
-													else if (event.getHand() == EquipmentSlot.OFF_HAND)
+													} else if (event.getHand() == EquipmentSlot.OFF_HAND) {
 														player.getInventory().setItemInOffHand(newItem);
+													}
 													player.getInventory().addItem(new ItemStack(Material.BOWL));
 												}
 												return;
@@ -444,7 +445,7 @@ public class EventListener implements Listener {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		try {
 			final Player player = event.getPlayer();
