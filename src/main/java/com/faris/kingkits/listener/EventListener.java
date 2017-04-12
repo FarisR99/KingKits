@@ -327,8 +327,6 @@ public class EventListener implements Listener {
 					player.getInventory().clear();
 					player.getInventory().setArmorContents(null);
 					player.updateInventory();
-				} else {
-					event.setKeepInventory(true);
 				}
 				kitPlayer.onDeath();
 				if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
