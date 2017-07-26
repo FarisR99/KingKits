@@ -17,6 +17,7 @@ import com.faris.kingkits.storage.DataStorage;
 import com.faris.kingkits.storage.FlatFileStorage;
 import com.faris.kingkits.updater.BukkitUpdater;
 import com.faris.kingkits.updater.SpigotUpdater;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;

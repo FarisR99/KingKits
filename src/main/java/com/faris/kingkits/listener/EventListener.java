@@ -85,16 +85,20 @@ public class EventListener implements Listener {
 					player.getInventory().setArmorContents(null);
 				}
 				if (inPvPWorld && ConfigController.getInstance().shouldRemovePotionEffectsOnLeave(player.getWorld())) {
-					for (PotionEffect activePotionEffect : player.getActivePotionEffects())
+					for (PotionEffect activePotionEffect : player.getActivePotionEffects()) {
 						player.removePotionEffect(activePotionEffect.getType());
+					}
 				}
 				if (kitPlayer != null && kitPlayer.hasKit()) {
-					if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth())
+					if (player.getHealth() > PlayerUtilities.getDefaultMaxHealth()) {
 						player.setHealth(PlayerUtilities.getDefaultMaxHealth());
-					if (ConfigController.getInstance().shouldSetMaxHealth())
+					}
+					if (ConfigController.getInstance().shouldSetMaxHealth()) {
 						player.setMaxHealth(PlayerUtilities.getDefaultMaxHealth());
-					if (kitPlayer.getKit().getWalkSpeed() != PlayerUtilities.getDefaultWalkSpeed())
+					}
+					if (kitPlayer.getKit().getWalkSpeed() != PlayerUtilities.getDefaultWalkSpeed()) {
 						player.setWalkSpeed(PlayerUtilities.getDefaultWalkSpeed());
+					}
 				}
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to reset " + player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " inventory and/or potion effects.", ex);
@@ -328,7 +332,9 @@ public class EventListener implements Listener {
 					player.getInventory().setArmorContents(null);
 					player.updateInventory();
 				} else {
-					event.setKeepInventory(true);
+					if (ConfigController.getInstance().shouldKeepInventory(player.getWorld())) {
+						event.setKeepInventory(true);
+					}
 				}
 				kitPlayer.onDeath();
 				if (killer != null && !player.getUniqueId().equals(killer.getUniqueId())) {
