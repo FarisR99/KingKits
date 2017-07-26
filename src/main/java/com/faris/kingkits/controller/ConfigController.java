@@ -91,6 +91,7 @@ public class ConfigController implements Controller {
 	private boolean shouldDecreaseScoreOnAutoUnlock = false;
 	private boolean shouldDropItemsOnFullInventory = false;
 	private boolean shouldLockFoodLevel = true;
+	private boolean shouldKeepInventory = true;
 	private boolean shouldPreventCreative = false;
 	private boolean shouldRemoveItemsOnLeave = true;
 	private boolean shouldRemoveItemsOnReload = true;
@@ -203,6 +204,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Should.Decrease score on auto-unlock", false, "If a player's score should be reset to 0 when they auto-unlock a kit.");
 		this.getConfig().addDefault("Should.Drop items on full inventory", false, "If items should drop when a player has a full inventory.");
 		this.getConfig().addDefault("Should.Lock food level", true, "If this plugin should lock the food level at a specific amount.");
+		this.getConfig().addDefault("Should.Keep inventory", true, "Only modify this if you have a plugin conflicting with this involving inventories saving on death.");
 		this.getConfig().addDefault("Should.Prevent creative", false, "If players should be prevented from going into Creative mode when using a kit.");
 		this.getConfig().addDefault("Should.Remove kit on death", true, "If this plugin should clear a player's inventory and their kit status when they die.");
 		this.getConfig().addDefault("Should.Remove kit on leave", true, "If a player's inventory should be cleared when they leave in a PvP world.");
@@ -299,6 +301,7 @@ public class ConfigController implements Controller {
 			this.shouldDecreaseScoreOnAutoUnlock = this.getConfig().getBoolean("Should.Decrease score on auto-unlock", false);
 			this.shouldDropItemsOnFullInventory = this.getConfig().getBoolean("Should.Drop items on full inventory", false);
 			this.shouldLockFoodLevel = this.getConfig().getBoolean("Should.Lock food level", true);
+			this.shouldKeepInventory = this.getConfig().getBoolean("Should.Keep inventory", true);
 			this.shouldPreventCreative = this.getConfig().getBoolean("Should.Prevent creative", true);
 			this.shouldRemoveKitOnDeath = this.getConfig().getBoolean("Should.Remove kit on death", true);
 			this.shouldRemoveItemsOnLeave = this.getConfig().getBoolean("Should.Remove kit on leave", true);
@@ -359,6 +362,7 @@ public class ConfigController implements Controller {
 					worldSettings.oneKitPerLife = worldConfig.getBoolean("One kit per life", this.getConfig().getBoolean("One kit per life", false));
 					worldSettings.shouldClearItemsOnKitSelection = worldConfig.getBoolean("Should.Clear items on kit selection", this.getConfig().getBoolean("Should.Clear items on kit selection", true));
 					worldSettings.shouldLockFoodLevel = worldConfig.getBoolean("Should.Lock food level", this.getConfig().getBoolean("Should.Lock food level", true));
+					worldSettings.shouldKeepInventory = worldConfig.getBoolean("Should.Keep inventory", this.getConfig().getBoolean("Should.Keep inventory", true));
 					worldSettings.shouldRemoveItemsOnLeave = worldConfig.getBoolean("Should.Remove kit on leave", this.getConfig().getBoolean("Should.Remove kit on leave", true));
 					worldSettings.shouldRemoveItemsOnReload = worldConfig.getBoolean("Should.Remove items on reload", this.getConfig().getBoolean("Should.Remove items on reload", true));
 					worldSettings.shouldRemovePotionEffectsOnLeave = worldConfig.getBoolean("Should.Remove potion effects on leave", this.getConfig().getBoolean("Should.Remove potion effects on leave", true));
@@ -661,6 +665,11 @@ public class ConfigController implements Controller {
 	public boolean shouldLockFoodLevel(World world) {
 		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
 		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldLockFoodLevel : this.worldSettingsMap.get(lowerCaseWorld).shouldLockFoodLevel;
+	}
+
+	public boolean shouldKeepInventory(World world) {
+		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
+		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.shouldKeepInventory : this.worldSettingsMap.get(lowerCaseWorld).shouldKeepInventory;
 	}
 
 	public boolean shouldPreventCreative() {
@@ -1925,6 +1934,7 @@ public class ConfigController implements Controller {
 		private boolean oneKitPerLife = false;
 		private boolean shouldClearItemsOnKitSelection = true;
 		private boolean shouldLockFoodLevel = true;
+		private boolean shouldKeepInventory = true;
 		private boolean shouldRemoveItemsOnLeave = true;
 		private boolean shouldRemoveItemsOnReload = true;
 		private boolean shouldRemovePotionEffectsOnLeave = true;

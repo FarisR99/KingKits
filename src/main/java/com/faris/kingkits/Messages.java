@@ -1,9 +1,9 @@
 package com.faris.kingkits;
 
+import com.faris.kingkits.config.CustomConfiguration;
 import com.faris.kingkits.helper.util.ChatUtilities;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -64,7 +64,7 @@ public enum Messages {
 	COMPASS_POINTING_SPAWN("Compass.Spawn", "&eYour compass is pointing to spawn."),
 
 	ECONOMY_COST_PER_KIT("Economy.Kit cost", "&a$%.2f was taken from your balance."),
-	ECONOMY_MONEY_PER_DEATH("Economy.Money per death", "'&aYou lost $%.2f for being killed by %s."),
+	ECONOMY_MONEY_PER_DEATH("Economy.Money per death", "&aYou lost $%.2f for being killed by %s."),
 	ECONOMY_MONEY_PER_KILL("Economy.Money per kill", "&aYou received $%.2f for killing %s."),
 
 	EVENT_BLOCK_BREAK("Event.Block.Break", "&cYou cannot break blocks here!"),
@@ -108,8 +108,9 @@ public enum Messages {
 	private String defaultValue = "";
 
 	Messages(String path, String defaultValue) {
-		if (path == null || path.isEmpty())
+		if (path == null || path.isEmpty()) {
 			throw new IllegalArgumentException("The path specified cannot be " + (path == null ? "null" : "empty") + "!");
+		}
 		this.path = path;
 		this.defaultValue = defaultValue != null ? defaultValue : "";
 	}
@@ -149,7 +150,7 @@ public enum Messages {
 
 	public static void initMessages(JavaPlugin plugin) throws Exception {
 		if (messagesFile == null) messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-		messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+		messagesConfig = CustomConfiguration.loadYMLConfigurationSafely(messagesFile);
 		boolean modifiedMessages = false;
 		for (Messages message : values()) {
 			if (!messagesConfig.isSet(message.path) || !messagesConfig.isString(message.path)) {

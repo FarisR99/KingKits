@@ -76,7 +76,11 @@ public class CommandPvPKit extends KingKitsCommand {
 				}
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to execute '/" + label.toLowerCase() + " " + StringUtilities.joinString(args) + "'", ex);
-				Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getCause().getClass().getName());
+				if (ex.getCause() != null) {
+					Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getCause().getClass().getName());
+				} else {
+					Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getClass().getName());
+				}
 			}
 			return true;
 		}
@@ -133,7 +137,7 @@ public class CommandPvPKit extends KingKitsCommand {
 				} else {
 					kit = preEvent.getKit();
 				}
-				long kitTimestamp = player.hasPermission(Permissions.ADMIN) && ConfigController.getInstance().canAdminsBypass() ? -1L : kitPlayer.getKitTimestamp(kit);
+				long kitTimestamp = !player.hasPermission(Permissions.ADMIN) || !ConfigController.getInstance().canAdminsBypass() ? kitPlayer.getKitTimestamp(kit) : -1L;
 				if (kit.hasCooldown()) {
 					if (kitTimestamp != -1L) {
 						if (System.currentTimeMillis() - kitTimestamp > (long) (kit.getCooldown() * 1_000D)) {
@@ -227,10 +231,16 @@ public class CommandPvPKit extends KingKitsCommand {
 						command = command.replace("<player>", player.getName()).replace("<name>", player.getName()).replace("<username>", player.getName());
 						command = command.replace("<displayname>", player.getDisplayName());
 						command = command.replace("<kit>", kit.getName());
-						BukkitUtilities.performCommand(command);
+						try {
+							BukkitUtilities.performCommand(command);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
 					}
 
-					if (kit.hasCooldown()) kitPlayer.setKitTimestamp(kit, System.currentTimeMillis());
+					if (kit.hasCooldown()) {
+						kitPlayer.setKitTimestamp(kit, System.currentTimeMillis());
+					}
 
 					player.getServer().getPluginManager().callEvent(new PlayerKitEvent(kitPlayer, oldKit, kit));
 					Messages.sendMessage(player, Messages.KIT_SET, kit.getName());

@@ -188,8 +188,16 @@ public class ItemUtilities {
 					if (itemMeta instanceof LeatherArmorMeta && serializedItem.containsKey("Dye")) {
 						LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
 						if (serializedItem.get("Dye") instanceof String) {
-							int dyeRGB = Utilities.getDye(ObjectUtilities.getObject(serializedItem, String.class, "Dye"));
-							leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(dyeRGB, 0), 255)));
+							String strDye = ObjectUtilities.getObject(serializedItem, String.class, "Dye");
+							if (strDye.startsWith("#")) {
+								String strHex = strDye.substring(1);
+								if (strHex.length() == 6 && StringUtilities.isAlphanumeric(strHex)) {
+									leatherArmorMeta.setColor(Color.fromRGB(Integer.valueOf(strDye.substring(1, 3), 16), Integer.valueOf(strDye.substring(3, 5), 16), Integer.valueOf(strDye.substring(5, 7), 16)));
+								}
+							} else {
+								int dyeRGB = Utilities.getDye(strDye);
+								leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(dyeRGB, 0), 255)));
+							}
 						} else if (serializedItem.get("Dye") instanceof Number) {
 							leatherArmorMeta.setColor(Color.fromRGB(Math.min(Math.max(ObjectUtilities.getObject(serializedItem, Number.class, "Dye", 0).intValue(), 0), 255)));
 						} else {
@@ -244,7 +252,8 @@ public class ItemUtilities {
 							if (serializedBanner.containsKey("Base")) {
 								Color deserializedBaseColor = Utilities.deserializeColor(ObjectUtilities.getMap(serializedBanner.get("Base")));
 								if (deserializedBaseColor != null) {
-									banner.setBaseColor(DyeColor.getByColor(deserializedBaseColor));
+									DyeColor dyeColor = DyeColor.getByColor(deserializedBaseColor);
+									if (dyeColor != null) banner.setBaseColor(dyeColor);
 								}
 							}
 							if (serializedBanner.containsKey("Patterns")) {
@@ -276,19 +285,28 @@ public class ItemUtilities {
 								}
 								banner.setPatterns(patterns);
 							}
-							banner.update();
-							blockStateMeta.setBlockState(banner);
+							if (banner != null) {
+								try {
+									banner.update();
+								} catch (Exception ex) {
+									ex.printStackTrace();
+								}
+								blockStateMeta.setBlockState(banner);
+							}
 						}
 					}
 					if (itemMeta instanceof BookMeta && serializedItem.containsKey("Book")) {
 						BookMeta bookMeta = (BookMeta) itemMeta;
 						Map<String, Object> serializedBook = ObjectUtilities.getMap(serializedItem.get("Book"));
-						if (serializedBook.containsKey("Title"))
+						if (serializedBook.containsKey("Title")) {
 							bookMeta.setTitle(ChatUtilities.replaceChatCodes(ObjectUtilities.getObject(serializedBook, String.class, "Title")));
-						if (serializedBook.containsKey("Author"))
+						}
+						if (serializedBook.containsKey("Author")) {
 							bookMeta.setAuthor(ObjectUtilities.getObject(serializedBook, String.class, "Author"));
-						if (serializedBook.containsKey("Pages"))
+						}
+						if (serializedBook.containsKey("Pages")) {
 							bookMeta.setPages(ChatUtilities.replaceChatCodes(Utilities.toStringList(ObjectUtilities.getObject(serializedBook, List.class, "Pages"))));
+						}
 					}
 					if (itemMeta instanceof MapMeta && serializedItem.containsKey("Map scaling")) {
 						MapMeta mapMeta = (MapMeta) itemMeta;
@@ -304,10 +322,12 @@ public class ItemUtilities {
 						Repairable repairable = (Repairable) itemMeta;
 						repairable.setRepairCost(ObjectUtilities.getObject(serializedItem, Number.class, "Repair cost", 0).intValue());
 					}
-					if (serializedItem.get("Name") != null)
+					if (serializedItem.get("Name") != null) {
 						itemMeta.setDisplayName(ChatUtilities.replaceChatCodes(serializedItem.get("Name").toString()));
-					if (serializedItem.get("Lore") instanceof List)
+					}
+					if (serializedItem.get("Lore") instanceof List) {
 						itemMeta.setLore(ChatUtilities.replaceChatCodes(Utilities.toStringList(ObjectUtilities.getObject(serializedItem, List.class, "Lore"))));
+					}
 					deserializedItem.setItemMeta(itemMeta);
 				}
 			}
@@ -553,9 +573,16 @@ public class ItemUtilities {
 				if (!itemAttributes.isEmpty()) {
 					Map<Integer, Map<String, Object>> serializedAttributes = new LinkedHashMap<>();
 					for (int i = 0; i < itemAttributes.size(); i++) {
-						serializedAttributes.put(i, itemAttributes.get(i).serialize());
+						Map<String, Object> serializedItemAttribute = itemAttributes.get(i).serialize();
+						if (serializedItemAttribute != null) {
+							if (serializedItemAttribute.containsKey("AttributeType")) {
+								System.out.println("Error: Unknown attribute type '" + serializedItemAttribute.get("AttributeType") + "' in item '" + itemStack.getType() + "'.");
+								continue;
+							}
+							serializedAttributes.put(i, serializedItemAttribute);
+						}
 					}
-					serializedItem.put("Attributes", serializedAttributes);
+					if (!serializedAttributes.isEmpty()) serializedItem.put("Attributes", serializedAttributes);
 				}
 			}
 			if (!itemStack.getEnchantments().isEmpty()) {

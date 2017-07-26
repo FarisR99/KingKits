@@ -199,8 +199,9 @@ public class CustomConfiguration extends YamlConfiguration {
 		try {
 			config.load(file);
 		} catch (Exception ex) {
-			if (ex.getClass() != FileNotFoundException.class)
+			if (ex.getClass() != FileNotFoundException.class) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Cannot load " + file, ex);
+			}
 			if (file.exists()) {
 				String filePath = file.getAbsolutePath();
 				String brokenFilePath = (filePath.contains(".yml") ? filePath.substring(0, filePath.indexOf(".yml")) : filePath) + "-" + System.currentTimeMillis() + ".yml.broken";
@@ -216,6 +217,36 @@ public class CustomConfiguration extends YamlConfiguration {
 			try {
 				file.createNewFile();
 				return loadConfiguration(file);
+			} catch (Exception ignored) {
+			}
+		}
+		return config;
+	}
+
+	public static YamlConfiguration loadYMLConfigurationSafely(File file) {
+		YamlConfiguration config = new YamlConfiguration();
+		try {
+			config.load(file);
+		} catch (Exception ex) {
+			if (ex.getClass() != FileNotFoundException.class) {
+				Bukkit.getServer().getLogger().log(Level.SEVERE, "Cannot load " + file, ex);
+			}
+			if (file.exists()) {
+				String filePath = file.getAbsolutePath();
+				String brokenFilePath = (filePath.contains(".yml") ? filePath.substring(0, filePath.indexOf(".yml")) : filePath) + "-" + System.currentTimeMillis() + ".yml.broken";
+				File configDestination = new File(brokenFilePath);
+				try {
+					FileInputStream configFileInputStream = new FileInputStream(file);
+					Files.copy(configFileInputStream, configDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					configFileInputStream.close();
+					file.delete();
+				} catch (Exception ignored) {
+				}
+			}
+			try {
+				file.createNewFile();
+				config = new YamlConfiguration();
+				config.load(file);
 			} catch (Exception ignored) {
 			}
 		}

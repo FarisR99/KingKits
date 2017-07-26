@@ -80,8 +80,9 @@ public class KitPlayer extends OfflineKitPlayer {
 				long kitTimestamp = timestampEntry.getValue();
 				if (targetKit.hasCooldown()) {
 					if (kitTimestamp != -1L) {
-						if (System.currentTimeMillis() - kitTimestamp > (long) (targetKit.getCooldown() * 1000D))
+						if (System.currentTimeMillis() - kitTimestamp > (long) (targetKit.getCooldown() * 1000D)) {
 							this.setKitTimestamp(targetKit, null);
+						}
 					}
 				}
 			}

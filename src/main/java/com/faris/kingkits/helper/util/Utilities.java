@@ -49,8 +49,8 @@ public class Utilities {
 			else if (friendlyName.equalsIgnoreCase("Black")) return Color.BLACK.asRGB();
 			else if (friendlyName.equalsIgnoreCase("Blue")) return Color.BLUE.asRGB();
 			else if (friendlyName.equalsIgnoreCase("Fuchsia")) return Color.FUCHSIA.asRGB();
-			else if (friendlyName.equalsIgnoreCase("Gray") || friendlyName.equalsIgnoreCase("Grey"))
-				return Color.GRAY.asRGB();
+			else if (friendlyName.equalsIgnoreCase("Gray")) return Color.GRAY.asRGB();
+			else if (friendlyName.equalsIgnoreCase("Grey")) return Color.GRAY.asRGB();
 			else if (friendlyName.equalsIgnoreCase("Green")) return Color.GREEN.asRGB();
 			else if (friendlyName.equalsIgnoreCase("Lime")) return Color.LIME.asRGB();
 			else if (friendlyName.equalsIgnoreCase("Maroon")) return Color.MAROON.asRGB();

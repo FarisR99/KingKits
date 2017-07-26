@@ -220,14 +220,17 @@ public class FlatFileStorage extends DataStorage {
 			if (offlineKitPlayer.getUsername() != null) playerConfig.set("Username", offlineKitPlayer.getUsername());
 
 			playerConfig.set("Score", offlineKitPlayer.getScore());
-			if (!offlineKitPlayer.getUnlockedKits().isEmpty())
+			if (!offlineKitPlayer.getUnlockedKits().isEmpty()) {
 				playerConfig.set("Unlocked kits", offlineKitPlayer.getUnlockedKits());
-			if (!offlineKitPlayer.getKitTimestamps().isEmpty())
+			}
+			if (!offlineKitPlayer.getKitTimestamps().isEmpty()) {
 				playerConfig.set("Kit timestamps", offlineKitPlayer.getKitTimestamps());
+			}
 			if (!offlineKitPlayer.getKits().isEmpty()) {
 				Map<String, Map<String, Object>> serializedKits = new LinkedHashMap<>();
-				for (Map.Entry<String, Kit> playerKitEntry : offlineKitPlayer.getKits().entrySet())
+				for (Map.Entry<String, Kit> playerKitEntry : offlineKitPlayer.getKits().entrySet()) {
 					serializedKits.put(playerKitEntry.getKey(), playerKitEntry.getValue().serialize());
+				}
 				playerConfig.set("Kits", serializedKits);
 			} else {
 				if (playerConfig.contains("Kits")) playerConfig.set("Kits", null);

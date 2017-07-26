@@ -103,8 +103,8 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 	public void setKitTimestamp(Kit kit, Long timestamp) {
 		if (kit != null) {
 			if (timestamp != null) {
-				this.kitTimestamps.put(kit.getName(), timestamp);
 				if (this.loaded && !this.kitTimestamps.containsKey(kit.getName())) this.modified = true;
+				this.kitTimestamps.put(kit.getName(), timestamp);
 			} else {
 				if (this.loaded && this.kitTimestamps.containsKey(kit.getName())) this.modified = true;
 				this.kitTimestamps.remove(kit.getName());

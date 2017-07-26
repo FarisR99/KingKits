@@ -67,6 +67,7 @@ public class Attributes {
 		public static final AttributeType GENERIC_MOVEMENT_SPEED = new AttributeType("generic.movementSpeed").register();
 		public static final AttributeType GENERIC_KNOCKBACK_RESISTANCE = new AttributeType("generic.knockbackResistance").register();
 		public static final AttributeType GENERIC_ARMOUR_DEFENSE = new AttributeType("generic.armor").register();
+		public static final AttributeType GENERIC_ARMOUR_TOUGHNESS = new AttributeType("generic.armorToughness").register();
 		public static final AttributeType GENERIC_ATTACK_SPEED = new AttributeType("generic.attackSpeed").register();
 		public static final AttributeType GENERIC_LUCK = new AttributeType("generic.luck").register();
 		public static final AttributeType HORSE_JUMP_STRENGTH = new AttributeType("horse.jumpStrength").register();
@@ -174,7 +175,12 @@ public class Attributes {
 		}
 
 		public double getAmount() {
-			return data.getDouble("Amount", 0.0);
+			try {
+				return data.getDouble("Amount", 0D);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return 0D;
+			}
 		}
 
 		public void setAmount(double amount) {
@@ -242,6 +248,13 @@ public class Attributes {
 
 		@Override
 		public Map<String, Object> serialize() {
+			if (this.getAttributeType() == null) {
+				return new HashMap<String, Object>() {
+					{
+						this.put("AttributeType", data.getString("AttributeName", null));
+					}
+				};
+			}
 			Map<String, Object> serializedAttribute = new LinkedHashMap<>();
 			serializedAttribute.put("UUID", this.getUUID().toString());
 			serializedAttribute.put("Name", this.getName());

@@ -74,7 +74,7 @@ public class NbtFactory {
 		// Unique NBT id
 		public final int id;
 
-		private NbtType(int id, Class<?> type) {
+		NbtType(int id, Class<?> type) {
 			this.id = id;
 			NBT_CLASS.put(id, type);
 			NBT_ENUM.put(id, this);
@@ -169,7 +169,15 @@ public class NbtFactory {
 		}
 
 		public Double getDouble(String key, Double defaultValue) {
-			return containsKey(key) ? (Double) get(key) : defaultValue;
+			if (containsKey(key)) {
+				Object value = get(key);
+				if (!(value instanceof Double) && value instanceof Number) {
+					return ((Number) value).doubleValue();
+				} else {
+					return (Double) value;
+				}
+			}
+			return defaultValue;
 		}
 
 		public String getString(String key, String defaultValue) {
@@ -317,13 +325,13 @@ public class NbtFactory {
 	 *
 	 * @author Kristian
 	 */
-	public static interface Wrapper {
+	public interface Wrapper {
 		/**
 		 * Retrieve the underlying native NBT tag.
 		 *
 		 * @return The underlying NBT.
 		 */
-		public Object getHandle();
+		Object getHandle();
 	}
 
 	/**
@@ -856,7 +864,7 @@ public class NbtFactory {
 		@Override
 		public Object put(String key, Object value) {
 			return wrapOutgoing(original.put(
-					(String) key,
+					key,
 					unwrapIncoming(value)
 			));
 		}

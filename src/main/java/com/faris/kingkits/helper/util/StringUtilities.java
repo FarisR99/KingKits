@@ -5,6 +5,8 @@ import java.util.List;
 
 public class StringUtilities {
 
+	private static java.util.regex.Pattern alphanumericPattern = java.util.regex.Pattern.compile("[^a-zA-Z0-9]");
+
 	private StringUtilities() {
 	}
 
@@ -48,6 +50,10 @@ public class StringUtilities {
 
 	public static boolean containsIllegalCharacters(String aString) {
 		return !aString.matches("[a-zA-Z0-9_]*");
+	}
+
+	public static boolean isAlphanumeric(String aString) {
+		return !alphanumericPattern.matcher(aString).find();
 	}
 
 	public static String joinString(String[] strings) {

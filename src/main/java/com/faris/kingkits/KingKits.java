@@ -22,7 +22,6 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
-import org.mcstats.Metrics;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -248,8 +247,7 @@ public class KingKits extends JavaPlugin {
 		}
 
 		try {
-			Metrics metrics = new Metrics(this);
-			metrics.start();
+			new Metrics(this);
 		} catch (Exception ex) {
 			this.getLogger().log(Level.INFO, "Failed to start metrics", ex);
 		}

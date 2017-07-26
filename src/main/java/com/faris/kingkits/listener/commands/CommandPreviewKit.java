@@ -87,7 +87,11 @@ public class CommandPreviewKit extends KingKitsCommand {
 				}
 			} catch (Exception ex) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to execute '/" + label.toLowerCase() + " " + StringUtilities.joinString(args) + "'", ex);
-				Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getCause().getClass().getName());
+				if (ex.getCause() != null) {
+					Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getCause().getClass().getName());
+				} else {
+					Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex.getClass().getName());
+				}
 			}
 			return true;
 		}
