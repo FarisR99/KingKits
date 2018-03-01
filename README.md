@@ -8,6 +8,5 @@ IntelliJ
 1. Select File --> Import Project (or Module if you'd like)
 2. Locate the KingKits folder.
 3. Select it and then select Maven as the project type.
-4. Done!
 
-Copyright @ KingFaris10 2013-2015
+Copyright @ KingFaris10 2013-2018
