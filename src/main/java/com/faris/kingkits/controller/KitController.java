@@ -13,10 +13,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class KitController implements Controller {
 
@@ -161,6 +159,28 @@ public class KitController implements Controller {
 					PlayerController.getInstance().saveOfflinePlayer(offlineKitPlayer);
 				}
 			}
+		}
+	}
+
+	public void saveKit(Kit kit, String path, Object value) throws Exception {
+		if (kit != null && !kit.isUserKit()) {
+			String kitName = kit.getName();
+			File kitFile = new File(this.kitsFolder, kitName + ".yml");
+			if (!kitFile.exists()) {
+				saveKit(kit);
+				return;
+			}
+			CustomConfiguration configKit = CustomConfiguration.loadConfigurationSafely(kitFile, false);
+			configKit.setNewLinePerKey(true);
+			if (configKit.getValues(false).isEmpty()) {
+				Map<String, Object> serializedKit = kit.serialize();
+				for (Map.Entry<String, Object> serializationEntry : serializedKit.entrySet()) {
+					configKit.set(serializationEntry.getKey(), serializationEntry.getValue());
+				}
+			} else {
+				configKit.set(path, value);
+			}
+			configKit.save(kitFile, false);
 		}
 	}
 

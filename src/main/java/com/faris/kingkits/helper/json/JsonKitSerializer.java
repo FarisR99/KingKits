@@ -6,7 +6,7 @@ import com.faris.kingkits.helper.util.Utilities;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
-import java.util.Map;
+import java.util.*;
 
 public class JsonKitSerializer implements JsonSerializer<Kit>, JsonDeserializer<Kit> {
 

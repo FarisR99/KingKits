@@ -13,11 +13,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.FileUtil;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class FlatFileStorage extends DataStorage {
 

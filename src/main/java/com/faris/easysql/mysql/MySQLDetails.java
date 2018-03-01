@@ -4,9 +4,8 @@ import com.faris.kingkits.helper.util.ObjectUtilities;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class MySQLDetails implements ConfigurationSerializable {
 

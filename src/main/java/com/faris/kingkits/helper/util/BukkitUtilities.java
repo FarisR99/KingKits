@@ -25,21 +25,17 @@ public class BukkitUtilities {
 	}
 
 	public static void sendMessageSync(final CommandSender sender, final String message) {
-		Bukkit.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				if (!(sender instanceof Player) || ((Player) sender).isOnline())
-					sender.sendMessage(ChatUtilities.replaceChatCodes(message));
+		Bukkit.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+			if (!(sender instanceof Player) || ((Player) sender).isOnline()) {
+				sender.sendMessage(ChatUtilities.replaceChatCodes(message));
 			}
 		});
 	}
 
 	public static void sendMessageSync(final CommandSender sender, final Messages message, final Object... format) {
-		Bukkit.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				if (!(sender instanceof Player) || ((Player) sender).isOnline())
-					Messages.sendMessage(sender, message, format);
+		Bukkit.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+			if (!(sender instanceof Player) || ((Player) sender).isOnline()) {
+				Messages.sendMessage(sender, message, format);
 			}
 		});
 	}

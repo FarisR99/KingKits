@@ -26,11 +26,15 @@ public class KitUtilities {
 
 	public static KitSearchResult getKits(String kitName) {
 		Kit exactKit = null;
-		List<Kit> kitList = new ArrayList<>();
+		List<Kit> kitList = null;
 		if (kitName != null) {
 			for (Map.Entry<String, Kit> kitEntry : KitController.getInstance().getKits().entrySet()) {
-				if (kitName.equals(kitEntry.getKey())) exactKit = kitEntry.getValue();
-				else if (kitName.equalsIgnoreCase(kitEntry.getKey())) kitList.add(kitEntry.getValue());
+				if (kitName.equals(kitEntry.getKey())) {
+					exactKit = kitEntry.getValue();
+				} else if (kitName.equalsIgnoreCase(kitEntry.getKey())) {
+					if (kitList == null) kitList = new ArrayList<>();
+					kitList.add(kitEntry.getValue());
+				}
 			}
 		}
 		return new KitSearchResult(exactKit, kitList);
@@ -38,12 +42,15 @@ public class KitUtilities {
 
 	public static KitSearchResult getKits(String kitName, KitPlayer kitPlayer) {
 		Kit exactKit = null;
-		List<Kit> kitList = new ArrayList<>();
-
+		List<Kit> kitList = null;
 		if (kitName != null && kitPlayer != null) {
 			for (Map.Entry<String, Kit> kitEntry : kitPlayer.getKits().entrySet()) {
-				if (kitName.equals(kitEntry.getValue().getName())) exactKit = kitEntry.getValue();
-				else if (kitName.equalsIgnoreCase(kitEntry.getValue().getName())) kitList.add(kitEntry.getValue());
+				if (kitName.equals(kitEntry.getValue().getName())) {
+					exactKit = kitEntry.getValue();
+				} else if (kitName.equalsIgnoreCase(kitEntry.getValue().getName())) {
+					if (kitList == null) kitList = new ArrayList<>();
+					kitList.add(kitEntry.getValue());
+				}
 			}
 		}
 		return new KitSearchResult(exactKit, kitList);
@@ -294,7 +301,7 @@ public class KitUtilities {
 				if (kit != null) kitMap.put(kit.getName(), kit);
 			}
 			List<String> sortedKitNames = new ArrayList<>(kitMap.keySet());
-			Collections.sort(sortedKitNames, Utilities.getAlphanumericalComparator());
+			sortedKitNames.sort(Utilities.getAlphanumericalComparator());
 			for (String sortedKitName : sortedKitNames) {
 				Kit sortedKit = kitMap.get(sortedKitName);
 				if (sortedKit != null) sortedKits.add(sortedKit);
@@ -324,7 +331,7 @@ public class KitUtilities {
 		/**
 		 * Get other kits with the same name as the search name. (ignores character casing)
 		 *
-		 * @return The kit.
+		 * @return The kits. Returns null if there are no other kits.
 		 */
 		public List<Kit> getOtherKits() {
 			return this.otherKits;
@@ -345,7 +352,7 @@ public class KitUtilities {
 		 * @return True if so, false if not.
 		 */
 		public boolean hasOtherKits() {
-			return !this.otherKits.isEmpty();
+			return this.otherKits != null && !this.otherKits.isEmpty();
 		}
 	}
 

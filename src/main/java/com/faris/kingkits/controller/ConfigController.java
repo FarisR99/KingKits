@@ -22,7 +22,7 @@ import org.bukkit.util.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public class ConfigController implements Controller {
 
@@ -99,6 +99,7 @@ public class ConfigController implements Controller {
 	private boolean shouldRemovePotionEffectsOnLeave = true;
 	private boolean shouldRemovePotionEffectsOnReload = true;
 	private boolean shouldShowKitPreview = true;
+	private boolean shouldShowKitMenuOnPreviewClose = true;
 	private boolean shouldSortKitsAlphanumerically = false;
 	private boolean shouldSetCompassToNearestPlayer = false;
 	private boolean shouldSetDefaultGamemodeOnKitSelection = true;
@@ -143,8 +144,9 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("MySQL", new MySQLDetails().serialize(), "MySQL authentication information and details.");
 		this.getConfig().addDefault("Admin bypass", true, "Set to 'true' if you want OPs or players with 'kingkits.admin' node to be able to drop/pickup items and do other activities even if disabled in the config.");
 		this.getConfig().addDefault("Auto-save player data", -1D, "Every time the set number of minutes passes, player data is saved asynchronously.", "Set to -1 to disable auto-save.");
-		if (!this.getConfig().contains("Allow"))
+		if (!this.getConfig().contains("Allow")) {
 			this.getConfig().createSection("Allow", "Allow/disallow (enable/disable) various things.");
+		}
 		this.getConfig().addDefault("Allow.Block modification", true, "Set to 'false' if you want players to not be able to break/place blocks.");
 		this.getConfig().addDefault("Allow.Death messages", true, "Set to 'false' if you want to disable vanilla death messages.");
 		this.getConfig().addDefault("Allow.Item dropping", true, "Set to 'false' if you want to ban players from dropping items.");
@@ -167,14 +169,16 @@ public class ConfigController implements Controller {
 				this.put("Refill", true);
 			}}, "Enable/disable commands.");
 		}
-		if (!this.getConfig().contains("Economy"))
+		if (!this.getConfig().contains("Economy")) {
 			this.getConfig().createSection("Economy", "Economy settings", "Note: Vault is required if economy is enabled.");
+		}
 		this.getConfig().addDefault("Economy.Enabled", false);
 		this.getConfig().addDefault("Economy.Cost per refill", 2.5D, "The cost of refilling each empty bowl.");
 		this.getConfig().addDefault("Economy.Money per kill", 5D, "The amount of money to give to a player when they kill another player.");
 		this.getConfig().addDefault("Economy.Money per death", 7.5D, "The amount of money to take when a player dies");
-		if (!this.getConfig().contains("Kit defaults"))
+		if (!this.getConfig().contains("Kit defaults")) {
 			this.getConfig().createSection("Kit defaults", "Default kit options");
+		}
 		this.getConfig().addDefault("Kit defaults.Breakable items", true, "The value of this is the default value for \"Breakable items\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Command alias", false, "The value of this is the default value for \"Command alias\" of a new kit.");
 		this.getConfig().addDefault("Kit defaults.Commands", new ArrayList<>(), "The value of this is the default value for \"Commands\" of a new kit.");
@@ -215,6 +219,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Should.Set max health to kit max health", true, "If this plugin should set the player's max health to the max health set in the kit config.");
 		this.getConfig().addDefault("Should.Set to default gamemode on kit selection", true, "Whether or not to set the player's gamemode to the server's default when they choose a kit.");
 		this.getConfig().addDefault("Should.Show kit preview", true, "If a GUI opens up with a list of all the items in a kit when a player chooses a kit that they do not have permission to use.");
+		this.getConfig().addDefault("Should.Show kit menu on preview close", true, "Show the kit menu the player previously had open if they click the close button in the kit preview GUI.");
 		this.getConfig().addDefault("Should.Sort kits alphanumerically", false, "If the list of kits should be sorted alphanumerically.");
 		this.getConfig().addDefault("Should.Use permissions for kit list", false, "Whether or not to list kits players don't have access to.");
 		this.getConfig().addDefault("Sign.Kit.Unregistered", "[Kit]", "The text on the first line of a kit sign.", "Set to '' to disable kit signs.");
@@ -312,6 +317,7 @@ public class ConfigController implements Controller {
 			this.shouldSetDefaultGamemodeOnKitSelection = this.getConfig().getBoolean("Should.Set to default gamemode on kit selection", true);
 			this.shouldSetMaxHealth = this.getConfig().getBoolean("Should.Set max health to kit max health", true);
 			this.shouldShowKitPreview = this.getConfig().getBoolean("Should.Show kit preview", true);
+			this.shouldShowKitMenuOnPreviewClose = this.getConfig().getBoolean("Should.Show kit menu on preview close", true);
 			this.shouldSortKitsAlphanumerically = this.getConfig().getBoolean("Should.Sort kits alphanumerically", false);
 			this.shouldUsePermissionsForKitList = this.getConfig().getBoolean("Should.Use permissions for kit list", true);
 			this.signKit = ChatUtilities.replaceChatCodes(this.getConfig().getString("Sign.Kit.Unregistered", "[Kit]"), this.getConfig().getString("Sign.Kit.Valid", "[&1Kit&0]"), this.getConfig().getString("Sign.Kit.Invalid", "[&cKit&0]"));
@@ -467,7 +473,7 @@ public class ConfigController implements Controller {
 	}
 
 	public String getChatPlaceholder(String configKey, String defaultValue) {
-		return this.chatPlaceholders.containsKey(configKey) ? this.chatPlaceholders.get(configKey) : defaultValue;
+		return this.chatPlaceholders.getOrDefault(configKey, defaultValue);
 	}
 
 	public boolean[] getCommands(World world) {
@@ -728,6 +734,10 @@ public class ConfigController implements Controller {
 
 	public boolean shouldShowKitPreview() {
 		return this.shouldShowKitPreview;
+	}
+
+	public boolean shouldShowKitMenuOnPreviewClose() {
+		return this.shouldShowKitMenuOnPreviewClose;
 	}
 
 	public boolean shouldSortKitsAlphanumerically() {
@@ -1087,9 +1097,9 @@ public class ConfigController implements Controller {
 				this.loadConfiguration();
 				if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
 					SQLController.getInstance();
-					DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 				} else {
-					DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+					DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 				}
 
 				try {
@@ -1293,9 +1303,9 @@ public class ConfigController implements Controller {
 				try {
 					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
 						SQLController.getInstance();
-						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+						DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 					} else {
-						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+						DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -1638,9 +1648,9 @@ public class ConfigController implements Controller {
 				try {
 					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
 						SQLController.getInstance();
-						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+						DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 					} else {
-						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+						DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -1807,9 +1817,9 @@ public class ConfigController implements Controller {
 				try {
 					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
 						SQLController.getInstance();
-						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+						DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 					} else {
-						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+						DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -1895,9 +1905,9 @@ public class ConfigController implements Controller {
 				try {
 					if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
 						SQLController.getInstance();
-						DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+						DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 					} else {
-						DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+						DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();

@@ -23,8 +23,9 @@ public class PlayerUtilities {
 	public static boolean checkPlayer(CommandSender sender, KitPlayer kitPlayer) {
 		if (sender == null) return false;
 		if (kitPlayer == null) {
-			if (!(sender instanceof Player) || ((Player) sender).isOnline())
+			if (!(sender instanceof Player) || ((Player) sender).isOnline()) {
 				Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, NullPointerException.class.getName());
+			}
 			return false;
 		}
 		return true;

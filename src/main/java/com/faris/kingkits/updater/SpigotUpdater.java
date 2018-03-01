@@ -8,17 +8,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * @author PatoTheBest
- */
 public class SpigotUpdater {
 
-	private final String API_KEY = "98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4";
-	private final String REQUEST_METHOD = "POST";
+	private final String REQUEST_METHOD = "GET";
 	private String RESOURCE_ID = "";
-	private final String HOST = "http://www.spigotmc.org";
-	private final String QUERY = "/api/general.php";
-	private String WRITE_STRING;
+	private final String HOST = "https://api.spigotmc.org";
+	private final String QUERY = "/legacy/update.php";
 
 	private String version;
 	private String oldVersion;
@@ -37,7 +32,7 @@ public class SpigotUpdater {
 	}
 
 	public SpigotUpdater(JavaPlugin plugin, Integer resourceId, boolean disabled) {
-		RESOURCE_ID = resourceId + "";
+		RESOURCE_ID = String.valueOf(resourceId);
 		this.oldVersion = plugin.getDescription().getVersion();
 
 		if (disabled) {
@@ -46,13 +41,12 @@ public class SpigotUpdater {
 		}
 
 		try {
-			this.connection = (HttpURLConnection) new URL(HOST + QUERY).openConnection();
-		} catch (IOException e) {
+			this.connection = (HttpURLConnection) new URL(HOST + QUERY + "?resource=" + RESOURCE_ID).openConnection();
+		} catch (Exception e) {
 			this.result = UpdateResult.FAIL_SPIGOT;
 			return;
 		}
 
-		WRITE_STRING = "key=" + API_KEY + "&resource=" + RESOURCE_ID;
 		this.run();
 	}
 
@@ -72,7 +66,6 @@ public class SpigotUpdater {
 		this.connection.setDoOutput(true);
 		try {
 			this.connection.setRequestMethod(REQUEST_METHOD);
-			this.connection.getOutputStream().write(WRITE_STRING.getBytes("UTF-8"));
 		} catch (IOException e) {
 			this.result = UpdateResult.FAIL_SPIGOT;
 		}

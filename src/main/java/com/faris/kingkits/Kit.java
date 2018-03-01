@@ -17,7 +17,7 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 
 	// Kit variables
 	private String kitName = "";
-	private String kitDisplayName = ""; // TODO: Add this. It is the name displayed on the GUI.
+	private String kitDisplayName = "";
 	private List<String> kitDescription = new ArrayList<>();
 	private double kitCost = ConfigController.getInstance().getKitDefaultCost();
 	private double kitCooldown = ConfigController.getInstance().getKitDefaultCooldown();
@@ -137,7 +137,6 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			return (Kit) super.clone();
 		} catch (Exception ex) {
 			ex.printStackTrace();
-
 			Kit kit = new Kit(this.kitName);
 			kit.setDisplayName(this.getDisplayName());
 			kit.setUserKit(this.isUserKit());
@@ -158,7 +157,6 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			kit.setHeldItemSlot(this.getHeldItemSlot());
 			kit.setArmour(this.getArmour());
 			kit.setPotionEffects(this.getPotionEffects());
-
 			return kit;
 		}
 	}
@@ -407,26 +405,36 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 		final Kit deserializedKit;
 		if (serializedKit != null && serializedKit.get("Name") != null) {
 			deserializedKit = new Kit(ObjectUtilities.getObject(serializedKit, String.class, "Name"));
-			if (serializedKit.containsKey("Display name"))
+			if (serializedKit.containsKey("Display name")) {
 				deserializedKit.setDisplayName(ObjectUtilities.getObject(serializedKit, String.class, "Display name", deserializedKit.getName()));
-			if (serializedKit.containsKey("Command alias"))
+			}
+			if (serializedKit.containsKey("Command alias")) {
 				deserializedKit.setAlias(ObjectUtilities.getObject(serializedKit, Boolean.class, "Command alias", false));
-			if (serializedKit.containsKey("Description"))
+			}
+			if (serializedKit.containsKey("Description")) {
 				deserializedKit.setDescription(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Description")));
-			if (serializedKit.containsKey("Cost"))
+			}
+			if (serializedKit.containsKey("Cost")) {
 				deserializedKit.setCost(ObjectUtilities.getObject(serializedKit, Number.class, "Cost", 0D).doubleValue());
-			if (serializedKit.containsKey("Cooldown"))
+			}
+			if (serializedKit.containsKey("Cooldown")) {
 				deserializedKit.setCooldown(ObjectUtilities.getObject(serializedKit, Number.class, "Cooldown", 0D).doubleValue());
-			if (serializedKit.containsKey("Max health"))
+			}
+			if (serializedKit.containsKey("Max health")) {
 				deserializedKit.setMaxHealth(ObjectUtilities.getObject(serializedKit, Number.class, "Max health", PlayerUtilities.getDefaultMaxHealth()).doubleValue());
-			if (serializedKit.containsKey("Walk speed"))
+			}
+			if (serializedKit.containsKey("Walk speed")) {
 				deserializedKit.setWalkSpeed(ObjectUtilities.getObject(serializedKit, Number.class, "Walk speed", PlayerUtilities.getDefaultWalkSpeed()).floatValue());
-			if (serializedKit.containsKey("Auto-unlock score"))
+			}
+			if (serializedKit.containsKey("Auto-unlock score")) {
 				deserializedKit.setAutoUnlockScore(ObjectUtilities.getObject(serializedKit, Number.class, "Auto-unlock score", -1).intValue());
-			if (serializedKit.containsKey("Breakable items"))
+			}
+			if (serializedKit.containsKey("Breakable items")) {
 				deserializedKit.setItemsBreakable(ObjectUtilities.getObject(serializedKit, Boolean.class, "Breakable items", true));
-			if (serializedKit.containsKey("Commands"))
+			}
+			if (serializedKit.containsKey("Commands")) {
 				deserializedKit.setCommands(Utilities.toStringList(ObjectUtilities.getObject(serializedKit, List.class, "Commands", new ArrayList())));
+			}
 			if (serializedKit.containsKey("Killstreak commands")) {
 				Map<Integer, List<String>> killstreaksCommands = new HashMap<>();
 				Map<String, Object> killstreakMap = ObjectUtilities.getMap(serializedKit.get("Killstreak commands"));
@@ -458,8 +466,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 			}
 			if (serializedKit.containsKey("GUI")) {
 				Map<String, Object> guiSection = ObjectUtilities.getMap(serializedKit.get("GUI"));
-				if (guiSection.containsKey("Position"))
+				if (guiSection.containsKey("Position")) {
 					deserializedKit.setGuiPosition(ObjectUtilities.getObject(guiSection, Integer.class, "Position", -1));
+				}
 				if (guiSection.containsKey("Item")) {
 					ItemStack guiItem = ItemUtilities.deserializeItem(ObjectUtilities.getMap(guiSection.get("Item")));
 					if (guiItem == null) guiItem = new ItemStack(Material.DIAMOND_SWORD);
@@ -501,8 +510,9 @@ public class Kit implements Cloneable, ConfigurationSerializable, JsonSerializab
 				}
 				deserializedKit.setItems(kitItems);
 			}
-			if (serializedKit.containsKey("Held item slot"))
+			if (serializedKit.containsKey("Held item slot")) {
 				deserializedKit.setHeldItemSlot(ObjectUtilities.getObject(serializedKit, Number.class, "Held item slot", -1).intValue());
+			}
 			if (serializedKit.containsKey("Armour")) {
 				ItemStack[] kitArmour = new ItemStack[4];
 				Map<String, Object> armourSection = ObjectUtilities.getMap(serializedKit.get("Armour"));

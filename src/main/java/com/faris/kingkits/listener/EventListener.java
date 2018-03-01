@@ -27,11 +27,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class EventListener implements Listener {
 
@@ -402,15 +399,12 @@ public class EventListener implements Listener {
 					}
 				}
 				if (ConfigController.getInstance().shouldAutoRespawn()) {
-					player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (player.isOnline() && player.isDead()) {
-								try {
-									PlayerUtilities.respawnPlayer(player);
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
+					player.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+						if (player.isOnline() && player.isDead()) {
+							try {
+								PlayerUtilities.respawnPlayer(player);
+							} catch (Exception ex) {
+								ex.printStackTrace();
 							}
 						}
 					}, 1L);
@@ -435,12 +429,9 @@ public class EventListener implements Listener {
 					}
 					if (showGUI && ConfigController.getInstance().shouldShowGuiOnRespawn()) {
 						kitPlayer.setKit(null);
-						player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
-							@Override
-							public void run() {
-								if (player.isOnline() && Utilities.isPvPWorld(player.getWorld())) {
-									GuiController.getInstance().openKitsMenu(player);
-								}
+						player.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+							if (player.isOnline() && Utilities.isPvPWorld(player.getWorld())) {
+								GuiController.getInstance().openKitsMenu(player);
 							}
 						}, 5L);
 					}
@@ -523,13 +514,10 @@ public class EventListener implements Listener {
 						if (this.updateInventoryTasks.containsKey(playerUUID)) {
 							BukkitUtilities.cancelTask(this.updateInventoryTasks.remove(playerUUID));
 						}
-						this.updateInventoryTasks.put(playerUUID, player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
-							@Override
-							public void run() {
-								updateInventoryTasks.remove(playerUUID);
-								if (player.isOnline()) {
-									player.updateInventory();
-								}
+						this.updateInventoryTasks.put(playerUUID, player.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+							updateInventoryTasks.remove(playerUUID);
+							if (player.isOnline()) {
+								player.updateInventory();
 							}
 						}, 2L).getTaskId());
 					} else {
@@ -645,23 +633,17 @@ public class EventListener implements Listener {
 						player.removePotionEffect(activePotionEffect.getType());
 				}
 				if (ConfigController.getInstance().shouldShowGuiOnJoin()) {
-					player.getServer().getScheduler().runTaskLater(this.plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (player.isOnline() && Utilities.isPvPWorld(player.getWorld())) {
-								Runnable openMenuRunnable = new Runnable() {
-									@Override
-									public void run() {
-										if (player.isOnline() && Utilities.isPvPWorld(player.getWorld()))
-											GuiController.getInstance().openKitsMenu(player);
-									}
-								};
-								if (player.getOpenInventory() != null) {
-									player.closeInventory();
-									Bukkit.getServer().getScheduler().runTask(plugin, openMenuRunnable);
-								} else {
-									openMenuRunnable.run();
-								}
+					player.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+						if (player.isOnline() && Utilities.isPvPWorld(player.getWorld())) {
+							Runnable openMenuRunnable = () -> {
+								if (player.isOnline() && Utilities.isPvPWorld(player.getWorld()))
+									GuiController.getInstance().openKitsMenu(player);
+							};
+							if (player.getOpenInventory() != null) {
+								player.closeInventory();
+								Bukkit.getServer().getScheduler().runTask(plugin, openMenuRunnable);
+							} else {
+								openMenuRunnable.run();
 							}
 						}
 					}, 5L);
@@ -780,18 +762,15 @@ public class EventListener implements Listener {
 								}
 								if (updateHelmet || updateChestplate || updateLeggings || updateBoots || updateOffhand) {
 									final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots, finalUpdateOffhand = updateOffhand;
-									damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-										@Override
-										public void run() {
-											if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
-												if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
-												if (finalUpdateChestplate)
-													damaged.getInventory().setChestplate(chestplate);
-												if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
-												if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
-												if (finalUpdateOffhand)
-													damaged.getInventory().setItemInOffHand(offhand);
-											}
+									damaged.getServer().getScheduler().runTask(this.plugin, () -> {
+										if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+											if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
+											if (finalUpdateChestplate)
+												damaged.getInventory().setChestplate(chestplate);
+											if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
+											if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
+											if (finalUpdateOffhand)
+												damaged.getInventory().setItemInOffHand(offhand);
 										}
 									});
 								}
@@ -816,30 +795,24 @@ public class EventListener implements Listener {
 						if (damagerKitPlayer != null && damagerKitPlayer.hasKit() && !damagerKitPlayer.getKit().canItemsBreak()) {
 							if (damager.getInventory().getItemInMainHand() != null) {
 								if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
-									damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-										@Override
-										public void run() {
-											if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInMainHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
-												ItemStack itemInHand = damager.getInventory().getItemInMainHand();
-												itemInHand.setDurability((short) 0);
-												damager.getInventory().setItemInMainHand(itemInHand);
-												damager.updateInventory();
-											}
+									damager.getServer().getScheduler().runTask(this.plugin, () -> {
+										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInMainHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInMainHand().getType())) {
+											ItemStack itemInHand = damager.getInventory().getItemInMainHand();
+											itemInHand.setDurability((short) 0);
+											damager.getInventory().setItemInMainHand(itemInHand);
+											damager.updateInventory();
 										}
 									});
 								}
 							}
 							if (damager.getInventory().getItemInOffHand() != null) {
 								if (ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInOffHand().getType())) {
-									damager.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-										@Override
-										public void run() {
-											if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInOffHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInOffHand().getType())) {
-												ItemStack itemInHand = damager.getInventory().getItemInOffHand();
-												itemInHand.setDurability((short) 0);
-												damager.getInventory().setItemInOffHand(itemInHand);
-												damager.updateInventory();
-											}
+									damager.getServer().getScheduler().runTask(this.plugin, () -> {
+										if (damager.isOnline() && damagerKitPlayer.hasKit() && damager.getInventory().getItemInOffHand() != null && ItemUtilities.getDamageableMaterials().contains(damager.getInventory().getItemInOffHand().getType())) {
+											ItemStack itemInHand = damager.getInventory().getItemInOffHand();
+											itemInHand.setDurability((short) 0);
+											damager.getInventory().setItemInOffHand(itemInHand);
+											damager.updateInventory();
 										}
 									});
 								}
@@ -878,16 +851,13 @@ public class EventListener implements Listener {
 							}
 							if (updateHelmet || updateChestplate || updateLeggings || updateBoots || updateOffhand) {
 								final boolean finalUpdateHelmet = updateHelmet, finalUpdateChestplate = updateChestplate, finalUpdateLeggings = updateLeggings, finalUpdateBoots = updateBoots, finalUpdateOffhand = updateOffhand;
-								damaged.getServer().getScheduler().runTask(this.plugin, new Runnable() {
-									@Override
-									public void run() {
-										if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
-											if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
-											if (finalUpdateChestplate) damaged.getInventory().setChestplate(chestplate);
-											if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
-											if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
-											if (finalUpdateOffhand) damaged.getInventory().setItemInOffHand(offhand);
-										}
+								damaged.getServer().getScheduler().runTask(this.plugin, () -> {
+									if (damaged.isOnline() && kitPlayer.hasKit() && !kitPlayer.getKit().canItemsBreak()) {
+										if (finalUpdateHelmet) damaged.getInventory().setHelmet(helmet);
+										if (finalUpdateChestplate) damaged.getInventory().setChestplate(chestplate);
+										if (finalUpdateLeggings) damaged.getInventory().setLeggings(leggings);
+										if (finalUpdateBoots) damaged.getInventory().setBoots(boots);
+										if (finalUpdateOffhand) damaged.getInventory().setItemInOffHand(offhand);
 									}
 								});
 							}
@@ -908,61 +878,46 @@ public class EventListener implements Listener {
 		final KitPlayer kitPlayer = PlayerController.getInstance().registerPlayer(player);
 
 		final long currentTime = System.currentTimeMillis();
-		final Runnable joinTask = new Runnable() {
-			@Override
-			public void run() {
-				if (player.isOnline()) {
-					try {
-						if (ConfigController.getInstance().shouldShowGuiOnJoin() && Utilities.isPvPWorld(player.getWorld())) {
-							EventListener.this.joinTasks.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-								@SuppressWarnings("deprecation")
-								public void run() {
-									if (player.isOnline()) GuiController.getInstance().openKitsMenu(player);
-								}
-							}, System.currentTimeMillis() - currentTime > 1_000L ? 0L : 15L).getTaskId());
-						}
-					} catch (Exception ex) {
-						Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to show the kit menu on join.", ex);
+		final Runnable joinTask = () -> {
+			if (player.isOnline()) {
+				try {
+					if (ConfigController.getInstance().shouldShowGuiOnJoin() && Utilities.isPvPWorld(player.getWorld())) {
+						EventListener.this.joinTasks.put(player.getUniqueId(), player.getServer().getScheduler().runTaskLater(plugin, () -> {
+							if (player.isOnline()) GuiController.getInstance().openKitsMenu(player);
+						}, System.currentTimeMillis() - currentTime > 1_000L ? 0L : 15L).getTaskId());
 					}
+				} catch (Exception ex) {
+					Bukkit.getServer().getLogger().log(Level.SEVERE, "Failed to show the kit menu on join.", ex);
 				}
 			}
 		};
 
-		kitPlayer.setLoadTaskID(player.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					DataStorage.getInstance().loadPlayer(PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()));
-					while (true) {
-						if (PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()).isLoaded()) {
-							break;
-						} else if (System.currentTimeMillis() - currentTime > 7_500L) {
-							Bukkit.getServer().getScheduler().runTask(plugin, new Runnable() {
-								@Override
-								public void run() {
-									if (player.isOnline()) {
-										player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
-										player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
-									}
-								}
-							});
-							return;
-						}
-					}
-					if (!onlyReload) Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-
-					Bukkit.getServer().getScheduler().runTask(plugin, new Runnable() {
-						@Override
-						public void run() {
+		kitPlayer.setLoadTaskID(player.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
+			try {
+				DataStorage.getInstance().loadPlayer(PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()));
+				while (true) {
+					if (PlayerController.getInstance().getPlayer(kitPlayer.getUniqueId()).isLoaded()) {
+						break;
+					} else if (System.currentTimeMillis() - currentTime > 7_500L) {
+						Bukkit.getServer().getScheduler().runTask(plugin, () -> {
 							if (player.isOnline()) {
-								player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "An error occurred whilst loading " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
-								player.kickPlayer(ChatColor.RED + "[KingKits] An error occurred!\n" + ChatColor.RED + "Could not load your data.");
+								player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "The server took too long to load " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
+								player.kickPlayer(ChatColor.RED + "[KingKits] Server took too long to respond!\n" + ChatColor.RED + "Could not load your data.");
 							}
-						}
-					});
+						});
+						return;
+					}
 				}
+				if (!onlyReload) Bukkit.getServer().getScheduler().runTask(plugin, joinTask);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+
+				Bukkit.getServer().getScheduler().runTask(plugin, () -> {
+					if (player.isOnline()) {
+						player.getServer().broadcast(ChatColor.GOLD + "[" + ChatColor.BOLD + ChatColor.AQUA + "KingKits" + ChatColor.GOLD + "] " + ChatColor.RED + "An error occurred whilst loading " + player.getName() + "'s data. They have been kicked from the server.", Permissions.ADMIN.getName());
+						player.kickPlayer(ChatColor.RED + "[KingKits] An error occurred!\n" + ChatColor.RED + "Could not load your data.");
+					}
+				});
 			}
 		}).getTaskId());
 	}

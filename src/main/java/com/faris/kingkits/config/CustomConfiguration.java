@@ -9,11 +9,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class CustomConfiguration extends YamlConfiguration {
 
@@ -55,7 +52,7 @@ public class CustomConfiguration extends YamlConfiguration {
 	}
 
 	public List<String> getComments(String path) {
-		return this.comments.containsKey(path) ? new ArrayList<>(this.comments.get(path)) : new ArrayList<String>();
+		return this.comments.containsKey(path) ? new ArrayList<>(this.comments.get(path)) : new ArrayList<>();
 	}
 
 	@Override
@@ -88,6 +85,8 @@ public class CustomConfiguration extends YamlConfiguration {
 				}
 			}
 		}
+		this.comments.clear();
+		this.comments.putAll(configComments);
 	}
 
 	public void load(File file, boolean loadComments) throws IOException, InvalidConfigurationException {
@@ -97,6 +96,10 @@ public class CustomConfiguration extends YamlConfiguration {
 
 	@Override
 	public void save(File file) throws IOException {
+		this.save(file, true);
+	}
+
+	public void save(File file, boolean saveComments) throws IOException {
 		super.save(file);
 
 		List<String> configContent = new ArrayList<>();
@@ -113,22 +116,29 @@ public class CustomConfiguration extends YamlConfiguration {
 		try {
 			configWriter = new BufferedWriter(new FileWriter(file));
 			configWriter.write("");
+			boolean hitKey = false;
 			for (int lineIndex = 0; lineIndex < configContent.size(); lineIndex++) {
 				String configLine = configContent.get(lineIndex);
 				String configKey = null;
-				if (!configLine.startsWith("#") && configLine.contains(":"))
+				if (!configLine.startsWith("#") && configLine.contains(":")) {
+					hitKey = true;
 					configKey = getPathToKey(configContent, lineIndex, configLine);
-				if (configKey != null && this.comments.containsKey(configKey)) {
+				}
+				if (configKey != null && saveComments && this.comments.containsKey(configKey)) {
 					int numOfSpaces = getPrefixSpaceCount(configLine);
 					String spacePrefix = "";
 					for (int i = 0; i < numOfSpaces; i++) spacePrefix += " ";
 					List<String> configComments = this.comments.get(configKey);
 					if (configComments != null) {
 						for (String comment : configComments) {
+							if (comment.isEmpty()) continue;
 							configWriter.append(spacePrefix).append("# ").append(comment);
 							configWriter.newLine();
 						}
 					}
+				}
+				if (!saveComments && !hitKey && lineIndex != 0 && (configLine.startsWith("#") || configLine.isEmpty())) {
+					continue;
 				}
 				configWriter.append(configLine);
 				configWriter.newLine();
@@ -195,9 +205,13 @@ public class CustomConfiguration extends YamlConfiguration {
 	}
 
 	public static CustomConfiguration loadConfigurationSafely(File file) {
+		return loadConfigurationSafely(file, true);
+	}
+
+	public static CustomConfiguration loadConfigurationSafely(File file, boolean loadComments) {
 		CustomConfiguration config = new CustomConfiguration();
 		try {
-			config.load(file);
+			config.load(file, loadComments);
 		} catch (Exception ex) {
 			if (ex.getClass() != FileNotFoundException.class) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE, "Cannot load " + file, ex);

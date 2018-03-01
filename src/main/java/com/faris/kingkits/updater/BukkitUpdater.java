@@ -11,10 +11,9 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.*;
+import java.util.logging.*;
+import java.util.zip.*;
 
 /**
  * Check dev.bukkit.org to find updates for a given plugin, and download the updates if needed.
@@ -24,7 +23,7 @@ import java.util.zip.ZipFile;
  */
 public class BukkitUpdater {
 
-    /* Constants */
+	/* Constants */
 
 	// Remote file's title
 	private static final String TITLE_VALUE = "name";
@@ -57,7 +56,7 @@ public class BukkitUpdater {
 	// Default disable value in config
 	private static final boolean DISABLE_DEFAULT = false;
 
-    /* User-provided variables */
+	/* User-provided variables */
 
 	// Plugin running Updater
 	private final Plugin plugin;
@@ -76,14 +75,14 @@ public class BukkitUpdater {
 	// BukkitDev ServerMods API key
 	private String apiKey = null;
 
-    /* Collected from Curse API */
+	/* Collected from Curse API */
 
 	private String versionName;
 	private String versionLink;
 	private String versionType;
 	private String versionGameVersion;
 
-    /* Update process variables */
+	/* Update process variables */
 
 	// Connection to RSS
 	private URL url;

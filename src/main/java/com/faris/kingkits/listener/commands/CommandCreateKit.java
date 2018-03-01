@@ -18,11 +18,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class CommandCreateKit extends KingKitsCommand {
 

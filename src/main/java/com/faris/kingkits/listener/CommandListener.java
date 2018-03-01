@@ -37,7 +37,7 @@ import java.io.FileWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.PreparedStatement;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public class CommandListener implements CommandExecutor {
 
@@ -74,9 +74,9 @@ public class CommandListener implements CommandExecutor {
 								}
 								if (DataStorage.getInstance() == null) {
 									if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
-										DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+										DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 									} else {
-										DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+										DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 									}
 								}
 
@@ -128,22 +128,26 @@ public class CommandListener implements CommandExecutor {
 																		if (Utilities.isUUID(strUUID)) {
 																			UUID uuid = UUID.fromString(strUUID);
 																			File playerDataFile = new File(playerDataFolder, uuid.toString() + ".yml");
-																			if (playerDataFile.exists())
+																			if (playerDataFile.exists()) {
 																				playerDataFile.delete();
+																			}
 
 																			FileConfiguration playerDataConfig = YamlConfiguration.loadConfiguration(playerDataFile);
 
 																			StatementSelectTable.Table.Column columnUsername = selectResult.getColumn(row, "username");
-																			if (!columnUsername.isNull() && !columnUsername.asString().trim().isEmpty())
+																			if (!columnUsername.isNull() && !columnUsername.asString().trim().isEmpty()) {
 																				playerDataConfig.set("Username", columnUsername.asString());
+																			}
 
 																			StatementSelectTable.Table.Column columnScore = selectResult.getColumn(row, "score");
-																			if (!columnUsername.isNull())
+																			if (!columnUsername.isNull()) {
 																				playerDataConfig.set("Score", columnScore.asInteger());
+																			}
 
 																			StatementSelectTable.Table.Column columnUnlockedKits = selectResult.getColumn(row, "unlocked");
-																			if (!columnUnlockedKits.isNull() && !columnUnlockedKits.asString().trim().isEmpty())
+																			if (!columnUnlockedKits.isNull() && !columnUnlockedKits.asString().trim().isEmpty()) {
 																				playerDataConfig.set("Unlocked kits", columnUnlockedKits.asString());
+																			}
 
 																			StatementSelectTable.Table.Column columnKits = selectResult.getColumn(row, "kits");
 																			if (!columnKits.isNull() && !columnKits.asString().trim().isEmpty()) {
@@ -152,12 +156,14 @@ public class CommandListener implements CommandExecutor {
 																				for (Map.Entry<String, JsonElement> jsonKit : jsonKits.entrySet()) {
 																					if (jsonKit.getValue().isJsonPrimitive()) {
 																						Kit playerKit = Utilities.getGsonParser().fromJson(jsonKit.getValue().getAsJsonPrimitive(), Kit.class);
-																						if (playerKit != null)
+																						if (playerKit != null) {
 																							playerKitsSerialized.put(playerKit.getName(), playerKit.serialize());
+																						}
 																					}
 																				}
-																				if (!playerKitsSerialized.isEmpty())
+																				if (!playerKitsSerialized.isEmpty()) {
 																					playerDataConfig.set("Kits", playerKitsSerialized);
+																				}
 																			}
 
 																			playerDataConfig.save(playerDataFile);
@@ -177,8 +183,9 @@ public class CommandListener implements CommandExecutor {
 													} catch (Exception ex) {
 														ex.printStackTrace();
 													} finally {
-														if (!SQLController.getInstance().isEnabled())
+														if (!SQLController.getInstance().isEnabled()) {
 															SQLController.getInstance().closeConnection();
+														}
 													}
 												}
 											});
@@ -200,8 +207,9 @@ public class CommandListener implements CommandExecutor {
 											public void run() {
 												try {
 													final List<String> sqlQueries = new ArrayList<>();
-													if (SQLController.getInstance().getHandler().doesTableExist(SQLController.getInstance().getPlayersTable()))
+													if (SQLController.getInstance().getHandler().doesTableExist(SQLController.getInstance().getPlayersTable())) {
 														sqlQueries.add(new StatementDropTable(SQLController.getInstance().getHandler()).setTable(SQLController.getInstance().getPlayersTable()).toSQLString());
+													}
 													sqlQueries.add(SQLStorage.getDefaultTableCreateQuery().toSQLString());
 													for (File playerDataFile : playerDataFiles) {
 														if (playerDataFile.getName().endsWith(".yml")) {
@@ -216,22 +224,27 @@ public class CommandListener implements CommandExecutor {
 																	for (Map.Entry<String, Object> kitEntry : kitsSection.entrySet()) {
 																		try {
 																			Kit playerKit = Kit.deserialize(ObjectUtilities.getMap(kitEntry.getValue()));
-																			if (playerKit != null)
+																			if (playerKit != null) {
 																				playerKits.put(playerKit.getName(), playerKit.setUserKit(true));
+																			}
 																		} catch (Exception ignored) {
 																		}
 																	}
 																}
 
 																StatementInsertTable statementInsertTable = new StatementInsertTable(SQLController.getInstance().getHandler()).setTable(SQLController.getInstance().getPlayersTable()).setColumns(new StatementInsertTable.Column("uuid", playerUUID.toString()));
-																if (playerDataConfig.contains("Username"))
+																if (playerDataConfig.contains("Username")) {
 																	statementInsertTable.addColumns(new StatementInsertTable.Column("username", playerDataConfig.getString("Username")));
-																if (playerDataConfig.getInt("Score", 0) != 0)
+																}
+																if (playerDataConfig.getInt("Score", 0) != 0) {
 																	statementInsertTable.addColumns(new StatementInsertTable.Column("score", playerDataConfig.getInt("Score")));
-																if (playerDataConfig.contains("Unlocked kits") && !playerDataConfig.getStringList("Unlocked kits").isEmpty())
+																}
+																if (playerDataConfig.contains("Unlocked kits") && !playerDataConfig.getStringList("Unlocked kits").isEmpty()) {
 																	statementInsertTable.addColumns(new StatementInsertTable.Column("unlocked", playerDataConfig.getStringList("Unlocked kits")));
-																if (!playerKits.isEmpty())
+																}
+																if (!playerKits.isEmpty()) {
 																	statementInsertTable.addColumns(new StatementInsertTable.Column("kits", JSONObject.escape(Utilities.getGsonParser().toJson(JsonUtilities.fromMap(playerKits)))));
+																}
 																String insertQuery = statementInsertTable.toSQLString();
 																if (insertQuery != null) sqlQueries.add(insertQuery);
 															}
@@ -248,8 +261,9 @@ public class CommandListener implements CommandExecutor {
 																	preparedStatement.executeUpdate();
 																	if (sqlQuery.startsWith("INSERT ")) this.success++;
 																} finally {
-																	if (preparedStatement != null)
+																	if (preparedStatement != null) {
 																		Utilities.silentlyClose(preparedStatement);
+																	}
 																}
 															}
 														} catch (Exception ex) {
@@ -261,8 +275,9 @@ public class CommandListener implements CommandExecutor {
 													ex.printStackTrace();
 													BukkitUtilities.sendMessageSync(sender, Messages.GENERAL_COMMAND_ERROR, ex.getClass().getName());
 												} finally {
-													if (!SQLController.getInstance().isEnabled())
+													if (!SQLController.getInstance().isEnabled()) {
 														SQLController.getInstance().closeConnection();
+													}
 												}
 											}
 										});
@@ -346,8 +361,9 @@ public class CommandListener implements CommandExecutor {
 													StringBuilder pageContent = new StringBuilder();
 													for (int i = 0; i < configPage.getValue().size(); i++) {
 														pageContent.append(configPage.getValue().get(i));
-														if (i < configPage.getValue().size() - 1)
+														if (i < configPage.getValue().size() - 1) {
 															pageContent.append('\n');
+														}
 													}
 													bookMeta.addPage(pageContent.toString());
 												}
@@ -404,10 +420,11 @@ public class CommandListener implements CommandExecutor {
 								Player player = (Player) sender;
 								KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 								if (!PlayerUtilities.checkPlayer(player, kitPlayer)) return true;
-								if (kitPlayer.hasKit())
+								if (kitPlayer.hasKit()) {
 									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_SELF_KIT, kitPlayer.getKit().getName() + (kitPlayer.getKit().isUserKit() ? " (User)" : ""));
-								else
+								} else {
 									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_SELF_NO_KIT);
+								}
 							} else {
 								Messages.sendMessage(sender, Messages.GENERAL_PLAYER_COMMAND);
 							}
@@ -416,10 +433,11 @@ public class CommandListener implements CommandExecutor {
 							if (target != null) {
 								KitPlayer targetKitPlayer = PlayerController.getInstance().getPlayer(target);
 								if (!PlayerUtilities.checkPlayer(sender, targetKitPlayer)) return true;
-								if (targetKitPlayer.hasKit())
+								if (targetKitPlayer.hasKit()) {
 									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_OTHER_KIT, target.getName(), targetKitPlayer.getKit().getName() + (targetKitPlayer.getKit().isUserKit() ? " (User)" : ""));
-								else
+								} else {
 									Messages.sendMessage(sender, Messages.COMMAND_VIEW_KIT_OTHER_NO_KIT, target.getName());
+								}
 							} else {
 								Messages.sendMessage(sender, Messages.GENERAL_PLAYER_NOT_FOUND, args[1]);
 							}
@@ -448,26 +466,204 @@ public class CommandListener implements CommandExecutor {
 									OfflineKitPlayer offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(args[1]);
 									Messages.sendMessage(sender, Messages.COMMAND_SCORE_OTHER, offlineKitPlayer.getUsername(), offlineKitPlayer.getScore());
 								} else {
-									sender.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
-										@Override
-										public void run() {
-											OfflineKitPlayer offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(args[1]);
-											long startTime = System.currentTimeMillis();
-											while (true) {
-												if (offlineKitPlayer.isLoaded()) {
-													break;
-												} else if (System.currentTimeMillis() - startTime > 5_000L) {
-													BukkitUtilities.sendMessageSync(sender, "&cServer took too long to respond.");
-													return;
-												}
+									sender.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
+										OfflineKitPlayer offlineKitPlayer = DataStorage.getInstance().loadOfflinePlayer(args[1]);
+										long startTime = System.currentTimeMillis();
+										while (!offlineKitPlayer.isLoaded()) {
+											if (System.currentTimeMillis() - startTime > 5_000L) {
+												BukkitUtilities.sendMessageSync(sender, "&cServer took too long to respond.");
+												return;
 											}
-											BukkitUtilities.sendMessageSync(sender, Messages.COMMAND_SCORE_OTHER, offlineKitPlayer.getUsername(), offlineKitPlayer.getScore());
 										}
+										BukkitUtilities.sendMessageSync(sender, Messages.COMMAND_SCORE_OTHER, offlineKitPlayer.getUsername(), offlineKitPlayer.getScore());
 									});
 								}
 							}
 						} else {
 							Messages.sendMessage(sender, Messages.GENERAL_COMMAND_USAGE, label.toLowerCase(), subCommand.toLowerCase() + " " + (sender instanceof Player ? "[" : "") + "<player>" + (sender instanceof Player ? "]" : ""));
+						}
+						return true;
+					} else if (subCommand.equalsIgnoreCase("set")) {
+						if (sender.hasPermission(Permissions.COMMAND_SET)) {
+							if (args.length > 3) {
+								KitUtilities.KitSearchResult kitSearchResult = KitUtilities.getKits(args[1]);
+								Kit targetKit = null;
+								if (kitSearchResult.hasKit()) {
+									targetKit = kitSearchResult.getKit();
+								} else if (kitSearchResult.hasOtherKits()) {
+									if (kitSearchResult.getOtherKits().size() == 1) {
+										targetKit = kitSearchResult.getOtherKits().get(0);
+									} else {
+										StringBuilder sbKits = new StringBuilder();
+										for (int i = 0; i < kitSearchResult.getOtherKits().size(); i++) {
+											sbKits.append(kitSearchResult.getOtherKits().get(i));
+											if (i != kitSearchResult.getOtherKits().size() - 1) {
+												sbKits.append(ChatColor.RED).append(", ").append(ChatColor.GREEN);
+											}
+										}
+										sender.sendMessage(ChatColor.GOLD + "Select a kit from: " + ChatColor.GREEN + sbKits);
+										return true;
+									}
+								} else {
+									sender.sendMessage(ChatColor.RED + "Unknown kit: " + ChatColor.DARK_RED + args[1]);
+									return true;
+								}
+								String key = args[2];
+								String strValue = StringUtilities.joinString(args, 3);
+								Object value = strValue;
+								if (key.equalsIgnoreCase("displayname")) {
+									key = "Display name";
+									targetKit.setDisplayName(strValue);
+								} else if (key.equalsIgnoreCase("commandalias") || key.equalsIgnoreCase("alias") || key.equalsIgnoreCase("breakableitems") || key.equalsIgnoreCase("breakitems")) {
+									int keyType = -1;
+									if (key.equalsIgnoreCase("commandalias") || key.equalsIgnoreCase("alias")) {
+										key = "Command alias";
+										keyType = 1;
+									} else if (key.equalsIgnoreCase("breakableitems") || key.equalsIgnoreCase("breakitems")) {
+										key = "Breakable items";
+										keyType = 2;
+									}
+									if (strValue.equalsIgnoreCase("true")) {
+										value = true;
+									} else if (strValue.equalsIgnoreCase("false")) {
+										value = false;
+									} else {
+										sender.sendMessage(ChatColor.RED + "Valid values: true, false");
+										return true;
+									}
+									switch (keyType) {
+										case 1:
+											targetKit.setAlias((Boolean) value);
+											break;
+										case 2:
+											targetKit.setItemsBreakable((Boolean) value);
+											break;
+									}
+								} else if (key.equalsIgnoreCase("description") || key.equalsIgnoreCase("commands")) {
+									int keyType = -1;
+									if (key.equalsIgnoreCase("description")) {
+										key = "Description";
+										keyType = 1;
+									} else if (key.equalsIgnoreCase("commands")) {
+										key = "Commands";
+										keyType = 2;
+									}
+									if (strValue.startsWith("[") && strValue.endsWith("]")) {
+										strValue = strValue.substring(1, strValue.length() - 1);
+										if (!strValue.trim().isEmpty()) {
+											List<String> description = new ArrayList<>();
+											Collections.addAll(description, strValue.split(", "));
+											value = description;
+										} else {
+											value = new ArrayList<String>();
+										}
+									} else {
+										value = new ArrayList<String>();
+									}
+									switch (keyType) {
+										case 1:
+											targetKit.setDescription((List<String>) value);
+											break;
+										case 2:
+											targetKit.setCommands((List<String>) value);
+											break;
+									}
+									sender.sendMessage(ChatColor.DARK_RED + "Warning: " + ChatColor.RED + "It is not recommended you use commands to set lists.");
+								} else if (key.equalsIgnoreCase("cost") || key.equalsIgnoreCase("cooldown") || key.equalsIgnoreCase("maxhealth")) {
+									int keyType = -1;
+									if (key.equalsIgnoreCase("cost")) {
+										key = "Cost";
+										keyType = 1;
+									} else if (key.equalsIgnoreCase("cooldown")) {
+										key = "Cooldown";
+										keyType = 2;
+									} else if (key.equalsIgnoreCase("maxhealth")) {
+										key = "Max health";
+										keyType = 3;
+									}
+									if (Utilities.isNumber(Double.class, strValue)) {
+										value = Double.parseDouble(strValue);
+									} else if (Utilities.isNumber(Integer.class, strValue)) {
+										value = (double) Integer.parseInt(strValue);
+									} else {
+										sender.sendMessage(ChatColor.RED + "Valid values: Positive numbers");
+										return true;
+									}
+									if ((Double) value < 0D) {
+										sender.sendMessage(ChatColor.RED + "Valid values: Positive numbers");
+										return true;
+									}
+									switch (keyType) {
+										case 1:
+											targetKit.setCost((Double) value);
+											break;
+										case 2:
+											targetKit.setCooldown((Double) value);
+											break;
+										case 3:
+											targetKit.setMaxHealth((Double) value);
+											break;
+									}
+								} else if (key.equalsIgnoreCase("walkspeed")) {
+									key = "Walk speed";
+									if (Utilities.isNumber(Float.class, strValue)) {
+										value = Float.parseFloat(strValue);
+									} else if (Utilities.isNumber(Integer.class, strValue)) {
+										value = (Integer.valueOf(strValue)).floatValue();
+									} else if (Utilities.isNumber(Double.class, strValue)) {
+										value = (Double.valueOf(strValue)).floatValue();
+									} else {
+										sender.sendMessage(ChatColor.RED + "Valid values: 0.0 - 1.0");
+										return true;
+									}
+									if ((Float) value < 0F || (Float) value > 1F) {
+										sender.sendMessage(ChatColor.RED + "Valid values: 0.0 - 1.0");
+										return true;
+									}
+									targetKit.setWalkSpeed((Float) value);
+								} else if (key.equalsIgnoreCase("autounlock") || key.equalsIgnoreCase("autounlockscore") || key.equalsIgnoreCase("helditemslot")) {
+									int keyType = -1;
+									if (key.equalsIgnoreCase("autounlock") || key.equalsIgnoreCase("autounlockscore")) {
+										key = "Auto-unlock score";
+										keyType = 1;
+									} else if (key.equalsIgnoreCase("helditemslot")) {
+										key = "Held item slot";
+										keyType = 2;
+									}
+									if (Utilities.isNumber(Integer.class, strValue)) {
+										value = Integer.parseInt(strValue);
+									} else {
+										sender.sendMessage(ChatColor.RED + "Valid values: Positive integers");
+										return true;
+									}
+									if ((Integer) value < 0) {
+										sender.sendMessage(ChatColor.RED + "Valid values: Positive integers");
+										return true;
+									}
+									switch (keyType) {
+										case 1:
+											targetKit.setAutoUnlockScore((Integer) value);
+											break;
+										case 2:
+											targetKit.setHeldItemSlot((Integer) value);
+											break;
+									}
+								} else {
+									sender.sendMessage(ChatColor.RED + "Unknown key: " + ChatColor.DARK_RED + key);
+									return true;
+								}
+								try {
+									KitController.getInstance().saveKit(targetKit, key, value);
+									sender.sendMessage(ChatColor.GOLD + "Successfully set the value of key '" + key + "' to '" + String.valueOf(value) + "'.");
+								} catch (Exception ex) {
+									ex.printStackTrace();
+									Messages.sendMessage(sender, Messages.GENERAL_COMMAND_ERROR, ex instanceof InvocationTargetException ? ((InvocationTargetException) ex).getTargetException().getClass().getName() : ex.getClass().getName());
+								}
+							} else {
+								Messages.sendMessage(sender, Messages.GENERAL_COMMAND_USAGE, label.toLowerCase(), subCommand.toLowerCase() + " <kit> <key> <value>");
+							}
+						} else {
+							Messages.sendMessage(sender, Messages.GENERAL_COMMAND_NO_PERMISSION);
 						}
 						return true;
 					}

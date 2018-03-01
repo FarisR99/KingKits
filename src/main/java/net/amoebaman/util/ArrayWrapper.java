@@ -3,8 +3,7 @@ package net.amoebaman.util;
 import org.apache.commons.lang.Validate;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Represents a wrapper around an array class of an arbitrary reference type,

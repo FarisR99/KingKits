@@ -1,7 +1,6 @@
 package com.faris.kingkits.helper.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class StringUtilities {
 

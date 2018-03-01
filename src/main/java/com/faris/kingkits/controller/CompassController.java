@@ -1,9 +1,6 @@
 package com.faris.kingkits.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class CompassController implements Controller {
 

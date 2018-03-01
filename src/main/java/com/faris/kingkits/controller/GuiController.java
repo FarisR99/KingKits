@@ -119,12 +119,46 @@ public class GuiController implements Controller {
 					}
 					guiKits = new GuiKits(filteredKitList);
 				} else {
-					guiKits = new GuiKits(new ArrayList<Kit>());
+					guiKits = new GuiKits(new ArrayList<>());
 				}
 			} else {
 				guiKits = new GuiKits(kitList);
 			}
 
+			guiKits.fillInventory(player, kitsInv);
+			this.guiKits.put(player.getUniqueId(), guiKits);
+		} else {
+			kitsInv = Bukkit.getServer().createInventory(null, InventoryType.CHEST);
+			kitsInv.setContents(this.kitsInventory.getContents());
+		}
+		return kitsInv;
+	}
+
+	public Inventory createKitsInventory(Player player, int page) {
+		Inventory kitsInv = null;
+		if (player != null) {
+			kitsInv = Bukkit.getServer().createInventory(player, this.kitsInventory.getSize(), this.kitsInventory.getTitle());
+			kitsInv.setContents(this.kitsInventory.getContents());
+
+			Collection<Kit> kitList = ConfigController.getInstance().shouldSortKitsAlphanumerically() ? KitUtilities.sortAlphabetically(KitController.getInstance().getKits().values()) : KitController.getInstance().getKits().values();
+			GuiKits guiKits = null;
+			if (ConfigController.getInstance().shouldUsePermissionsForKitList()) {
+				KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
+				if (kitPlayer != null && kitPlayer.isLoaded()) {
+					List<Kit> filteredKitList = new ArrayList<>();
+					for (Kit kit : kitList) {
+						if (kitPlayer.hasPermission(kit) || kitPlayer.hasUnlocked(kit)) {
+							filteredKitList.add(kit);
+						}
+					}
+					guiKits = new GuiKits(filteredKitList);
+				} else {
+					guiKits = new GuiKits(new ArrayList<>());
+				}
+			} else {
+				guiKits = new GuiKits(kitList);
+			}
+			if (page >= 1 && page <= guiKits.maxPage) guiKits.page = page;
 			guiKits.fillInventory(player, kitsInv);
 			this.guiKits.put(player.getUniqueId(), guiKits);
 		} else {
@@ -185,7 +219,7 @@ public class GuiController implements Controller {
 		if (player != null && !this.guiViewers.containsKey(player.getUniqueId())) {
 			player.closeInventory();
 			KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
-			if (kitPlayer != null && kitPlayer.getKits().isEmpty()) {
+			if (kitPlayer == null || kitPlayer.getKits().isEmpty()) {
 				Inventory inventory = this.createKitsInventory(player);
 				if (inventory != null) {
 					this.guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS);
@@ -233,37 +267,31 @@ public class GuiController implements Controller {
 						player.closeInventory();
 						final UUID playerUUID = player.getUniqueId();
 						final Inventory kitsInventory = createKitsInventory(player);
-						player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-							@Override
-							public void run() {
-								if (player.isOnline()) {
-									player.openInventory(kitsInventory);
-									guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS);
-								} else {
-									guiKits.remove(playerUUID);
-								}
+						player.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+							if (player.isOnline()) {
+								player.openInventory(kitsInventory);
+								guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS);
+							} else {
+								guiKits.remove(playerUUID);
 							}
 						});
 					} else if (event.getRawSlot() == 5) {
 						player.closeInventory();
 						final UUID playerUUID = player.getUniqueId();
 						final Inventory userKitsInventory = createUserKitsInventory(player);
-						player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-							@Override
-							public void run() {
-								if (player.isOnline()) {
-									player.openInventory(userKitsInventory);
-									guiViewers.put(player.getUniqueId(), GuiType.GUI_USER_KITS);
-								} else {
-									guiKits.remove(playerUUID);
-								}
+						player.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+							if (player.isOnline()) {
+								player.openInventory(userKitsInventory);
+								guiViewers.put(player.getUniqueId(), GuiType.GUI_USER_KITS);
+							} else {
+								guiKits.remove(playerUUID);
 							}
 						});
 					}
 				} else if (guiType == GuiType.GUI_KITS) {
 					event.setCancelled(true);
 					if (guiKits.containsKey(player.getUniqueId())) {
-						GuiKits guiKit = guiKits.get(player.getUniqueId());
+						final GuiKits guiKit = guiKits.get(player.getUniqueId());
 						Kit clickedKit = guiKit.getKit(event.getRawSlot());
 						if (clickedKit != null) {
 							KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
@@ -276,16 +304,13 @@ public class GuiController implements Controller {
 								final UUID playerUUID = player.getUniqueId();
 								final Inventory previewKitInventory = createKitPreviewInventory(player, clickedKit);
 								final Kit finalKit = clickedKit;
-								player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-									@Override
-									public void run() {
-										if (player.isOnline()) {
-											player.openInventory(previewKitInventory);
-											guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
-											guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName()));
-										} else {
-											guiKits.remove(playerUUID);
-										}
+								player.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+									if (player.isOnline()) {
+										player.openInventory(previewKitInventory);
+										guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
+										guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName(), guiKit));
+									} else {
+										guiKits.remove(playerUUID);
 									}
 								});
 							}
@@ -350,7 +375,25 @@ public class GuiController implements Controller {
 							}
 						}
 					} else if (event.getRawSlot() == event.getInventory().getSize() - 4) {
-						player.closeInventory();
+						if (ConfigController.getInstance().shouldShowKitMenuOnPreviewClose()) {
+							final GuiKitPreview guiKitP = guiKitPreview.get(player.getUniqueId());
+							player.closeInventory();
+							if (guiKitP != null && guiKitP.getPreviousPage() != -1) {
+								player.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+									if (player.isOnline()) {
+										Inventory inventory = createKitsInventory(player, guiKitP.getPreviousPage());
+										if (inventory != null) {
+											guiViewers.put(player.getUniqueId(), GuiType.GUI_KITS);
+											player.openInventory(inventory);
+										}
+									} else {
+										guiKits.remove(player.getUniqueId());
+									}
+								});
+							}
+						} else {
+							player.closeInventory();
+						}
 					}
 				}
 			} catch (Exception ex) {
@@ -512,16 +555,13 @@ public class GuiController implements Controller {
 					final UUID playerUUID = player.getUniqueId();
 					final Inventory previewKitInventory = this.createKitPreviewInventory(player, selectedKit);
 					final Kit finalKit = selectedKit;
-					player.getServer().getScheduler().runTask(KingKits.getInstance(), new Runnable() {
-						@Override
-						public void run() {
-							if (player.isOnline()) {
-								player.openInventory(previewKitInventory);
-								guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
-								guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName()));
-							} else {
-								guiKits.remove(playerUUID);
-							}
+					player.getServer().getScheduler().runTask(KingKits.getInstance(), () -> {
+						if (player.isOnline()) {
+							player.openInventory(previewKitInventory);
+							guiViewers.put(player.getUniqueId(), GuiType.GUI_PREVIEW_KIT);
+							guiKitPreview.put(player.getUniqueId(), new GuiKitPreview(finalKit.getName()));
+						} else {
+							guiKits.remove(playerUUID);
 						}
 					});
 				} else {
@@ -708,13 +748,23 @@ public class GuiController implements Controller {
 
 	private static class GuiKitPreview {
 		private String kitName = "";
+		private int previousPage = -1;
 
 		public GuiKitPreview(String kit) {
 			this.kitName = kit;
 		}
 
+		public GuiKitPreview(String kit, GuiKits previousGUI) {
+			this.kitName = kit;
+			this.previousPage = previousGUI.page;
+		}
+
 		public Kit getKit() {
 			return KitController.getInstance().getKit(this.kitName);
+		}
+
+		public int getPreviousPage() {
+			return this.previousPage;
 		}
 	}
 

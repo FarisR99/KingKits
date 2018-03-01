@@ -22,10 +22,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
-import com.google.common.io.Closeables;
-import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
-import com.google.common.io.OutputSupplier;
+import com.google.common.io.*;
 import com.google.common.primitives.Primitives;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -38,9 +35,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.util.concurrent.*;
+import java.util.zip.*;
 
 public class NbtFactory {
 	// Convert between NBT id and the equivalent class in java
@@ -260,13 +256,13 @@ public class NbtFactory {
 		/**
 		 * Save the content of a NBT compound to a stream.
 		 * <p>
-		 * Use {@link Files#newOutputStreamSupplier(java.io.File)} to provide a stream supplier to a file.
+		 * Use {@link Files#asByteSink(File, FileWriteMode...)} to provide a stream supplier to a file.
 		 *
 		 * @param stream - the output stream.
 		 * @param option - whether or not to compress the output.
 		 * @throws IOException If anything went wrong.
 		 */
-		public void saveTo(OutputSupplier<? extends OutputStream> stream, StreamOptions option) throws IOException {
+		public void saveTo(ByteSink stream, StreamOptions option) throws IOException {
 			saveStream(this, stream, option);
 		}
 
@@ -431,7 +427,7 @@ public class NbtFactory {
 	 *
 	 * @return The NBT list.
 	 */
-	public static NbtList createList(Iterable<? extends Object> iterable) {
+	public static NbtList createList(Iterable<?> iterable) {
 		NbtList list = get().new NbtList(
 				INSTANCE.createNbtTag(NbtType.TAG_LIST, null)
 		);
@@ -466,20 +462,20 @@ public class NbtFactory {
 	/**
 	 * Load the content of a file from a stream.
 	 * <p>
-	 * Use {@link Files#newInputStreamSupplier(java.io.File)} to provide a stream from a file.
+	 * Use {@link Files#asByteSource(File)} to provide a stream from a file.
 	 *
 	 * @param stream - the stream supplier.
 	 * @param option - whether or not to decompress the input stream.
 	 * @return The decoded NBT compound.
 	 * @throws IOException If anything went wrong.
 	 */
-	public static NbtCompound fromStream(InputSupplier<? extends InputStream> stream, StreamOptions option) throws IOException {
+	public static NbtCompound fromStream(ByteSource stream, StreamOptions option) throws IOException {
 		InputStream input = null;
 		DataInputStream data = null;
 		boolean suppress = true;
 
 		try {
-			input = stream.getInput();
+			input = stream.openStream();
 			data = new DataInputStream(new BufferedInputStream(
 					option == StreamOptions.GZIP_COMPRESSION ? new GZIPInputStream(input) : input
 			));
@@ -499,20 +495,20 @@ public class NbtFactory {
 	/**
 	 * Save the content of a NBT compound to a stream.
 	 * <p>
-	 * Use {@link Files#newOutputStreamSupplier(java.io.File)} to provide a stream supplier to a file.
+	 * Use {@link Files#asByteSink(File, FileWriteMode...)} to provide a stream supplier to a file.
 	 *
 	 * @param source - the NBT compound to save.
 	 * @param stream - the stream.
 	 * @param option - whether or not to compress the output.
 	 * @throws IOException If anything went wrong.
 	 */
-	public static void saveStream(NbtCompound source, OutputSupplier<? extends OutputStream> stream, StreamOptions option) throws IOException {
+	public static void saveStream(NbtCompound source, ByteSink stream, StreamOptions option) throws IOException {
 		OutputStream output = null;
 		DataOutputStream data = null;
 		boolean suppress = true;
 
 		try {
-			output = stream.getOutput();
+			output = stream.openStream();
 			data = new DataOutputStream(
 					option == StreamOptions.GZIP_COMPRESSION ? new GZIPOutputStream(output) : output
 			);
@@ -922,7 +918,7 @@ public class NbtFactory {
 				public Entry<String, Object> next() {
 					Entry<String, Object> entry = proxy.next();
 
-					return new SimpleEntry<String, Object>(
+					return new SimpleEntry<>(
 							entry.getKey(), wrapOutgoing(entry.getValue())
 					);
 				}

@@ -28,9 +28,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.*;
+import java.util.logging.*;
 
 public class KingKits extends JavaPlugin {
 
@@ -46,7 +45,6 @@ public class KingKits extends JavaPlugin {
 		Attributes.AttributeType.initialiseNameMap();
 
 		final boolean isSpigot = this.getServer().getVersion().contains("Spigot");
-
 		try {
 			String packageName = this.getServer().getClass().getPackage().getName();
 			SERVER_VERSION = packageName.substring(packageName.lastIndexOf('.') + 1);
@@ -73,9 +71,11 @@ public class KingKits extends JavaPlugin {
 		ConfigurationSerialization.registerClass(Attribute.class);
 		ConfigurationSerialization.registerClass(MySQLDetails.class);
 
-		if (new File(this.getDataFolder(), "config.yml").exists() && (!ConfigController.getInstance().getConfig().contains("Version") || !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION)))
+		if (new File(this.getDataFolder(), "config.yml").exists() && (!ConfigController.getInstance().getConfig().contains("Version") || !ConfigController.getInstance().getConfig().getString("Version").equals(ConfigController.CURRENT_CONFIG_VERSION))) {
 			ConfigController.getInstance().migrateOldConfigs();
-		else ConfigController.getInstance().loadConfiguration();
+		} else {
+			ConfigController.getInstance().loadConfiguration();
+		}
 		try {
 			Messages.initMessages(this);
 		} catch (Exception ex) {
@@ -88,111 +88,116 @@ public class KingKits extends JavaPlugin {
 		CompassController.getInstance();
 
 		try {
-			if (Messages.KIT_NOT_ENOUGH_MONEY.getRawMessage().contains("%d"))
+			if (Messages.KIT_NOT_ENOUGH_MONEY.getRawMessage().contains("%d")) {
 				Messages.KIT_NOT_ENOUGH_MONEY.setMessage(Messages.KIT_NOT_ENOUGH_MONEY.getRawMessage().replace("%d", "%.2f"));
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
 		this.getServer().getPluginManager().registerEvents((this.eventListener = new EventListener(this)), this);
 
-		if (ConfigController.getInstance().shouldCheckForUpdates()) {
-			this.getLogger().info("Checking for updates...");
-			if (this.getServer().getVersion().contains("Spigot")) {
-				final int pluginID = 2209;
-				SpigotUpdater updater = new SpigotUpdater(this, pluginID, false);
-				if (updater.getResult() == SpigotUpdater.UpdateResult.UPDATE_AVAILABLE) {
-					String title = "============================================";
-					String titleSpace = "                                            ";
-					this.getLogger().info(title);
-					try {
-						this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
-					} catch (Exception ex) {
-						this.getLogger().info("KingKits");
-					}
-					this.getLogger().info(title);
-					this.getLogger().info("A new version is available: KingKits v" + updater.getVersion());
-					this.getLogger().info("Your current version: KingKits v" + updater.getCurrentVersion());
-					this.getLogger().info((ConfigController.getInstance().shouldAutomaticallyUpdate() ? "KingKits auto-updater does not work for Spigot. " : "") + "Download it from: http://www.spigotmc.org/threads/kingkits.37947");
-				} else {
-					switch (updater.getResult()) {
-						case UPDATE_AVAILABLE:
-							break;
-						case DISABLED:
-							this.getLogger().warning("Plugin updater disabled in the updater's configuration.");
-							break;
-						case BAD_RESOURCE_ID:
-							this.getLogger().warning("Check failed: Bad resource ID.");
-							break;
-						case FAIL_SPIGOT:
-							this.getLogger().warning("Check failed: Could not connect to Spigot.");
-							break;
-						case FAIL_NO_VERSION:
-							this.getLogger().warning("Check failed: The latest version has an incorrect title.");
-							break;
-						default:
-							this.getLogger().info("No new update found.");
-							break;
-					}
-				}
-			} else {
-				final int pluginID = 56371;
-				BukkitUpdater updater = new BukkitUpdater(this, pluginID, this.getFile(), BukkitUpdater.UpdateType.NO_DOWNLOAD, false);
-				if (updater.getResult() == BukkitUpdater.UpdateResult.UPDATE_AVAILABLE) {
-					String header = "============================================";
-					String titleSpace = "                                            ";
-					this.getLogger().info(header);
-					try {
-						this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
-					} catch (Exception ex) {
-						this.getLogger().info("== KingKits ==");
-					}
-					this.getLogger().info(header);
-					this.getLogger().info("A new version is available: " + updater.getLatestName());
-					this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
-					if (ConfigController.getInstance().shouldAutomaticallyUpdate()) {
-						this.getLogger().info("Downloading " + updater.getLatestName() + "...");
-						updater = new BukkitUpdater(this, pluginID, this.getFile(), BukkitUpdater.UpdateType.NO_VERSION_CHECK, false);
-						BukkitUpdater.UpdateResult updateResult = updater.getResult();
-						switch (updateResult) {
+		try {
+			if (ConfigController.getInstance().shouldCheckForUpdates()) {
+				this.getLogger().info("Checking for updates...");
+				if (this.getServer().getVersion().contains("Spigot")) {
+					final int pluginID = 2209;
+					SpigotUpdater updater = new SpigotUpdater(this, pluginID, false);
+					if (updater.getResult() == SpigotUpdater.UpdateResult.UPDATE_AVAILABLE) {
+						String title = "============================================";
+						String titleSpace = "                                            ";
+						this.getLogger().info(title);
+						try {
+							this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
+						} catch (Exception ex) {
+							this.getLogger().info("KingKits");
+						}
+						this.getLogger().info(title);
+						this.getLogger().info("A new version is available: KingKits v" + updater.getVersion());
+						this.getLogger().info("Your current version: KingKits v" + updater.getCurrentVersion());
+						this.getLogger().info((ConfigController.getInstance().shouldAutomaticallyUpdate() ? "KingKits auto-updater does not work for Spigot. " : "") + "Download it from: http://www.spigotmc.org/threads/kingkits.37947");
+					} else {
+						switch (updater.getResult()) {
+							case UPDATE_AVAILABLE:
+								break;
 							case DISABLED:
 								this.getLogger().warning("Plugin updater disabled in the updater's configuration.");
 								break;
-							case FAIL_APIKEY:
-								this.getLogger().warning("Download failed: Improperly configured the server's API key in the configuration");
+							case BAD_RESOURCE_ID:
+								this.getLogger().warning("Check failed: Bad resource ID.");
 								break;
-							case FAIL_DBO:
-								this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
+							case FAIL_SPIGOT:
+								this.getLogger().warning("Check failed: Could not connect to Spigot.");
 								break;
-							case FAIL_DOWNLOAD:
-								this.getLogger().warning("Download failed: Could not download the file.");
-								break;
-							case FAIL_NOVERSION:
-								this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+							case FAIL_NO_VERSION:
+								this.getLogger().warning("Check failed: The latest version has an incorrect title.");
 								break;
 							default:
-								this.getLogger().info("The latest version of KingKits has been downloaded.");
+								this.getLogger().info("No new update found.");
 								break;
 						}
-					} else {
-						this.getLogger().info("Download it from: " + updater.getLatestFileLink());
+					}
+				} else {
+					final int pluginID = 56371;
+					BukkitUpdater updater = new BukkitUpdater(this, pluginID, this.getFile(), BukkitUpdater.UpdateType.NO_DOWNLOAD, false);
+					if (updater.getResult() == BukkitUpdater.UpdateResult.UPDATE_AVAILABLE) {
+						String header = "============================================";
+						String titleSpace = "                                            ";
+						this.getLogger().info(header);
+						try {
+							this.getLogger().info(titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length() + 3) + "KingKits" + titleSpace.substring(0, titleSpace.length() / 2 - "KingKits".length()));
+						} catch (Exception ex) {
+							this.getLogger().info("== KingKits ==");
+						}
+						this.getLogger().info(header);
+						this.getLogger().info("A new version is available: " + updater.getLatestName());
+						this.getLogger().info("Your current version: KingKits v" + this.getDescription().getVersion());
+						if (ConfigController.getInstance().shouldAutomaticallyUpdate()) {
+							this.getLogger().info("Downloading " + updater.getLatestName() + "...");
+							updater = new BukkitUpdater(this, pluginID, this.getFile(), BukkitUpdater.UpdateType.NO_VERSION_CHECK, false);
+							BukkitUpdater.UpdateResult updateResult = updater.getResult();
+							switch (updateResult) {
+								case DISABLED:
+									this.getLogger().warning("Plugin updater disabled in the updater's configuration.");
+									break;
+								case FAIL_APIKEY:
+									this.getLogger().warning("Download failed: Improperly configured the server's API key in the configuration");
+									break;
+								case FAIL_DBO:
+									this.getLogger().warning("Download failed: Could not connect to BukkitDev.");
+									break;
+								case FAIL_DOWNLOAD:
+									this.getLogger().warning("Download failed: Could not download the file.");
+									break;
+								case FAIL_NOVERSION:
+									this.getLogger().warning("Download failed: The latest version has an incorrect title.");
+									break;
+								default:
+									this.getLogger().info("The latest version of KingKits has been downloaded.");
+									break;
+							}
+						} else {
+							this.getLogger().info("Download it from: " + updater.getLatestFileLink());
+						}
 					}
 				}
 			}
+		} catch (Exception ex) {
+			this.getLogger().log(Level.WARNING, "Failed to check for updates", ex);
 		}
 
 		try {
 			if (DataStorage.getInstance() == null) {
 				if (ConfigController.getInstance().getSQLDetails().isEnabled()) {
-					DataStorage.setInstance(DataStorage.DataStorageType.SQL);
+					DataStorage.createInstance(DataStorage.DataStorageType.SQL);
 				} else {
-					DataStorage.setInstance(DataStorage.DataStorageType.FILE);
+					DataStorage.createInstance(DataStorage.DataStorageType.FILE);
 				}
 			}
 
 			this.startAutoSaveTask();
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			this.getLogger().log(Level.SEVERE, "Failed to create data storage instance", ex);
 		}
 
 		if (!ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty()) {
@@ -208,16 +213,13 @@ public class KingKits extends JavaPlugin {
 				try {
 					OfflineKitPlayer deserializedPlayer = OfflineKitPlayer.deserialize(ObjectUtilities.getMap(playerEntry.getValue()));
 					deserializedPlayer.setModified(true);
-					DataStorage.getInstance().savePlayer(deserializedPlayer, new Runnable() {
-						@Override
-						public void run() {
-							ConfigController.getInstance().getPlayersConfig().set(playerEntry.getKey(), null);
-							ConfigController.getInstance().savePlayersConfig();
+					DataStorage.getInstance().savePlayer(deserializedPlayer, () -> {
+						ConfigController.getInstance().getPlayersConfig().set(playerEntry.getKey(), null);
+						ConfigController.getInstance().savePlayersConfig();
 
-							if (ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty()) {
-								allowJoining = true;
-								ConfigController.getInstance().deletePlayersConfig();
-							}
+						if (ConfigController.getInstance().getPlayersConfig().getValues(false).isEmpty()) {
+							this.allowJoining = true;
+							ConfigController.getInstance().deletePlayersConfig();
 						}
 					});
 				} catch (Exception ex) {
@@ -244,7 +246,7 @@ public class KingKits extends JavaPlugin {
 				this.eventListener.handleJoinEvent(player);
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			this.getLogger().log(Level.SEVERE, "Failed to handle join event", ex);
 		}
 
 		try {
@@ -319,12 +321,9 @@ public class KingKits extends JavaPlugin {
 
 	private void disablePlugin() {
 		final KingKits pluginInstance = this;
-		this.getServer().getScheduler().runTaskLater(this, new Runnable() {
-			@Override
-			public void run() {
-				if (getServer().getPluginManager().isPluginEnabled(pluginInstance)) {
-					getServer().getPluginManager().disablePlugin(pluginInstance);
-				}
+		this.getServer().getScheduler().runTaskLater(this, () -> {
+			if (this.getServer().getPluginManager().isPluginEnabled(pluginInstance)) {
+				this.getServer().getPluginManager().disablePlugin(pluginInstance);
 			}
 		}, 20L);
 	}
@@ -369,12 +368,7 @@ public class KingKits extends JavaPlugin {
 	public void startAutoSaveTask() {
 		if (ConfigController.getInstance().getAutoSavePlayerDataTime() != -1D) {
 			this.stopAutoSaveTask();
-			this.autoSaveTaskID = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
-				@Override
-				public void run() {
-					PlayerController.getInstance().saveAllPlayers();
-				}
-			}, (long) (ConfigController.getInstance().getAutoSavePlayerDataTime() * 60D * 20D), (long) (ConfigController.getInstance().getAutoSavePlayerDataTime() * 60D * 20D)).getTaskId();
+			this.autoSaveTaskID = this.getServer().getScheduler().runTaskTimer(this, () -> PlayerController.getInstance().saveAllPlayers(), (long) (ConfigController.getInstance().getAutoSavePlayerDataTime() * 60D * 20D), (long) (ConfigController.getInstance().getAutoSavePlayerDataTime() * 60D * 20D)).getTaskId();
 		}
 	}
 

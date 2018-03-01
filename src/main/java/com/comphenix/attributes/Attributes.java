@@ -21,7 +21,6 @@ import com.comphenix.attributes.NbtFactory.NbtCompound;
 import com.comphenix.attributes.NbtFactory.NbtList;
 import com.faris.kingkits.helper.util.ObjectUtilities;
 import com.faris.kingkits.helper.util.Utilities;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -31,7 +30,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 
 public class Attributes {
 	public enum Operation {
@@ -40,7 +39,7 @@ public class Attributes {
 		ADD_PERCENTAGE(2);
 		private int id;
 
-		private Operation(int id) {
+		Operation(int id) {
 			this.id = id;
 		}
 
@@ -473,21 +472,12 @@ public class Attributes {
 
 	// We can't make Attributes itself iterable without splitting it up into separate classes
 	public Iterable<Attribute> values() {
-		return new Iterable<Attribute>() {
-			@Override
-			public Iterator<Attribute> iterator() {
-				// Handle the empty case
-				if (size() == 0)
-					return Collections.<Attribute>emptyList().iterator();
+		return () -> {
+			// Handle the empty case
+			if (size() == 0)
+				return Collections.<Attribute>emptyList().iterator();
 
-				return Iterators.transform(attributes.iterator(),
-						new Function<Object, Attribute>() {
-							@Override
-							public Attribute apply(Object element) {
-								return new Attribute((NbtCompound) element);
-							}
-						});
-			}
+			return Iterators.transform(attributes.iterator(), element -> new Attribute((NbtCompound) element));
 		};
 	}
 }

@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public class CommandRefill extends KingKitsCommand {
 

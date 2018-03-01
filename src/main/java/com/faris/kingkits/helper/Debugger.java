@@ -2,7 +2,7 @@ package com.faris.kingkits.helper;
 
 import com.faris.kingkits.KingKits;
 
-import java.util.logging.Level;
+import java.util.logging.*;
 
 /**
  * Solely for plugin debugging only

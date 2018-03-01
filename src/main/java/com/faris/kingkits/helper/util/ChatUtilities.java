@@ -3,8 +3,7 @@ package com.faris.kingkits.helper.util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ChatUtilities {
 
@@ -28,7 +27,7 @@ public class ChatUtilities {
 			for (int i = 0; i < someStrings.size(); i++)
 				someStrings.set(i, replaceChatCodes(someStrings.get(i)));
 		}
-		return someStrings != null ? someStrings : new ArrayList<String>();
+		return someStrings != null ? someStrings : new ArrayList<>();
 	}
 
 	public static List<String> replaceChatColours(List<String> someStrings) {

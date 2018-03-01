@@ -53,7 +53,7 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 	}
 
 	public long getKitTimestamp(Kit kit) {
-		return kit != null ? (this.kitTimestamps.containsKey(kit.getName()) ? this.kitTimestamps.get(kit.getName()) : -1L) : 0L;
+		return kit != null ? this.kitTimestamps.getOrDefault(kit.getName(), -1L) : 0L;
 	}
 
 	public Map<String, Long> getKitTimestamps() {
@@ -97,7 +97,7 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 
 	public void setKits(Map<String, Kit> kits) {
 		if (this.loaded && !this.playerKits.equals(kits)) this.modified = true;
-		this.playerKits = kits == null ? new HashMap<String, Kit>() : kits;
+		this.playerKits = kits == null ? new HashMap<>() : kits;
 	}
 
 	public void setKitTimestamp(Kit kit, Long timestamp) {
@@ -199,23 +199,27 @@ public class OfflineKitPlayer implements ConfigurationSerializable {
 			try {
 				if (serializedPlayer.containsKey("UUID")) {
 					deserializedPlayer = new OfflineKitPlayer(UUID.fromString(ObjectUtilities.getObject(serializedPlayer, String.class, "UUID")));
-					if (serializedPlayer.containsKey("Username"))
+					if (serializedPlayer.containsKey("Username")) {
 						deserializedPlayer.setUsername(ObjectUtilities.getObject(serializedPlayer, String.class, "Username"));
+					}
 				} else if (serializedPlayer.containsKey("Username")) {
 					deserializedPlayer = new OfflineKitPlayer(ObjectUtilities.getObject(serializedPlayer, String.class, "Username"));
 				}
 				if (deserializedPlayer != null) {
-					if (serializedPlayer.containsKey("Score"))
+					if (serializedPlayer.containsKey("Score")) {
 						deserializedPlayer.setScore(ObjectUtilities.getObject(serializedPlayer, Integer.class, "Score"));
+					}
 					if (serializedPlayer.containsKey("Kit timestamps")) {
 						Map<String, Object> serializedKitTimestamps = ObjectUtilities.getMap(serializedPlayer.get("Kit timestamps"));
 						Map<String, Long> deserializedKitTimestamps = new HashMap<>();
 						for (Map.Entry<String, Object> serializedKitTimestamp : serializedKitTimestamps.entrySet()) {
-							if (Utilities.isNumber(Long.class, serializedKitTimestamp.getValue()))
+							if (Utilities.isNumber(Long.class, serializedKitTimestamp.getValue())) {
 								deserializedKitTimestamps.put(serializedKitTimestamp.getKey(), Long.parseLong(serializedKitTimestamp.getValue().toString()));
+							}
 						}
-						if (!deserializedKitTimestamps.isEmpty())
+						if (!deserializedKitTimestamps.isEmpty()) {
 							deserializedPlayer.setKitTimestamps(deserializedKitTimestamps);
+						}
 					}
 					if (serializedPlayer.containsKey("Player kits")) {
 						Map<String, Object> serializedPlayerKits = ObjectUtilities.getMap(serializedPlayer.get("Player kits"));

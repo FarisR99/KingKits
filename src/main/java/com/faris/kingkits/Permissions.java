@@ -4,8 +4,7 @@ import com.faris.kingkits.helper.util.ReflectionUtilities;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Permissions {
 
@@ -17,6 +16,7 @@ public class Permissions {
 	public static Permission COMMAND_CONFIG = null;
 	public static Permission COMMAND_KILLSTREAK = null;
 	public static Permission COMMAND_KILLSTREAK_OTHER = null;
+	public static Permission COMMAND_SET = null;
 
 	public static Permission COMMAND_KIT = null;
 	public static Permission COMMAND_KIT_OTHER = null;
@@ -52,6 +52,7 @@ public class Permissions {
 		registerPermission("COMMAND_CONFIG", "kingkits.command.config");
 		registerPermission("COMMAND_KILLSTREAK", "kingkits.command.killstreak");
 		registerPermission("COMMAND_KILLSTREAK_OTHER", "kingkits.command.killstreak.other");
+		registerPermission("COMMAND_SET", "kingkits.command.set");
 
 		registerPermission("COMMAND_KIT", "kingkits.command.kit");
 		registerPermission("COMMAND_KIT_OTHER", "kingkits.command.kit.other");

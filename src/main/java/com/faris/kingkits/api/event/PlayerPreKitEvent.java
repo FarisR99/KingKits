@@ -9,10 +9,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayerPreKitEvent extends Event implements Cancellable {
 
@@ -66,7 +63,7 @@ public class PlayerPreKitEvent extends Event implements Cancellable {
 	 */
 	public void setItems(Map<Integer, ItemStack> items) {
 		if (this.kit != null) {
-			this.kit.setItems(items != null ? items : new HashMap<Integer, ItemStack>());
+			this.kit.setItems(items != null ? items : new HashMap<>());
 		}
 	}
 
@@ -88,7 +85,7 @@ public class PlayerPreKitEvent extends Event implements Cancellable {
 	 */
 	public void setPotionEffects(List<PotionEffect> potionEffects) {
 		if (this.kit != null) {
-			this.kit.setPotionEffects(potionEffects != null ? potionEffects : new ArrayList<PotionEffect>());
+			this.kit.setPotionEffects(potionEffects != null ? potionEffects : new ArrayList<>());
 		}
 	}
 

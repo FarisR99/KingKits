@@ -681,17 +681,17 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 	}
 
 	public static <T> T getObject(Map<String, Object> map, String key, Class<T> unused, T defaultValue) throws ClassCastException {
-		Object value = map.containsKey(key) ? map.get(key) : null;
+		Object value = map.getOrDefault(key, null);
 		return value != null ? (unused == Long.class ? (T) ((Long) Long.parseLong(value.toString())) : (unused == Integer.class ? (T) ((Integer) Integer.parseInt(value.toString())) : (unused == Short.class ? (T) ((Short) Short.parseShort(value.toString())) : (unused == Double.class ? (T) ((Double) Double.parseDouble(value.toString())) : (unused.isInstance(value) ? (T) value : defaultValue))))) : defaultValue;
 	}
 
 	public static Map<String, Object> getValues(Map<String, Object> mainMap, String key) {
 		Object object = mainMap != null ? mainMap.get(key) : null;
-		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
+		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<>());
 	}
 
 	public static Map<String, Object> getValues(Object object) {
-		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<String, Object>());
+		return object instanceof ConfigurationSection ? ((ConfigurationSection) object).getValues(false) : (object instanceof Map ? (Map<String, Object>) object : new HashMap<>());
 	}
 
 	public static Map<String, Object> getValues(Map.Entry<String, Object> entrySet) {

@@ -18,12 +18,10 @@ public class Utilities {
 
 	private static Gson gson = null;
 
-	private static Comparator<String> ALPHANUMERICAL_ORDER = new Comparator<String>() {
-		public int compare(String str1, String str2) {
-			int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-			if (res == 0) res = str1.compareTo(str2);
-			return res;
-		}
+	private static final Comparator<String> ALPHANUMERICAL_ORDER = (str1, str2) -> {
+		int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+		if (res == 0) res = str1.compareTo(str2);
+		return res;
 	};
 
 	private Utilities() {

@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public enum Messages {
 	GENERAL_COMMAND_ERROR("General.Command error", "&cA(n) %s error occurred whilst trying to execute that command. Please contact a server administrator."),

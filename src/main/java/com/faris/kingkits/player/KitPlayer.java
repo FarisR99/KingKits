@@ -5,9 +5,7 @@ import com.faris.kingkits.controller.KitController;
 import com.faris.kingkits.controller.PlayerController;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class KitPlayer extends OfflineKitPlayer {
 

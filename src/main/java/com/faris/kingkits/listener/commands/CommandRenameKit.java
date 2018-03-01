@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public class CommandRenameKit extends KingKitsCommand {
 

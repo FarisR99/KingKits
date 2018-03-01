@@ -1,9 +1,7 @@
 package com.faris.kingkits.helper;
 
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CacheMap<K, V> {
 

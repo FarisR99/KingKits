@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.logging.*;
 
 import static mkremins.fanciful.TextualComponent.rawText;
 

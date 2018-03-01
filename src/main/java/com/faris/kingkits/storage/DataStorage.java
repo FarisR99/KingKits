@@ -4,7 +4,7 @@ import com.faris.kingkits.player.KitPlayer;
 import com.faris.kingkits.player.OfflineKitPlayer;
 import org.bukkit.Bukkit;
 
-import java.util.UUID;
+import java.util.*;
 
 public abstract class DataStorage {
 
@@ -24,7 +24,7 @@ public abstract class DataStorage {
 		return instance;
 	}
 
-	public static void setInstance(DataStorageType storageType) {
+	public static void createInstance(DataStorageType storageType) {
 		if (storageType != null) {
 			switch (storageType) {
 				case FILE:
@@ -35,12 +35,12 @@ public abstract class DataStorage {
 					break;
 				default:
 					instance = new FlatFileStorage();
-					Bukkit.getServer().getLogger().warning("An invalid storage type was provided! Using default storage type: Flat");
+					Bukkit.getServer().getLogger().warning("An invalid storage type was provided! Using default storage type: Flat file");
 					break;
 			}
 		} else {
 			instance = new FlatFileStorage();
-			Bukkit.getServer().getLogger().warning("An invalid storage type was provided! Using default storage type: Flat");
+			Bukkit.getServer().getLogger().warning("An invalid storage type was provided! Using default storage type: Flat file");
 		}
 	}
 
