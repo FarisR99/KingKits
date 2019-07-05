@@ -1,6 +1,6 @@
 package com.faris.kingkits.helper.util;
 
-import org.bukkit.Material;
+import com.faris.BackwardsCompatibility;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -46,7 +46,7 @@ public class NBTUtilities {
 
 	public static String getEgg(ItemStack itemStack) throws Exception {
 		if (itemStack != null) {
-			if (itemStack.getType() == Material.MONSTER_EGG) {
+			if (itemStack.getType() == BackwardsCompatibility.getMonsterEgg()) {
 				Object nmsStack = getNMSStack(itemStack);
 				if (nmsStack == null) return null;
 				Object nbtTagCompound = fieldTag.getObject(nmsStack);
@@ -61,7 +61,7 @@ public class NBTUtilities {
 
 	public static ItemStack setEgg(ItemStack itemStack, String entityType) throws Exception {
 		if (itemStack != null && entityType != null) {
-			if (itemStack.getType() == Material.MONSTER_EGG) {
+			if (itemStack.getType() == BackwardsCompatibility.getMonsterEgg()) {
 				Object nmsStack = methodAsNMSCopy.invoke(null, itemStack);
 				Object nbtTagCompound = fieldTag.getObject(nmsStack);
 				if (nbtTagCompound == null) nbtTagCompound = classNBTTagCompound.newInstance();

@@ -1,5 +1,6 @@
 package com.faris.kingkits.listener.commands;
 
+import com.faris.BackwardsCompatibility;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Messages;
 import com.faris.kingkits.Permissions;
@@ -53,11 +54,11 @@ public class CommandRefill extends KingKitsCommand {
 												}
 												int amount = itemInHand.getAmount();
 												if (amount <= 1) {
-													player.getInventory().setItemInMainHand(new ItemStack(Material.MUSHROOM_SOUP));
+													player.getInventory().setItemInMainHand(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 												} else {
 													itemInHand.setAmount(amount - 1);
 													player.getInventory().setItemInMainHand(itemInHand);
-													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP));
+													player.getInventory().addItem(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 												}
 												player.updateInventory();
 											} else {
@@ -82,11 +83,11 @@ public class CommandRefill extends KingKitsCommand {
 												}
 												int amount = itemInHand.getAmount();
 												if (amount <= 1) {
-													player.getInventory().setItemInOffHand(new ItemStack(Material.MUSHROOM_SOUP));
+													player.getInventory().setItemInOffHand(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 												} else {
 													itemInHand.setAmount(amount - 1);
 													player.getInventory().setItemInOffHand(itemInHand);
-													player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP));
+													player.getInventory().addItem(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 												}
 												player.updateInventory();
 											} else {
@@ -129,7 +130,7 @@ public class CommandRefill extends KingKitsCommand {
 														}
 													}
 													for (int i = 0; i < bowlsToGive; i++)
-														player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
+														player.getInventory().addItem(new ItemStack(BackwardsCompatibility.getMushroomSoup(), 1));
 													if (player.getInventory().getItemInMainHand().getAmount() - bowlsToGive > 0)
 														player.getInventory().setItemInMainHand(new ItemStack(Material.BOWL, player.getInventory().getItemInMainHand().getAmount() - bowlsToGive));
 													else
@@ -146,7 +147,7 @@ public class CommandRefill extends KingKitsCommand {
 																return true;
 															}
 														}
-														player.getInventory().setItemInMainHand(new ItemStack(Material.MUSHROOM_SOUP));
+														player.getInventory().setItemInMainHand(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 														player.updateInventory();
 													}
 												}
@@ -178,7 +179,7 @@ public class CommandRefill extends KingKitsCommand {
 														}
 													}
 													for (int i = 0; i < bowlsToGive; i++)
-														player.getInventory().addItem(new ItemStack(Material.MUSHROOM_SOUP, 1));
+														player.getInventory().addItem(new ItemStack(BackwardsCompatibility.getMushroomSoup(), 1));
 													if (player.getInventory().getItemInOffHand().getAmount() - bowlsToGive > 0)
 														player.getInventory().setItemInOffHand(new ItemStack(Material.BOWL, player.getInventory().getItemInOffHand().getAmount() - bowlsToGive));
 													else
@@ -195,7 +196,7 @@ public class CommandRefill extends KingKitsCommand {
 																return true;
 															}
 														}
-														player.getInventory().setItemInOffHand(new ItemStack(Material.MUSHROOM_SOUP));
+														player.getInventory().setItemInOffHand(new ItemStack(BackwardsCompatibility.getMushroomSoup()));
 														player.updateInventory();
 													}
 												}

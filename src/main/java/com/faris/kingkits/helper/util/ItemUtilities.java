@@ -2,6 +2,7 @@ package com.faris.kingkits.helper.util;
 
 import com.comphenix.attributes.Attributes;
 import com.comphenix.attributes.Attributes.Attribute;
+import com.faris.BackwardsCompatibility;
 import com.faris.kingkits.KingKits;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -11,10 +12,8 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
@@ -124,15 +123,17 @@ public class ItemUtilities {
 				}
 
 				// Eggs
-				if (material == Material.MONSTER_EGG && serializedItem.get("Egg") != null) {
-					if (KingKits.getServerVersion().startsWith("v1_9_") || KingKits.getServerVersion().startsWith("v1_10_")) {
-						try {
-							deserializedItem = NBTUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
-						} catch (Exception ex) {
-							ex.printStackTrace();
+				if (BackwardsCompatibility.isBeforeV1_13()) {
+					if (material == BackwardsCompatibility.getMonsterEgg() && serializedItem.get("Egg") != null) {
+						if (KingKits.getServerVersion().startsWith("v1_9_") || KingKits.getServerVersion().startsWith("v1_10_")) {
+							try {
+								deserializedItem = NBTUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
+						} else {
+							EggUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
 						}
-					} else {
-						EggUtilities.setEgg(deserializedItem, ObjectUtilities.getObject(serializedItem, String.class, "Egg"));
 					}
 				}
 
@@ -356,38 +357,10 @@ public class ItemUtilities {
 				boolean ambient = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Ambient", false);
 				boolean particles = ObjectUtilities.getObject(serializedPotion, Boolean.class, "Particles", true);
 				Color color = serializedPotion.containsKey("Color") ? Color.fromRGB(ObjectUtilities.getObject(serializedPotion, Number.class, "Color", Color.GRAY.asRGB()).intValue()) : null;
-				return new PotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
+				return BackwardsCompatibility.createPotionEffect(potionEffectType, duration != -1D ? (int) (duration * 20D) : Integer.MAX_VALUE, Math.max(level, 0), ambient, particles, color);
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Get the core contents of an inventory.
-	 *
-	 * @param inventory The inventory
-	 * @return The contents of the inventory.
-	 * @deprecated Use {@link org.bukkit.inventory.Inventory#getStorageContents()}
-	 */
-	public static ItemStack[] getContents(Inventory inventory) {
-		if (inventory != null) {
-			if (inventory instanceof PlayerInventory) {
-				PlayerInventory playerInventory = (PlayerInventory) inventory;
-				ItemStack[] itemContents = playerInventory.getContents();
-				if (itemContents == null) itemContents = new ItemStack[36];
-				if (itemContents.length > 36) {
-					ItemStack[] actualContents = new ItemStack[itemContents.length];
-					System.arraycopy(itemContents, 0, actualContents, 0, 36);
-					return actualContents;
-				} else {
-					return itemContents;
-				}
-			} else {
-				return inventory.getContents();
-			}
-		} else {
-			return new ItemStack[36];
-		}
 	}
 
 	public static List<Material> getDamageableMaterials() {
@@ -554,7 +527,7 @@ public class ItemUtilities {
 			}
 
 			// NBT Tags
-			if (itemStack.getType() == Material.MONSTER_EGG) {
+			if (itemStack.getType() == BackwardsCompatibility.getMonsterEgg()) {
 				if (KingKits.getServerVersion().startsWith("v1_9_") || KingKits.getServerVersion().startsWith("v1_10_")) {
 					try {
 						String strEggType = NBTUtilities.getEgg(itemStack);

@@ -1,6 +1,7 @@
 package com.faris.kingkits.controller;
 
 import com.comphenix.attributes.Attributes;
+import com.faris.BackwardsCompatibility;
 import com.faris.easysql.mysql.MySQLDetails;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.*;
+import java.util.stream.*;
 
 public class ConfigController implements Controller {
 
@@ -114,7 +116,7 @@ public class ConfigController implements Controller {
 	private int scorePerDeath = 0;
 
 	private List<String> commandsToRunOnDeath = new ArrayList<>();
-	private List<Integer> dropAnimationItems = new ArrayList<>();
+	private Set<Integer> dropAnimationItems = new HashSet<>();
 
 	private String kitListMode = "GUI";
 	private String scoreChatPrefix = "&6[&a<score>&6] &f";
@@ -233,7 +235,7 @@ public class ConfigController implements Controller {
 		this.getConfig().addDefault("Kit list mode", "GUI", "The way the kits are listed, there are three options:", "Text - List of chat messages sent with the kit names.", "Fancy - List of clickable messages sent with the kit names.", "GUI - A menu shows up with all the kits and their icons.");
 		this.getConfig().addDefault("One kit per life", false);
 		this.getConfig().addDefault("Commands to run on death", new ArrayList<>(), "A list of commands to run when a player dies. <player> is automatically replaced with the dead player's username.");
-		this.getConfig().addDefault("Drop animation IDs", new ArrayList<>(Arrays.asList(Material.MUSHROOM_SOUP.getId(), Material.GLASS_BOTTLE.getId())), "A list of item IDs that, when dropped and dropping items is disabled, are dropped but get removed when on the floor.");
+		this.getConfig().addDefault("Drop animation IDs", Stream.concat(BackwardsCompatibility.getMonsterEggs().stream().map(Material::getId), Stream.of(Material.GLASS_BOTTLE.getId())).collect(Collectors.toList()), "A list of item IDs that, when dropped and dropping items is disabled, are dropped but get removed when on the floor.");
 		this.getConfig().addDefault("Food level lock", 20, "The food level to lock a player's food level at.");
 		this.getConfig().addDefault("Quick soup heal", 5D, "The amount of health to heal a player by when they quick soup. 1 heart = 2 health.");
 		this.getConfig().options().copyHeader(true);
@@ -327,7 +329,7 @@ public class ConfigController implements Controller {
 			this.kitListMode = this.getConfig().getString("Kit list mode", "GUI");
 			this.oneKitPerLife = this.getConfig().getBoolean("One kit per life", false);
 			this.commandsToRunOnDeath = this.getConfig().getStringList("Commands to run on death");
-			this.dropAnimationItems = this.getConfig().getIntegerList("Drop animation IDs");
+			this.dropAnimationItems = new HashSet<>(this.getConfig().getIntegerList("Drop animation IDs"));
 			this.foodLevelLock = this.getConfig().getInt("Food level lock", 20);
 			this.quickSoupHeal = this.getConfig().getDouble("Quick soup heal", 2.5D);
 		} catch (Exception ex) {
@@ -377,7 +379,7 @@ public class ConfigController implements Controller {
 					worldSettings.signKit = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit.Unregistered", this.getConfig().getString("Sign.Kit.Unregistered", "[Kit]")), worldConfig.getString("Sign.Kit.Valid", this.getConfig().getString("Sign.Kit.Valid", "[&1Kit&0]")), worldConfig.getString("Sign.Kit.Invalid", this.getConfig().getString("Sign.Kit.Invalid", "[&cKit&0]")));
 					worldSettings.signKitList = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Kit list.Unregistered", this.getConfig().getString("Sign.Kit list.Unregistered", "[KList]")), worldConfig.getString("Sign.Kit list.Valid", this.getConfig().getString("Sign.Kit list.Valid", "[&1KList&0]")));
 					worldSettings.signRefill = ChatUtilities.replaceChatCodes(worldConfig.getString("Sign.Refill sign.Unregistered", this.getConfig().getString("Sign.Refill sign.Unregistered", "[KRefill]")), worldConfig.getString("Sign.Refill sign.Valid", this.getConfig().getString("Sign.Refill sign.Valid", "[&1KRefill&0]")));
-					worldSettings.dropAnimationItems = worldConfig.contains("Drop animation IDs") ? worldConfig.getIntegerList("Drop animation IDs") : this.getConfig().getIntegerList("Drop animation IDs");
+					worldSettings.dropAnimationItems = new HashSet<>(worldConfig.contains("Drop animation IDs") ? worldConfig.getIntegerList("Drop animation IDs") : this.getConfig().getIntegerList("Drop animation IDs"));
 
 					this.worldSettingsMap.put(strWorld.toLowerCase(), worldSettings);
 				}
@@ -490,7 +492,7 @@ public class ConfigController implements Controller {
 		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.economyCostPerRefill : this.worldSettingsMap.get(lowerCaseWorld).economyCostPerRefill;
 	}
 
-	public List<Integer> getDropAnimationItems(World world) {
+	public Set<Integer> getDropAnimationItems(World world) {
 		String lowerCaseWorld = world == null ? "" : world.getName().toLowerCase();
 		return !this.worldSettingsMap.containsKey(lowerCaseWorld) ? this.dropAnimationItems : this.worldSettingsMap.get(lowerCaseWorld).dropAnimationItems;
 	}
@@ -1951,7 +1953,7 @@ public class ConfigController implements Controller {
 		private boolean shouldRemovePotionEffectsOnReload = true;
 		private boolean shouldSetCompassToNearestPlayer = false;
 
-		private List<Integer> dropAnimationItems = new ArrayList<>();
+		private Set<Integer> dropAnimationItems = new HashSet<>();
 	}
 
 }

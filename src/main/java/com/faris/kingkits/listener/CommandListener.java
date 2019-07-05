@@ -1,5 +1,6 @@
 package com.faris.kingkits.listener;
 
+import com.faris.BackwardsCompatibility;
 import com.faris.easysql.mysql.MySQLHandler;
 import com.faris.easysql.mysql.helper.StatementDropTable;
 import com.faris.easysql.mysql.helper.StatementInsertTable;
@@ -333,7 +334,7 @@ public class CommandListener implements CommandExecutor {
 
 										Messages.sendMessage(sender, Messages.COMMAND_CONFIG_SAVED);
 									} else {
-										ItemStack configBook = new ItemStack(Material.BOOK_AND_QUILL);
+										ItemStack configBook = new ItemStack(BackwardsCompatibility.getBookAndQuill());
 										ItemMeta itemMeta = configBook.getItemMeta();
 										if (itemMeta != null) {
 											itemMeta.setDisplayName(ChatUtilities.replaceChatCodes("&6KingKits config"));

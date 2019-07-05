@@ -1,5 +1,6 @@
 package com.faris.kingkits.old;
 
+import com.faris.BackwardsCompatibility;
 import com.faris.kingkits.helper.util.ChatUtilities;
 import com.faris.kingkits.helper.util.ItemUtilities;
 import com.faris.kingkits.helper.util.StringUtilities;
@@ -464,7 +465,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 					ItemStack guiItem = null;
 					if (guiItemMap.containsKey("Type")) {
 						String strType = (guiItemMap.get("Type") != null ? guiItemMap.get("Type") : "").toString();
-						Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType.toUpperCase());
+						Material itemType = Utilities.isNumber(Integer.class, strType) ? BackwardsCompatibility.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType.toUpperCase());
 						if (itemType == null || itemType == Material.AIR) itemType = Material.DIAMOND_SWORD;
 						int itemAmount = getObject(guiItemMap, "Amount", Integer.class, 1);
 						short itemData = getObject(guiItemMap, "Data", Short.class, (short) 0);
@@ -481,7 +482,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 						if (guiItemMap.containsKey("Enchantments")) {
 							Map<String, Object> guiItemEnchantments = getValues(guiItemMap, "Enchantments");
 							for (Map.Entry<String, Object> entrySet : guiItemEnchantments.entrySet()) {
-								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(entrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(entrySet.getKey()));
+								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? BackwardsCompatibility.getEnchantment(Integer.parseInt(entrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(entrySet.getKey()));
 								if (enchantmentType != null) {
 									String enchantmentValue = entrySet.getValue().toString();
 									int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
@@ -518,7 +519,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 								Map<String, Object> kitMap = getValues(entrySet);
 
 								String strType = kitMap.containsKey("Type") ? getObject(kitMap, "Type", String.class) : Material.AIR.toString();
-								Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
+								Material itemType = Utilities.isNumber(Integer.class, strType) ? BackwardsCompatibility.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
 								if (itemType == null) continue;
 								String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
 								int itemAmount = kitMap.containsKey("Amount") ? getObject(kitMap, "Amount", Integer.class) : 1;
@@ -544,7 +545,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 								if (kitMap.containsKey("Enchantments")) {
 									Map<String, Object> guiItemEnchantments = getValues(kitMap, "Enchantments");
 									for (Map.Entry<String, Object> enchantmentEntrySet : guiItemEnchantments.entrySet()) {
-										Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
+										Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? BackwardsCompatibility.getEnchantment(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
 										if (enchantmentType != null) {
 											String enchantmentValue = enchantmentEntrySet.getValue().toString();
 											int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;
@@ -576,7 +577,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 					for (Map.Entry<String, Object> entrySet : armourItemsMap.entrySet()) {
 						Map<String, Object> kitMap = getValues(entrySet);
 						String strType = getObject(kitMap, "Type", String.class);
-						Material itemType = Utilities.isNumber(Integer.class, strType) ? Material.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
+						Material itemType = Utilities.isNumber(Integer.class, strType) ? BackwardsCompatibility.getMaterial(Integer.parseInt(strType)) : Material.getMaterial(strType);
 						if (itemType == null) continue;
 						String itemName = kitMap.containsKey("Name") ? getObject(kitMap, "Name", String.class) : "";
 						String strItemDye = kitMap.containsKey("Dye") ? kitMap.get("Dye").toString() : "-1";
@@ -608,7 +609,7 @@ public class OldKit implements Iterable<ItemStack>, ConfigurationSerializable {
 						if (kitMap.containsKey("Enchantments")) {
 							Map<String, Object> kitArmourEnchantments = getValues(kitMap, "Enchantments");
 							for (Map.Entry<String, Object> enchantmentEntrySet : kitArmourEnchantments.entrySet()) {
-								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? Enchantment.getById(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
+								Enchantment enchantmentType = Utilities.isNumber(Integer.class, entrySet.getKey()) ? BackwardsCompatibility.getEnchantment(Integer.parseInt(enchantmentEntrySet.getKey())) : Enchantment.getByName(Utilities.getEnchantmentName(enchantmentEntrySet.getKey()));
 								if (enchantmentType != null) {
 									String enchantmentValue = enchantmentEntrySet.getValue().toString();
 									int enchantmentLevel = Utilities.isNumber(Integer.class, enchantmentValue) ? Integer.parseInt(enchantmentValue) : 1;

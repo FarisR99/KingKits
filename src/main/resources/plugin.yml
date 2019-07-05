@@ -4,6 +4,7 @@ version: ${project.version}
 description: Have battles with enemies using custom made kits!
 author: KingFaris10
 softdepend: [Vault]
+api-version: 1.13
 commands:
     kingkits:
       description: KingKits plugin command.

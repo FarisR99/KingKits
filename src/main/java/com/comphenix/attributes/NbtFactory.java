@@ -17,6 +17,8 @@
 
 package com.comphenix.attributes;
 
+import com.faris.BackwardsCompatibility;
+import com.faris.kingkits.helper.util.ReflectionUtilities;
 import com.google.common.base.Splitter;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -356,7 +358,11 @@ public class NbtFactory {
 
 				// Prepare NBT
 				COMPOUND_CLASS = getMethod(0, Modifier.STATIC, offlinePlayer, "getData").getReturnType();
-				BASE_CLASS = COMPOUND_CLASS.getSuperclass();
+				if (BackwardsCompatibility.isBeforeV1_13()) {
+					BASE_CLASS = COMPOUND_CLASS.getSuperclass();
+				} else {
+					BASE_CLASS = ReflectionUtilities.getMinecraftClass("NBTBase");
+				}
 				NBT_GET_TYPE = getMethod(0, Modifier.STATIC, BASE_CLASS, "getTypeId");
 				NBT_CREATE_TAG = getMethod(Modifier.STATIC, 0, BASE_CLASS, "createTag", byte.class);
 
@@ -462,7 +468,7 @@ public class NbtFactory {
 	/**
 	 * Load the content of a file from a stream.
 	 * <p>
-	 * Use {@link Files#asByteSource(File)} to provide a stream from a file.
+	 * Use {@link Files#asByteSource(File)} (File)} to provide a stream from a file.
 	 *
 	 * @param stream - the stream supplier.
 	 * @param option - whether or not to decompress the input stream.

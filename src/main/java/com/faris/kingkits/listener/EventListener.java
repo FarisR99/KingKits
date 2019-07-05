@@ -1,5 +1,6 @@
 package com.faris.kingkits.listener;
 
+import com.faris.BackwardsCompatibility;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
@@ -138,7 +139,7 @@ public class EventListener implements Listener {
 								event.setCancelled(true);
 								return;
 							}
-						} else if (event.getItem().getType() == Material.MUSHROOM_SOUP) {
+						} else if (event.getItem().getType() == BackwardsCompatibility.getMushroomSoup()) {
 							if (ConfigController.getInstance().canQuickSoup(player.getWorld())) {
 								if (player.hasPermission(Permissions.SOUP_QUICKSOUP)) {
 									if (Utilities.isPvPWorld(player.getWorld())) {
@@ -508,7 +509,7 @@ public class EventListener implements Listener {
 			final KitPlayer kitPlayer = PlayerController.getInstance().getPlayer(player);
 			if (Utilities.isPvPWorld(player.getWorld()) || (kitPlayer != null && kitPlayer.hasKit())) {
 				if (!ConfigController.getInstance().canDropItems(player.getWorld()) && (!player.hasPermission(Permissions.ADMIN) || ConfigController.getInstance().canAdminsBypass())) {
-					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getTypeId())) {
+					if (!ConfigController.getInstance().getDropAnimationItems(player.getWorld()).contains(event.getItemDrop().getItemStack().getType().getId())) {
 						event.setCancelled(true);
 						final UUID playerUUID = player.getUniqueId();
 						if (this.updateInventoryTasks.containsKey(playerUUID)) {

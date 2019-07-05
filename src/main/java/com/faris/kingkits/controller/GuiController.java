@@ -1,5 +1,6 @@
 package com.faris.kingkits.controller;
 
+import com.faris.BackwardsCompatibility;
 import com.faris.kingkits.KingKits;
 import com.faris.kingkits.Kit;
 import com.faris.kingkits.Messages;
@@ -87,8 +88,8 @@ public class GuiController implements Controller {
 		this.userKitsInventory = Bukkit.getServer().createInventory(null, ConfigController.getInstance().getGuiSize(), StringUtilities.trimString(GuiType.GUI_USER_KITS.getTitle(), 32));
 		this.previewInventory = Bukkit.getServer().createInventory(null, 36 + 9 + 9, GuiType.GUI_PREVIEW_KIT.getTitle());
 
-		this.kitsMenuInventory.setItem(3, ItemUtilities.renameItem(new ItemStack(Material.EMPTY_MAP), Messages.GUI_KITS_MENU_GLOBAL.getMessage()));
-		this.kitsMenuInventory.setItem(5, ItemUtilities.renameItem(new ItemStack(Material.MAP), Messages.GUI_KITS_MENU_USER.getMessage()));
+		this.kitsMenuInventory.setItem(3, ItemUtilities.renameItem(new ItemStack(BackwardsCompatibility.getEmptyMap()), Messages.GUI_KITS_MENU_GLOBAL.getMessage()));
+		this.kitsMenuInventory.setItem(5, ItemUtilities.renameItem(new ItemStack(BackwardsCompatibility.getMap()), Messages.GUI_KITS_MENU_USER.getMessage()));
 
 		this.previewInventory.setItem(this.previewInventory.getSize() - 6, ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "&6Select"));
 		this.previewInventory.setItem(this.previewInventory.getSize() - 4, ItemUtilities.renameItem(new ItemStack(Material.STONE_BUTTON), "&cExit"));
