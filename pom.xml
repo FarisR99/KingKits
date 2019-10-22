@@ -131,8 +131,8 @@
             <url>http://nexus.hc.to/content/repositories/pub_releases/</url>
         </repository>
         <repository>
-            <id>bstats-repo</id>
-            <url>http://repo.bstats.org/content/repositories/releases/</url>
+            <id>CodeMC</id>
+            <url>https://repo.codemc.io/repository/maven-public</url>
         </repository>
     </repositories>
 
@@ -140,7 +140,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.13.1-R0.1-SNAPSHOT</version>
+            <version>1.13.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -152,7 +152,7 @@
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>1.2</version>
+            <version>1.5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
